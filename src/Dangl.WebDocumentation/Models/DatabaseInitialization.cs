@@ -9,7 +9,17 @@ namespace Dangl.WebDocumentation.Models
     {
         public static void Initialize(ApplicationDbContext Context)
         {
-            throw new NotImplementedException();
+            SetUpRoles(Context);
+        }
+
+        private static void SetUpRoles(ApplicationDbContext Context)
+        {
+            // Add Admin role
+            if (Context.Roles.All(Role => Role.Name != "Admin"))
+            {
+                Context.Roles.Add(new Microsoft.AspNet.Identity.EntityFramework.IdentityRole {Name = "Admin"});
+                Context.SaveChanges();
+            }
         }
     }
 }

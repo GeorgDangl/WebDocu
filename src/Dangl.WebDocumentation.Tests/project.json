@@ -21,7 +21,10 @@
   "dependencies": {
     "xunit": "2.2.0-beta1-build3239",
     "xunit.runner.dnx": "2.1.0-rc1-build204",
-    "Dangl.WebDocumentation": ""
+    "Dangl.WebDocumentation": "",
+    "EntityFramework.InMemory": "7.0.0-rc1-final",
+    "EntityFramework.Core": "7.0.0-rc1-final",
+    "EntityFramework.Commands": "7.0.0-rc1-final"
   },
   "commands": {
     "test": "xunit.runner.dnx"
