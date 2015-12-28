@@ -74,6 +74,14 @@ namespace Dangl.WebDocumentation
                 app.UseBrowserLink();
                 app.UseDeveloperExceptionPage();
                 app.UseDatabaseErrorPage();
+                using (var serviceScope = app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope())
+                {
+                    using (var dbContext = serviceScope.ServiceProvider.GetService<ApplicationDbContext>())
+                    {
+                        dbContext.Database.Migrate();
+                        DatabaseInitialization.Initialize(dbContext);
+                    }
+                }
             }
             else
             {
@@ -85,8 +93,11 @@ namespace Dangl.WebDocumentation
                     using (var serviceScope = app.ApplicationServices.GetRequiredService<IServiceScopeFactory>()
                         .CreateScope())
                     {
-                        serviceScope.ServiceProvider.GetService<ApplicationDbContext>()
-                             .Database.Migrate();
+                        using (var dbContext = serviceScope.ServiceProvider.GetService<ApplicationDbContext>())
+                        {
+                            dbContext.Database.Migrate();
+                            DatabaseInitialization.Initialize(dbContext);
+                        }
                     }
                 }
                 catch { }
