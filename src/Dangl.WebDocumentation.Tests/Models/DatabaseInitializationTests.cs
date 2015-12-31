@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using Dangl.WebDocumentation.Models;
+using Microsoft.AspNet.Identity.EntityFramework;
 using Microsoft.Data.Entity;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
@@ -16,7 +17,9 @@ namespace Dangl.WebDocumentation.Tests.Models
                 .AddInMemoryDatabase()
                 .AddDbContext<ApplicationDbContext>(options => options.UseInMemoryDatabase());
 
-            Context = services.BuildServiceProvider().GetService<ApplicationDbContext>();
+            var serviceProvider = services.BuildServiceProvider();
+
+            Context = serviceProvider.GetService<ApplicationDbContext>();
             Context.Database.EnsureCreated();
             DatabaseInitialization.Initialize(Context);
         }
