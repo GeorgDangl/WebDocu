@@ -12,6 +12,8 @@ namespace Dangl.WebDocumentation.Models
 
         public DbSet<DocumentationProject> DocumentationProjects { get; set; }
 
+        public DbSet<UserProjectAccess> UserProjects { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);

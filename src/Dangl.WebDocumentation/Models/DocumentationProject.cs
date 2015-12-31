@@ -9,6 +9,10 @@ namespace Dangl.WebDocumentation.Models
     {
         public Guid Id { get; set; }
         public string Name { get; set; }
+
+        public string PathToIndex { get; set; }
+
+        public bool IsPublic { get; set; }
         
     }
 }
