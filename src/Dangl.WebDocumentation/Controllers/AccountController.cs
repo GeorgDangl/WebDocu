@@ -108,14 +108,9 @@ namespace Dangl.WebDocumentation.Controllers
             if (ModelState.IsValid)
             {
                 var user = new ApplicationUser { UserName = model.Email, Email = model.Email };
-                var result = await _userManager.CreateAsync(user, model.Password);
+                var result = await CreateNewUser(user, model);
                 if (result.Succeeded)
                 {
-                    // Add user to admin role if it's the first registered user
-                    if (Context.Users.Count() == 1)
-                    {
-                        await _userManager.AddToRoleAsync(user, "Admin");
-                    }
                     // For more information on how to enable account confirmation and password reset please visit http://go.microsoft.com/fwlink/?LinkID=532713
                     // Send an email with this link
                     //var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
@@ -131,6 +126,20 @@ namespace Dangl.WebDocumentation.Controllers
 
             // If we got this far, something failed, redisplay form
             return View(model);
+        }
+
+        public async Task<IdentityResult> CreateNewUser(ApplicationUser user, RegisterViewModel model)
+        {
+            var result = await _userManager.CreateAsync(user, model.Password);
+            if (result.Succeeded)
+            {
+                // Add user to admin role if it's the first registered user
+                if (Context.Users.Count() == 1)
+                {
+                    await _userManager.AddToRoleAsync(user, "Admin");
+                }
+            }
+            return result;
         }
 
         //
