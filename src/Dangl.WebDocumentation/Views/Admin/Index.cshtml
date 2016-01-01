@@ -1,0 +1,18 @@
+﻿@model Dangl.WebDocumentation.ViewModels.Admin.IndexViewModel
+
+<h1>Admin Section</h1>
+
+<p>
+    <a asp-action="CreateProject">Create a new project</a>
+</p>
+
+
+@{
+    foreach (var project in Model.Projects)
+    {
+        <p>@project.Name</p>
+        <p>@project.PathToIndex</p>
+    }
+}
+
+<!-- Add new projects -->

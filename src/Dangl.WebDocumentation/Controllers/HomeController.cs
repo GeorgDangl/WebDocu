@@ -8,6 +8,7 @@ using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Authorization;
 using Microsoft.Extensions.Logging;
 using System.Security.Claims;
+using Dangl.WebDocumentation.ViewModels.Home;
 
 namespace Dangl.WebDocumentation.Controllers
 {
@@ -24,20 +25,23 @@ namespace Dangl.WebDocumentation.Controllers
         public IActionResult Index()
         {
             // Get a list of all projects that the user has access to
-            var accessibleProjects = Context.DocumentationProjects.Where(Project => Project.IsPublic);   // Show all public projects
+            var accessibleProjects = Context.DocumentationProjects.Where(Project => Project.IsPublic).ToList();   // Show all public projects
 
             var userId = HttpContext.User.GetUserId();
 
             if (!string.IsNullOrWhiteSpace(userId))
             {
-                accessibleProjects = accessibleProjects.Union(Context.UserProjects.Where(Assignment => Assignment.UserId == userId).Select(Assignment => Assignment.Project));
+                var projectsWithUserAccess = Context.UserProjects.Where(Assignment => Assignment.UserId == userId).Select(Assignment => Assignment.Project).ToList();
+                accessibleProjects = accessibleProjects.Union(projectsWithUserAccess).ToList();
             }                         
 
-            // Not done, but now we gotta celebrate New Year=)
-            throw new NotImplementedException();
-
-            var model = new Dangl.WebDocumentation.ViewModels.Home.IndexViewModel();
-            return View();
+            var model = new IndexViewModel();
+            model.Projects = accessibleProjects.ToList();
+            foreach (var FoundProject in model.Projects)
+            {
+                FoundProject.ToString();
+            }
+            return View(model);
         }
 
 
