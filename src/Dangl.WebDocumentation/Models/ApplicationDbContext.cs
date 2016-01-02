@@ -19,7 +19,7 @@ namespace Dangl.WebDocumentation.Models
             base.OnModelCreating(builder);
 
             builder.Entity<UserProjectAccess>()
-                .HasAlternateKey(Entity => Entity.ProjectId);
+                .HasKey(Entity => new {Entity.ProjectId, Entity.UserId});
 
             builder.Entity<UserProjectAccess>()
                 .HasOne(Entity => Entity.Project)

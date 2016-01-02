@@ -8,9 +8,10 @@ using Dangl.WebDocumentation.Models;
 namespace Dangl.WebDocumentation.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20160102162547_ApiKeyForProject")]
+    partial class ApiKeyForProject
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
             modelBuilder
                 .HasAnnotation("ProductVersion", "7.0.0-rc1-16348")
@@ -81,11 +82,13 @@ namespace Dangl.WebDocumentation.Migrations
 
             modelBuilder.Entity("Dangl.WebDocumentation.Models.UserProjectAccess", b =>
                 {
-                    b.Property<string>("ProjectId");
-
                     b.Property<string>("UserId");
 
-                    b.HasKey("ProjectId", "UserId");
+                    b.Property<string>("ProjectId");
+
+                    b.HasKey("UserId");
+
+                    b.HasAlternateKey("ProjectId");
                 });
 
             modelBuilder.Entity("Microsoft.AspNet.Identity.EntityFramework.IdentityRole", b =>

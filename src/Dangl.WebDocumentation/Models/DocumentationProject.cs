@@ -9,6 +9,11 @@ namespace Dangl.WebDocumentation.Models
     public class DocumentationProject
     {
 
+        public DocumentationProject()
+        {
+            ApiKey = Guid.NewGuid().ToString().Replace("-", string.Empty).ToUpperInvariant();
+        }
+
         [Key]
         public string Name { get; set; }
 
@@ -19,5 +24,7 @@ namespace Dangl.WebDocumentation.Models
         public Guid FolderGuid { get; set; }
 
         public virtual ICollection<UserProjectAccess> UserAccess { get; set; }
+
+        public string ApiKey { get; set; }
     }
 }

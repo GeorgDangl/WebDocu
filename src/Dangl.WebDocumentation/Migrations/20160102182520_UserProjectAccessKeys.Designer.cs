@@ -8,9 +8,10 @@ using Dangl.WebDocumentation.Models;
 namespace Dangl.WebDocumentation.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20160102182520_UserProjectAccessKeys")]
+    partial class UserProjectAccessKeys
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
             modelBuilder
                 .HasAnnotation("ProductVersion", "7.0.0-rc1-16348")

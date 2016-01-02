@@ -9,7 +9,6 @@ namespace Dangl.WebDocumentation.Models
 {
     public class UserProjectAccess
     {
-        [Key]
         public string UserId { get; set; }
 
         [ForeignKey(nameof(UserId))]
