@@ -1,11 +1,16 @@
 ﻿@model Dangl.WebDocumentation.ViewModels.Home.IndexViewModel
 
 <h1>Projects</h1>
-
-@{
-    foreach (var project in Model.Projects)
-    {
-        <p>@project.Name</p>
-        <p>@project.PathToIndex</p>
-    }
-}
+<table class="table">
+    <tbody>
+        @{
+            foreach (var project in Model.Projects)
+            {
+                <tr>
+                    <td>@project.Name</td>
+                    <td><a asp-controller="Projects" asp-action="GetFile" asp-route-ProjectName="@project.Name" asp-route-PathToFile="@project.PathToIndex">View</a></td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>

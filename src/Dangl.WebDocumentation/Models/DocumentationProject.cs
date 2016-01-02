@@ -17,5 +17,7 @@ namespace Dangl.WebDocumentation.Models
         public bool IsPublic { get; set; }
 
         public Guid FolderGuid { get; set; }
+
+        public virtual ICollection<UserProjectAccess> UserAccess { get; set; }
     }
 }

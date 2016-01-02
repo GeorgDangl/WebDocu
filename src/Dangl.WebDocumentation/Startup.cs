@@ -74,6 +74,7 @@ namespace Dangl.WebDocumentation
                 app.UseBrowserLink();
                 app.UseDeveloperExceptionPage();
                 app.UseDatabaseErrorPage();
+                app.UseStatusCodePages();
                 using (var serviceScope = app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope())
                 {
                     using (var dbContext = serviceScope.ServiceProvider.GetService<ApplicationDbContext>())
@@ -108,6 +109,7 @@ namespace Dangl.WebDocumentation
             app.UseApplicationInsightsExceptionTelemetry();
 
             app.UseStaticFiles();
+
 
             app.UseIdentity();
 

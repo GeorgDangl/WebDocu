@@ -41,7 +41,9 @@ namespace Dangl.WebDocumentation.Controllers
                 return HttpNotFound();
             }
 
+                return HttpNotFound();
             throw new NotImplementedException();
+
 
             //return File()
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -12,6 +13,8 @@ using Microsoft.Extensions.Logging;
 using Dangl.WebDocumentation.Models;
 using Dangl.WebDocumentation.Services;
 using Dangl.WebDocumentation.ViewModels.Admin;
+using Microsoft.AspNet.Hosting;
+using Microsoft.Extensions.PlatformAbstractions;
 
 namespace Dangl.WebDocumentation.Controllers
 {
@@ -20,30 +23,19 @@ namespace Dangl.WebDocumentation.Controllers
     {
         private ApplicationDbContext Context { get; }
 
-        public AdminController(ApplicationDbContext context)
+        private IHostingEnvironment HostingEnvironment { get; }
+
+        public AdminController(ApplicationDbContext context, IHostingEnvironment hostingEnvironment)
         {
             Context = context;
+            HostingEnvironment = hostingEnvironment;
         }
 
         public IActionResult Index()
         {
-            // Get a list of all projects that the user has access to
-            var projects = Context.DocumentationProjects;
             var model = new IndexViewModel();
-            model.Projects = projects;
+            model.Projects = Context.DocumentationProjects.OrderBy(Project => Project.Name);
             return View(model);
-            //var accessibleProjects = Context.DocumentationProjects.Where(Project => Project.IsPublic);   // Show all public projects
-
-            //var userId = HttpContext.User.GetUserId();
-
-            //if (!string.IsNullOrWhiteSpace(userId))
-            //{
-            //    accessibleProjects = accessibleProjects.Union(Context.UserProjects.Where(Assignment => Assignment.UserId == userId).Select(Assignment => Assignment.Project));
-            //}
-
-            //var model = new IndexViewModel();
-            //model.Projects = accessibleProjects;
-            //return View();
         }
 
         public IActionResult CreateProject()
@@ -85,13 +77,61 @@ namespace Dangl.WebDocumentation.Controllers
                 }
                 Context.SaveChanges();
             }
-            return RedirectToAction(nameof(EditProject));
+            return RedirectToAction(nameof(Index));
         }
 
+        [Route("EditProject/{ProjectName}")]
         public IActionResult EditProject(string ProjectName)
         {
             throw new NotImplementedException();
         }
 
+        [HttpGet]
+        [Route("DeleteProject/{ProjectName}")]
+        public IActionResult DeleteProject(string ProjectName)
+        {
+            var model = new DeleteProjectViewModel();
+            model.ProjectName = ProjectName;
+            return View(model);
+        }
+
+        [HttpPost]
+        [Route("DeleteProject/{ProjectName}")]
+        public IActionResult DeleteProject(string ProjectName, DeleteProjectViewModel model)
+        {
+            if (!model.ConfirmDelete)
+            {
+                ModelState.AddModelError(nameof(model.ConfirmDelete), "Please confirm the deletion by checking the checkbox.");
+            }
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+            var documentationProject = Context.DocumentationProjects.FirstOrDefault(Project => Project.Name == model.ProjectName);
+            if (documentationProject == null)
+            {
+                return HttpNotFound();
+            }
+            if (documentationProject.FolderGuid != Guid.Empty)
+            {
+                // Check if physical files present and if yes, delete them
+                var physicalDirectory = HostingEnvironment.MapPath("App_Data/" + documentationProject.FolderGuid);
+                if (Directory.Exists(physicalDirectory))
+                {
+                    Directory.Delete(physicalDirectory);
+                }
+            }
+            Context.DocumentationProjects.Remove(documentationProject);
+            Context.SaveChanges();
+            return RedirectToAction(nameof(DeleteProjectConfirmed), new {ProjectName= model.ProjectName});
+        }
+
+        [HttpGet]
+        [Route("DeleteProjectConfirmed/{ProjectName}")]
+        public IActionResult DeleteProjectConfirmed(string ProjectName)
+        {
+            ViewBag.ProjectName = ProjectName;
+            return View();
+        }
     }
 }

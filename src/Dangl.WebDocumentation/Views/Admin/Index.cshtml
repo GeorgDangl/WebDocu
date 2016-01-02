@@ -6,13 +6,23 @@
     <a asp-action="CreateProject">Create a new project</a>
 </p>
 
-
+<table class="table">
+    <tbody>
+    @{
+        foreach (var project in Model.Projects)
+        {
+            <tr>
+                <td>@project.Name</td>
+                <td><a asp-action="EditProject" asp-route-ProjectName="@project.Name">Edit</a></td>
+                <td><a asp-action="DeleteProject" asp-route-ProjectName="@project.Name">Delete</a></td>
+            </tr>
+        }
+    }
+    </tbody>
+</table>
 @{
-    foreach (var project in Model.Projects)
+    if (!Model.Projects.Any())
     {
-        <p>@project.Name</p>
-        <p>@project.PathToIndex</p>
+        <h3>No projects configured</h3>
     }
 }
-
-<!-- Add new projects -->
