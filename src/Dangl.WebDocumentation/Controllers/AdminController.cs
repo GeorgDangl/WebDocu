@@ -267,5 +267,70 @@ namespace Dangl.WebDocumentation.Controllers
             ViewBag.SuccessMessage = $"Deleted project {documentationProject.Name}.";
             return RedirectToAction(nameof(Index));
         }
+
+        public IActionResult ManageUsers()
+        {
+            var adminRoleId = Context.Roles.FirstOrDefault(Role => Role.Name == "Admin").Id;
+            var model = new ManageUsersViewModel();
+            model.Users = Context.Users.Select(User => new UserAdminRole {Name = User.Email, IsAdmin = User.Roles.Any(Role => Role.RoleId == adminRoleId)});
+            return View(model);
+        }
+
+        [HttpPost]
+        public IActionResult ManageUsers(IEnumerable<string> AdminUsers)
+        {
+            var adminRoleId = Context.Roles.FirstOrDefault(Role => Role.Name == "Admin").Id;
+            var adminRoles = Context.UserRoles.Where(Role => Role.RoleId == adminRoleId);
+
+            // New users
+            var newAdminUsers = 
+
+
+
+
+
+
+
+
+
+
+
+            var adminUsers = Context.Users.Where(User => adminRoles.Select(Role => Role.UserId).Contains(User.Id));
+
+            var newAdmins = AdminUsers.Where(NewUser => !adminUsers.Select(OldAdmin => OldAdmin.Email).Contains(NewUser));
+            foreach (var newAdmin in newAdmins)
+            {
+                Context.Roles.Add
+            }
+
+
+
+
+
+
+
+
+
+            // Delete admin users
+            Context.Roles.RemoveRange(adminUsers.Where(OldAdmin => AdminUsers.Contains(OldAdmin.Email)).Select(Curr => Curr.Roles.FirstOrDefault(Role => Role.RoleId == adminRoleId)));
+
+
+
+            // Add new users
+
+
+
+
+
+
+            var usersToAdd = AdminUsers.Where(AdminUser => adminRoles.All(Role => Role.UserId != Context.Users.FirstOrDefault(User => User.Email != AdminUser).));
+
+
+
+            ViewBag.SuccessMessage = "Updated users.";
+            var model = new ManageUsersViewModel();
+            model.Users = Context.Users.Select(User => new UserAdminRole {Name = User.Email, IsAdmin = User.Roles.Any(Role => Role.RoleId == adminRoleId)});
+            return View(model);
+        }
     }
 }

@@ -2,28 +2,34 @@
 
 <h1>Admin Section</h1>
 
+<h3>Projects</h3>
 <p>
     <a asp-action="CreateProject">Create a new project</a>
 </p>
-
-<table class="table">
-    <tbody>
-    @{
-        foreach (var project in Model.Projects)
-        {
-            <tr>
-                <td>@project.Name</td>
-                <td><a asp-action="EditProject" asp-route-ProjectId="@project.Id">Edit</a></td>
-                <td><a asp-action="DeleteProject" asp-route-ProjectId="@project.Id">Delete</a></td>
-                <td><a asp-action="UploadProject" asp-route-ProjectId="@project.Id">Upload Package</a></td>
-            </tr>
-        }
-    }
-    </tbody>
-</table>
 @{
     if (!Model.Projects.Any())
     {
         <h3>No projects configured</h3>
     }
+    else
+    {
+        <table class="table">
+            <tbody>
+            @{
+                foreach (var project in Model.Projects)
+                {
+                    <tr>
+                        <td>@project.Name</td>
+                        <td><a asp-action="EditProject" asp-route-ProjectId="@project.Id">Edit</a></td>
+                        <td><a asp-action="DeleteProject" asp-route-ProjectId="@project.Id">Delete</a></td>
+                        <td><a asp-action="UploadProject" asp-route-ProjectId="@project.Id">Upload Package</a></td>
+                    </tr>
+                }
+            }
+            </tbody>
+        </table>
+    }
 }
+
+<h3>Users</h3>
+<a asp-action="ManageUsers">Manage users</a>
