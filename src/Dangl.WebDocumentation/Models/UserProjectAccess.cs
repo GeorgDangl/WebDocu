@@ -14,7 +14,7 @@ namespace Dangl.WebDocumentation.Models
         [ForeignKey(nameof(UserId))]
         public virtual ApplicationUser User { get; set; }
 
-        public string ProjectId { get; set; }
+        public Guid ProjectId { get; set; }
 
         [ForeignKey(nameof(ProjectId))]
         public virtual DocumentationProject Project { get; set; }

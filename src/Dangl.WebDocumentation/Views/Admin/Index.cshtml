@@ -13,9 +13,9 @@
         {
             <tr>
                 <td>@project.Name</td>
-                <td><a asp-action="EditProject" asp-route-ProjectName="@project.Name">Edit</a></td>
-                <td><a asp-action="DeleteProject" asp-route-ProjectName="@project.Name">Delete</a></td>
-                <td><a asp-action="UploadProject" asp-route-ProjectName="@project.Name">Upload Package</a></td>
+                <td><a asp-action="EditProject" asp-route-ProjectId="@project.Id">Edit</a></td>
+                <td><a asp-action="DeleteProject" asp-route-ProjectId="@project.Id">Delete</a></td>
+                <td><a asp-action="UploadProject" asp-route-ProjectId="@project.Id">Upload Package</a></td>
             </tr>
         }
     }

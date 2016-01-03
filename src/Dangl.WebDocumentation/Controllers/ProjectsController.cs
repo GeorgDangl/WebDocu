@@ -34,14 +34,14 @@ namespace Dangl.WebDocumentation.Controllers
         public IActionResult GetFile(string ProjectName, string PathToFile)
         {
             var userId = User.GetUserId();
-
-
+            // Find only public projects or projects where the user has access to (if logged in)
             var project = (from Project in Context.DocumentationProjects
                 where Project.Name.ToUpper() == ProjectName.ToUpper()
-                      && Project.IsPublic || (!string.IsNullOrWhiteSpace(userId) && Context.UserProjects.Any(ProjectAccess => ProjectAccess.UserId == userId && ProjectAccess.ProjectId == Project.Name)) 
+                      && Project.IsPublic || (!string.IsNullOrWhiteSpace(userId) && Context.UserProjects.Any(ProjectAccess => ProjectAccess.UserId == userId && ProjectAccess.ProjectId == Project.Id)) 
                       select Project).FirstOrDefault();
             if (project == null)
             {
+                // HttpNotFound for either the project not existing or the user not having access
                 return HttpNotFound();
             }
             var projectFolder = HostingEnvironment.MapPath("App_Data/" + project.FolderGuid);
@@ -50,16 +50,13 @@ namespace Dangl.WebDocumentation.Controllers
             {
                 return HttpNotFound();
             }
-
             string mimeType;
             if (!(new Microsoft.AspNet.StaticFiles.FileExtensionContentTypeProvider().TryGetContentType(filePath, out mimeType)))
             {
                 mimeType = "application/octet-stream";
             }
-
             var fileData = System.IO.File.ReadAllBytes(filePath);
-                return File(fileData, mimeType);
+            return File(fileData, mimeType);
         }
-
     }
 }

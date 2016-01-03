@@ -72,7 +72,7 @@ namespace Dangl.WebDocumentation.Controllers
                 {
                     Context.UserProjects.Add(new UserProjectAccess
                     {
-                        ProjectId = projectToAdd.Name,
+                        ProjectId = projectToAdd.Id,
                         UserId = currentUser.Id
                     });
                 }
@@ -82,15 +82,15 @@ namespace Dangl.WebDocumentation.Controllers
         }
 
         [HttpGet]
-        [Route("EditProject/{ProjectName}")]
-        public IActionResult EditProject(string ProjectName)
+        [Route("EditProject/{ProjectId}")]
+        public IActionResult EditProject(Guid ProjectId)
         {
-            var project = Context.DocumentationProjects.FirstOrDefault(Curr => Curr.Name.ToUpper() == ProjectName.ToUpper());
+            var project = Context.DocumentationProjects.FirstOrDefault(Curr => Curr.Id == ProjectId);
             if (project == null)
             {
                 return HttpNotFound();
             }
-            var usersWithAccess = Context.UserProjects.Where(Assignment => Assignment.ProjectId == project.Name).Select(Assignment => Assignment.User.Email).ToList();
+            var usersWithAccess = Context.UserProjects.Where(Assignment => Assignment.ProjectId == project.Id).Select(Assignment => Assignment.User.Email).ToList();
             var usersWithoutAccess = Context.Users.Select(CurrentUser => CurrentUser.Email).Where(CurrentUser => !usersWithAccess.Contains(CurrentUser)).ToList();
 
             var model = new EditProjectViewModel();
@@ -104,14 +104,14 @@ namespace Dangl.WebDocumentation.Controllers
         }
 
         [HttpPost]
-        [Route("EditProject/{ProjectName}")]
-        public IActionResult EditProject(string ProjectName, EditProjectViewModel model, List<string> SelectedUsers)
+        [Route("EditProject/{ProjectId}")]
+        public IActionResult EditProject(Guid ProjectId, EditProjectViewModel model, List<string> SelectedUsers)
         {
             if (!ModelState.IsValid)
             {
                 return View(model);
             }
-            var databaseProject = Context.DocumentationProjects.FirstOrDefault(Project => Project.Name == ProjectName);
+            var databaseProject = Context.DocumentationProjects.FirstOrDefault(Project => Project.Id == ProjectId);
             if (databaseProject == null)
             {
                 return HttpNotFound();
@@ -130,16 +130,16 @@ namespace Dangl.WebDocumentation.Controllers
             var usersToAdd = selectedUsersIds.Where(CurrentId => Context.UserProjects.All(Assignment => Assignment.UserId != CurrentId));
             foreach (var newUserId in usersToAdd)
             {
-                Context.UserProjects.Add(new UserProjectAccess {UserId = newUserId, ProjectId = databaseProject.Name});
+                Context.UserProjects.Add(new UserProjectAccess {UserId = newUserId, ProjectId = databaseProject.Id});
             }
 
             // Remove users that no longer have access
-            var usersToRemove = Context.UserProjects.Where(Assignment => Assignment.ProjectId == databaseProject.Name).Where(Assignment => !selectedUsersIds.Contains(Assignment.UserId));
+            var usersToRemove = Context.UserProjects.Where(Assignment => Assignment.ProjectId == databaseProject.Id).Where(Assignment => !selectedUsersIds.Contains(Assignment.UserId));
             Context.UserProjects.RemoveRange(usersToRemove);
 
             Context.SaveChanges();
 
-            var usersWithAccess = Context.UserProjects.Where(Assignment => Assignment.ProjectId == databaseProject.Name).Select(Assignment => Assignment.User.Email).ToList();
+            var usersWithAccess = Context.UserProjects.Where(Assignment => Assignment.ProjectId == databaseProject.Id).Select(Assignment => Assignment.User.Email).ToList();
             var usersWithoutAccess = Context.Users.Select(CurrentUser => CurrentUser.Email).Where(CurrentUser => !usersWithAccess.Contains(CurrentUser)).ToList();
             model.UsersWithAccess = usersWithAccess;
             model.AvailableUsers = usersWithoutAccess;
@@ -150,22 +150,22 @@ namespace Dangl.WebDocumentation.Controllers
         }
 
         [HttpGet]
-        [Route("UploadProject/{ProjectName}")]
-        public IActionResult UploadProject(string ProjectName)
+        [Route("UploadProject/{ProjectId}")]
+        public IActionResult UploadProject(Guid ProjectId)
         {
             return View();
         }
 
         [HttpPost]
-        [Route("UploadProject/{ProjectName}")]
-        public IActionResult UploadProject(string ProjectName, IFormFile projectPackage)
+        [Route("UploadProject/{ProjectId}")]
+        public IActionResult UploadProject(Guid ProjectId, IFormFile projectPackage)
         {
             if (projectPackage == null)
             {
                 ModelState.AddModelError("", "Please select a file to upload.");
                 return View();
             }
-            var projectEntry = Context.DocumentationProjects.FirstOrDefault(Project => Project.Name == ProjectName);
+            var projectEntry = Context.DocumentationProjects.FirstOrDefault(Project => Project.Id == ProjectId);
             if (projectEntry == null)
             {
                 return HttpNotFound();
@@ -222,17 +222,22 @@ namespace Dangl.WebDocumentation.Controllers
         }
 
         [HttpGet]
-        [Route("DeleteProject/{ProjectName}")]
-        public IActionResult DeleteProject(string ProjectName)
+        [Route("DeleteProject/{ProjectId}")]
+        public IActionResult DeleteProject(Guid ProjectId)
         {
+            var project = Context.DocumentationProjects.FirstOrDefault(Project => Project.Id == ProjectId);
+            if (project == null)
+            {
+                return HttpNotFound();
+            }
             var model = new DeleteProjectViewModel();
-            model.ProjectName = ProjectName;
+            model.ProjectName = project.Name;
             return View(model);
         }
 
         [HttpPost]
-        [Route("DeleteProject/{ProjectName}")]
-        public IActionResult DeleteProject(string ProjectName, DeleteProjectViewModel model)
+        [Route("DeleteProject/{ProjectId}")]
+        public IActionResult DeleteProject(Guid ProjectId, DeleteProjectViewModel model)
         {
             if (!model.ConfirmDelete)
             {
@@ -258,15 +263,8 @@ namespace Dangl.WebDocumentation.Controllers
             }
             Context.DocumentationProjects.Remove(documentationProject);
             Context.SaveChanges();
-            return RedirectToAction(nameof(DeleteProjectConfirmed), new {ProjectName= model.ProjectName});
-        }
-
-        [HttpGet]
-        [Route("DeleteProjectConfirmed/{ProjectName}")]
-        public IActionResult DeleteProjectConfirmed(string ProjectName)
-        {
-            ViewBag.ProjectName = ProjectName;
-            return View();
+            ViewBag.SuccessMessage = $"Deleted project {documentationProject.Name}.";
+            return RedirectToAction(nameof(Index));
         }
     }
 }
