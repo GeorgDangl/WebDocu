@@ -8,8 +8,8 @@ using Dangl.WebDocumentation.Models;
 namespace Dangl.WebDocumentation.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20160103012149_ProjectIdInUserProject")]
-    partial class ProjectIdInUserProject
+    [Migration("20160103013145_Initial")]
+    partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
