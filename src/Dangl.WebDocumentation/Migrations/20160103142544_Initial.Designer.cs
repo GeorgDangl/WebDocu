@@ -8,7 +8,7 @@ using Dangl.WebDocumentation.Models;
 namespace Dangl.WebDocumentation.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20160103013145_Initial")]
+    [Migration("20160103142544_Initial")]
     partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -70,18 +70,25 @@ namespace Dangl.WebDocumentation.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<string>("ApiKey");
+                    b.Property<string>("ApiKey")
+                        .IsRequired()
+                        .HasAnnotation("MaxLength", 32);
 
                     b.Property<Guid>("FolderGuid");
 
                     b.Property<bool>("IsPublic");
 
                     b.Property<string>("Name")
+                        .IsRequired()
                         .HasAnnotation("MaxLength", 60);
 
-                    b.Property<string>("PathToIndex");
+                    b.Property<string>("PathToIndex")
+                        .IsRequired();
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ApiKey")
+                        .IsUnique();
 
                     b.HasIndex("Name")
                         .IsUnique();

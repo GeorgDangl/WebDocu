@@ -21,7 +21,13 @@ namespace Dangl.WebDocumentation.Models
             builder.Entity<DocumentationProject>()
                 .HasIndex(Entity => Entity.Name)
                 .IsUnique();
-                
+
+            builder.Entity<DocumentationProject>()
+                .HasIndex(Entity => Entity.ApiKey)
+                .IsUnique();
+
+            //builder.Entity<DocumentationProject>()
+            //    .HasKey(Entity => Entity.Id);
 
             builder.Entity<UserProjectAccess>()
                 .HasKey(Entity => new {Entity.ProjectId, Entity.UserId});

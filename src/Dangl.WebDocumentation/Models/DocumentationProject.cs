@@ -18,10 +18,10 @@ namespace Dangl.WebDocumentation.Models
         public Guid Id { get; set; }
 
         // TODO max length
-        [MaxLength(60, ErrorMessage ="Project name may not exceed 60 characters")]
+        [MaxLength(60, ErrorMessage ="Project name may not exceed 60 characters"), Required]
         public string Name { get; set; }
 
-        [Display(Name="Path to start page")]
+        [Display(Name="Path to start page"), Required]
         public string PathToIndex { get; set; }
 
         public bool IsPublic { get; set; }
@@ -30,6 +30,7 @@ namespace Dangl.WebDocumentation.Models
 
         public virtual ICollection<UserProjectAccess> UserAccess { get; set; }
 
+        [Required, MaxLength(32)]
         public string ApiKey { get; set; }
     }
 }

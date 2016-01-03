@@ -232,6 +232,7 @@ namespace Dangl.WebDocumentation.Controllers
             }
             var model = new DeleteProjectViewModel();
             model.ProjectName = project.Name;
+            model.ProjectId = project.Id;
             return View(model);
         }
 
@@ -247,7 +248,7 @@ namespace Dangl.WebDocumentation.Controllers
             {
                 return View(model);
             }
-            var documentationProject = Context.DocumentationProjects.FirstOrDefault(Project => Project.Name == model.ProjectName);
+            var documentationProject = Context.DocumentationProjects.FirstOrDefault(Project => Project.Id == model.ProjectId);
             if (documentationProject == null)
             {
                 return HttpNotFound();

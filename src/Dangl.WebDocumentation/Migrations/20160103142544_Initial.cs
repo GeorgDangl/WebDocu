@@ -18,11 +18,11 @@ namespace Dangl.WebDocumentation.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(nullable: false),
-                    ApiKey = table.Column<string>(nullable: true),
+                    ApiKey = table.Column<string>(nullable: false),
                     FolderGuid = table.Column<Guid>(nullable: false),
                     IsPublic = table.Column<bool>(nullable: false),
-                    Name = table.Column<string>(nullable: true),
-                    PathToIndex = table.Column<string>(nullable: true)
+                    Name = table.Column<string>(nullable: false),
+                    PathToIndex = table.Column<string>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -63,6 +63,11 @@ namespace Dangl.WebDocumentation.Migrations
                 name: "RoleId",
                 table: "AspNetRoleClaims",
                 nullable: false);
+            migrationBuilder.CreateIndex(
+                name: "IX_DocumentationProject_ApiKey",
+                table: "DocumentationProject",
+                column: "ApiKey",
+                unique: true);
             migrationBuilder.CreateIndex(
                 name: "IX_DocumentationProject_Name",
                 table: "DocumentationProject",

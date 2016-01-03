@@ -1,16 +1,25 @@
 ﻿@model Dangl.WebDocumentation.ViewModels.Home.IndexViewModel
 
 <h1>Projects</h1>
-<table class="table">
-    <tbody>
-        @{
-            foreach (var project in Model.Projects)
-            {
-                <tr>
-                    <td>@project.Name</td>
-                    <td><a asp-controller="Projects" asp-action="GetFile" asp-route-ProjectName="@project.Name" asp-route-PathToFile="@project.PathToIndex">View</a></td>
-                </tr>
+@{
+    if (!Model.Projects.Any())
+    {
+        <h3>No projects configured.</h3>
+    }
+    else
+    {
+        <table class="table">
+            <tbody>
+            @{
+                foreach (var project in Model.Projects)
+                {
+                    <tr>
+                        <td>@project.Name</td>
+                        <td><a asp-controller="Projects" asp-action="GetFile" asp-route-ProjectName="@project.Name" asp-route-PathToFile="@project.PathToIndex">View</a></td>
+                    </tr>
+                }
             }
-        }
-    </tbody>
-</table>
+            </tbody>
+        </table>
+    }
+}
