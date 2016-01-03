@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -12,6 +13,7 @@ using Microsoft.Extensions.Logging;
 using Dangl.WebDocumentation.Models;
 using Dangl.WebDocumentation.Services;
 using Dangl.WebDocumentation.ViewModels.Account;
+using Microsoft.AspNet.Hosting;
 
 namespace Dangl.WebDocumentation.Controllers
 {
@@ -19,35 +21,44 @@ namespace Dangl.WebDocumentation.Controllers
     public class ProjectsController : Controller
     {
         private ApplicationDbContext Context { get; }
+        private IHostingEnvironment HostingEnvironment { get; }
 
-        public ProjectsController(ApplicationDbContext context)
+        public ProjectsController(ApplicationDbContext context, IHostingEnvironment hostingEnvironment)
         {
             Context = context;
+            HostingEnvironment = hostingEnvironment;
         }
 
         [HttpGet]
-        [Route("Projects/{ProjectName}/{PathToFile}")]
+        [Route("Projects/{ProjectName}/{*PathToFile}")]
         public IActionResult GetFile(string ProjectName, string PathToFile)
         {
             var userId = User.GetUserId();
 
 
-            var projectAccess = (from Project in Context.DocumentationProjects
+            var project = (from Project in Context.DocumentationProjects
                 where Project.Name.ToUpper() == ProjectName.ToUpper()
                       && Project.IsPublic || (!string.IsNullOrWhiteSpace(userId) && Context.UserProjects.Any(ProjectAccess => ProjectAccess.UserId == userId && ProjectAccess.ProjectId == Project.Name)) 
                       select Project).FirstOrDefault();
-            if (projectAccess == null)
+            if (project == null)
+            {
+                return HttpNotFound();
+            }
+            var projectFolder = HostingEnvironment.MapPath("App_Data/" + project.FolderGuid);
+            var filePath = Path.Combine(projectFolder, PathToFile);
+            if (!System.IO.File.Exists(filePath))
             {
                 return HttpNotFound();
             }
 
-                return HttpNotFound();
-            throw new NotImplementedException();
+            string mimeType;
+            if (!(new Microsoft.AspNet.StaticFiles.FileExtensionContentTypeProvider().TryGetContentType(filePath, out mimeType)))
+            {
+                mimeType = "application/octet-stream";
+            }
 
-
-            //return File()
-
-
+            var fileData = System.IO.File.ReadAllBytes(filePath);
+                return File(fileData, mimeType);
         }
 
     }

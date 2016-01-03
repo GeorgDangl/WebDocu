@@ -14,6 +14,7 @@ using Dangl.WebDocumentation.Models;
 using Dangl.WebDocumentation.Services;
 using Dangl.WebDocumentation.ViewModels.Admin;
 using Microsoft.AspNet.Hosting;
+using Microsoft.AspNet.Http;
 using Microsoft.Extensions.PlatformAbstractions;
 
 namespace Dangl.WebDocumentation.Controllers
@@ -149,6 +150,78 @@ namespace Dangl.WebDocumentation.Controllers
         }
 
         [HttpGet]
+        [Route("UploadProject/{ProjectName}")]
+        public IActionResult UploadProject(string ProjectName)
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [Route("UploadProject/{ProjectName}")]
+        public IActionResult UploadProject(string ProjectName, IFormFile projectPackage)
+        {
+            if (projectPackage == null)
+            {
+                ModelState.AddModelError("", "Please select a file to upload.");
+                return View();
+            }
+            var projectEntry = Context.DocumentationProjects.FirstOrDefault(Project => Project.Name == ProjectName);
+            if (projectEntry == null)
+            {
+                return HttpNotFound();
+            }
+            // Try to read as zip file
+            using (var inputStream = projectPackage.OpenReadStream())
+            {
+                try
+                {
+                    using (var archive = new System.IO.Compression.ZipArchive(inputStream))
+                    {
+                        // Generate a Guid under which to store the upload
+                        var rootFolder = Guid.NewGuid();
+                        var physicalDirectory = HostingEnvironment.MapPath("App_Data/" + rootFolder);
+                        Directory.CreateDirectory(physicalDirectory);
+                        foreach (var fileEntry in archive.Entries)
+                        {
+                            var neededPath = new FileInfo(Path.Combine(physicalDirectory, fileEntry.FullName)).Directory.FullName;
+                            if (!Directory.Exists(neededPath))
+                            {
+                                Directory.CreateDirectory(neededPath);
+                            }
+                            // Copy only when it's a file and not a folder
+                            if (fileEntry.Length > 0)
+                            {
+                                using (var currentEntryStream = fileEntry.Open())
+                                {
+                                    using (var fileStream = System.IO.File.Create(Path.Combine(neededPath, fileEntry.Name)))
+                                    {
+                                        currentEntryStream.CopyTo(fileStream);
+                                    }
+                                }
+                            }
+                        }
+                        // Delete previous folder and set guid to new folder
+                        var oldGuid = projectEntry.FolderGuid;
+                        projectEntry.FolderGuid = rootFolder;
+                        Context.SaveChanges();
+                        var oldFolder = HostingEnvironment.MapPath("App_Data/" + oldGuid);
+                        if (Directory.Exists(oldFolder))
+                        {
+                            Directory.Delete(oldFolder, true);
+                        }
+                    }
+                    ViewBag.SuccessMessage = "Uploaded package.";
+                    return View();
+                }
+                catch (InvalidDataException caughtException)
+                {
+                    ModelState.AddModelError("", "Cannot read the file as zip archive.");
+                    return View();
+                }
+            }
+        }
+
+        [HttpGet]
         [Route("DeleteProject/{ProjectName}")]
         public IActionResult DeleteProject(string ProjectName)
         {
@@ -180,7 +253,7 @@ namespace Dangl.WebDocumentation.Controllers
                 var physicalDirectory = HostingEnvironment.MapPath("App_Data/" + documentationProject.FolderGuid);
                 if (Directory.Exists(physicalDirectory))
                 {
-                    Directory.Delete(physicalDirectory);
+                    Directory.Delete(physicalDirectory, true);
                 }
             }
             Context.DocumentationProjects.Remove(documentationProject);
