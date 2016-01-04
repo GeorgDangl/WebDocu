@@ -4,7 +4,7 @@
     <a asp-action="Index">Back to overview</a>
 </p>
 
-<h3>Manage Users</h3>
+<h3>Admin Users</h3>
 
 <div class="row">
     <div class="col-md-8">
@@ -15,8 +15,8 @@
                     foreach (var user in Model.Users)
                     {
                         <div class="form-group">
-                            <label asp-for="@user.IsAdmin">@user.Name</label>
-                            <input value="@user.Name" name="AdminUsers" type="checkbox" @{if(user.IsAdmin) {<text>checked</text>}}/>
+                            <input id="@user.Name" value="@user.Name" name="AdminUsers" type="checkbox" @{if(user.IsAdmin) {<text>checked</text>}}/>
+                            <label for="@user.Name">@user.Name</label>
                         </div>
                     }
                 }

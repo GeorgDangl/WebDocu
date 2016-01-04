@@ -1,4 +1,7 @@
 ﻿@using System.Security.Claims
+@using System.Threading.Tasks
+@using Microsoft.Extensions.OptionsModel
+@inject IOptions<AppSettings> AppSettings
 
 @if (User.IsSignedIn())
 {
@@ -16,7 +19,11 @@
 else
 {
     <ul class="nav navbar-nav navbar-right">
-        <li><a asp-controller="Account" asp-action="Register">Register</a></li>
+        @{
+            if (AppSettings.Value.AllowUserRegistration)
+            {
+                <li><a asp-controller="Account" asp-action="Register">Register</a></li>
+            }}
         <li><a asp-controller="Account" asp-action="Login">Log in</a></li>
     </ul>
 }

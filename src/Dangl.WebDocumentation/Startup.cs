@@ -9,13 +9,19 @@ using Microsoft.Data.Entity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNet.Identity;
 using Dangl.WebDocumentation.Models;
-using Dangl.WebDocumentation.Services;
+using Microsoft.AspNet.Mvc.Filters;
+using System.Security.Claims;
+using Microsoft.AspNet.Authorization;
+using AuthorizationContext = Microsoft.AspNet.Mvc.Filters.AuthorizationContext;
+
 
 namespace Dangl.WebDocumentation
 {
     public class Startup
     {
+
         public Startup(IHostingEnvironment env)
         {
             // Set up configuration sources.
@@ -54,11 +60,11 @@ namespace Dangl.WebDocumentation
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders();
 
+            //services.AddMvc();
+
             services.AddMvc();
 
-            // Add application services.
-            services.AddTransient<IEmailSender, AuthMessageSender>();
-            services.AddTransient<ISmsSender, AuthMessageSender>();
+            services.Configure<AppSettings>(Configuration);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -66,6 +72,8 @@ namespace Dangl.WebDocumentation
         {
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
             loggerFactory.AddDebug();
+
+
 
             app.UseApplicationInsightsRequestTelemetry();
 
@@ -110,7 +118,6 @@ namespace Dangl.WebDocumentation
 
             app.UseStaticFiles();
 
-
             app.UseIdentity();
 
             // To configure external authentication please see http://go.microsoft.com/fwlink/?LinkID=532715
@@ -121,6 +128,9 @@ namespace Dangl.WebDocumentation
                     name: "default",
                     template: "{controller=Home}/{action=Index}/{id?}");
             });
+
+            
+
         }
 
         // Entry point for the application.

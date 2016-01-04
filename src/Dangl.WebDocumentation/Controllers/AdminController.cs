@@ -1,36 +1,37 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
-using System.Security.Claims;
 using System.Threading.Tasks;
-using Microsoft.AspNet.Authorization;
-using Microsoft.AspNet.Identity;
-using Microsoft.AspNet.Mvc;
-using Microsoft.AspNet.Mvc.Rendering;
-using Microsoft.Data.Entity;
-using Microsoft.Extensions.Logging;
 using Dangl.WebDocumentation.Models;
-using Dangl.WebDocumentation.Services;
+using Dangl.WebDocumentation.Repository;
 using Dangl.WebDocumentation.ViewModels.Admin;
+using Microsoft.AspNet.Authorization;
 using Microsoft.AspNet.Hosting;
 using Microsoft.AspNet.Http;
-using Microsoft.Extensions.PlatformAbstractions;
+using Microsoft.AspNet.Identity;
+using Microsoft.AspNet.Mvc;
 
 namespace Dangl.WebDocumentation.Controllers
 {
-    [Authorize(Roles ="Admin")]
+    [Authorize(Roles = "Admin")]
     public class AdminController : Controller
     {
-        private ApplicationDbContext Context { get; }
-
-        private IHostingEnvironment HostingEnvironment { get; }
-
-        public AdminController(ApplicationDbContext context, IHostingEnvironment hostingEnvironment)
+        public AdminController(ApplicationDbContext context, IHostingEnvironment hostingEnvironment, UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager)
         {
             Context = context;
             HostingEnvironment = hostingEnvironment;
+            UserManager = userManager;
+            SignInManager = signInManager;
         }
+
+        private ApplicationDbContext Context { get; }
+
+        private IHostingEnvironment HostingEnvironment { get; }
+        private UserManager<ApplicationUser> UserManager { get; }
+
+        private SignInManager<ApplicationUser> SignInManager { get; }
 
         public IActionResult Index()
         {
@@ -126,7 +127,6 @@ namespace Dangl.WebDocumentation.Controllers
             var selectedUsersIds = Context.Users.Where(User => SelectedUsers.Contains(User.Email)).Select(User => User.Id).ToList();
 
             // Add missing users
-
             var usersToAdd = selectedUsersIds.Where(CurrentId => Context.UserProjects.All(Assignment => Assignment.UserId != CurrentId));
             foreach (var newUserId in usersToAdd)
             {
@@ -175,39 +175,14 @@ namespace Dangl.WebDocumentation.Controllers
             {
                 try
                 {
-                    using (var archive = new System.IO.Compression.ZipArchive(inputStream))
+                    using (var archive = new ZipArchive(inputStream))
                     {
-                        // Generate a Guid under which to store the upload
-                        var rootFolder = Guid.NewGuid();
-                        var physicalDirectory = HostingEnvironment.MapPath("App_Data/" + rootFolder);
-                        Directory.CreateDirectory(physicalDirectory);
-                        foreach (var fileEntry in archive.Entries)
+                        var physicalRootDirectory = HostingEnvironment.MapPath("App_Data/");
+                        var result = ProjectWriter.CreateProjectFilesFromZip(archive, physicalRootDirectory, projectEntry.Id, Context);
+                        if (!result)
                         {
-                            var neededPath = new FileInfo(Path.Combine(physicalDirectory, fileEntry.FullName)).Directory.FullName;
-                            if (!Directory.Exists(neededPath))
-                            {
-                                Directory.CreateDirectory(neededPath);
-                            }
-                            // Copy only when it's a file and not a folder
-                            if (fileEntry.Length > 0)
-                            {
-                                using (var currentEntryStream = fileEntry.Open())
-                                {
-                                    using (var fileStream = System.IO.File.Create(Path.Combine(neededPath, fileEntry.Name)))
-                                    {
-                                        currentEntryStream.CopyTo(fileStream);
-                                    }
-                                }
-                            }
-                        }
-                        // Delete previous folder and set guid to new folder
-                        var oldGuid = projectEntry.FolderGuid;
-                        projectEntry.FolderGuid = rootFolder;
-                        Context.SaveChanges();
-                        var oldFolder = HostingEnvironment.MapPath("App_Data/" + oldGuid);
-                        if (Directory.Exists(oldFolder))
-                        {
-                            Directory.Delete(oldFolder, true);
+                            ModelState.AddModelError(string.Empty, "Failed to update the project files");
+                            return View();
                         }
                     }
                     ViewBag.SuccessMessage = "Uploaded package.";
@@ -216,6 +191,11 @@ namespace Dangl.WebDocumentation.Controllers
                 catch (InvalidDataException caughtException)
                 {
                     ModelState.AddModelError("", "Cannot read the file as zip archive.");
+                    return View();
+                }
+                catch
+                {
+                    ModelState.AddModelError("", "Error in request.");
                     return View();
                 }
             }
@@ -277,59 +257,41 @@ namespace Dangl.WebDocumentation.Controllers
         }
 
         [HttpPost]
-        public IActionResult ManageUsers(IEnumerable<string> AdminUsers)
+        public async Task<IActionResult> ManageUsers(IEnumerable<string> AdminUsers)
         {
-            var adminRoleId = Context.Roles.FirstOrDefault(Role => Role.Name == "Admin").Id;
-            var adminRoles = Context.UserRoles.Where(Role => Role.RoleId == adminRoleId);
-
-            // New users
-            var newAdminUsers = 
-
-
-
-
-
-
-
-
-
-
-
-            var adminUsers = Context.Users.Where(User => adminRoles.Select(Role => Role.UserId).Contains(User.Id));
-
-            var newAdmins = AdminUsers.Where(NewUser => !adminUsers.Select(OldAdmin => OldAdmin.Email).Contains(NewUser));
-            foreach (var newAdmin in newAdmins)
+            var adminRole = Context.Roles.FirstOrDefault(Role => Role.Name == "Admin");
+            if (adminRole == null)
             {
-                Context.Roles.Add
+                throw new InvalidDataException("Admin role not found");
             }
 
+            // Remove users that are no longer admin
+            var oldAdminsToDelete = (from User in Context.Users
+                join UserRole in Context.UserRoles on User.Id equals UserRole.UserId
+                join Role in Context.Roles on UserRole.RoleId equals Role.Id
+                where Role.Name == adminRole.Name
+                      && !AdminUsers.Contains(User.Email)
+                select new {User, UserRole, Role}).ToList();
+            foreach (var user in oldAdminsToDelete)
+            {
+                await UserManager.RemoveFromRoleAsync(user.User, adminRole.Name);
+            }
 
+            // Add new admin users
+            var newAdminsToAdd = (from User in Context.Users
+                where Context.UserRoles.Count(UserRole => UserRole.UserId == User.Id && UserRole.RoleId == adminRole.Id) == 0 // As of 04.01.2016, the EF7 RC1 does translate an errorenous SQL when using .Any() in a sub query here, need to fall back to "Count() == 0"
+                      && AdminUsers.Contains(User.Email)
+                select User).ToList();
+            foreach (var user in newAdminsToAdd)
+            {
+                await UserManager.AddToRoleAsync(user, adminRole.Name);
+            }
 
-
-
-
-
-
-
-            // Delete admin users
-            Context.Roles.RemoveRange(adminUsers.Where(OldAdmin => AdminUsers.Contains(OldAdmin.Email)).Select(Curr => Curr.Roles.FirstOrDefault(Role => Role.RoleId == adminRoleId)));
-
-
-
-            // Add new users
-
-
-
-
-
-
-            var usersToAdd = AdminUsers.Where(AdminUser => adminRoles.All(Role => Role.UserId != Context.Users.FirstOrDefault(User => User.Email != AdminUser).));
-
-
+            //Context.SaveChanges();
 
             ViewBag.SuccessMessage = "Updated users.";
             var model = new ManageUsersViewModel();
-            model.Users = Context.Users.Select(User => new UserAdminRole {Name = User.Email, IsAdmin = User.Roles.Any(Role => Role.RoleId == adminRoleId)});
+            model.Users = Context.Users.Select(WebsiteUser => new UserAdminRole {Name = WebsiteUser.Email, IsAdmin = WebsiteUser.Roles.Any(Role => Role.RoleId == adminRole.Id)});
             return View(model);
         }
     }
