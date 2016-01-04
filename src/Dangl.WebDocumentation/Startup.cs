@@ -62,9 +62,39 @@ namespace Dangl.WebDocumentation
 
             //services.AddMvc();
 
-            services.AddMvc();
+            services.AddMvc(options =>
+            options.Filters.Add(new RefreshUserClaimsFilterAttribute()));
 
             services.Configure<AppSettings>(Configuration);
+        }
+
+        public class RefreshUserClaimsFilterAttribute : IAuthorizationFilter
+        {
+            public void OnAuthorization(AuthorizationContext context)
+            {
+                var User = context.HttpContext.User;
+                if (!User.Identity.IsAuthenticated)
+                {
+                    return;
+                }
+                var dbContext = context.HttpContext.ApplicationServices.GetRequiredService<ApplicationDbContext>();
+                var stampFromClaims = User.Claims.FirstOrDefault(Claim => Claim.Type == "ClaimsStamp")?.Value;
+                var stampFromDb = dbContext.UserClaims.Where(UserClaim => UserClaim.UserId == User.GetUserId()).ToList().FirstOrDefault(UserClaim => UserClaim.ClaimType == "ClaimsStamp")?.ClaimValue; // This is rather strange, but somehow it get the same values from the 
+                // database call as I get from the User.Claims if I don't force a Sql query with ToList(). I guess it's some kind of optimization in the IdentityDbContext class implementation. Well, tricky one=)
+                if (string.IsNullOrWhiteSpace(stampFromClaims) || string.IsNullOrWhiteSpace(stampFromDb) || stampFromClaims != stampFromDb)
+                {
+                    var dbUser = dbContext.Users.FirstOrDefault(UserInDb => UserInDb.Id == User.GetUserId());
+                    // Need to recreate
+                    if (string.IsNullOrWhiteSpace(stampFromDb))
+                    {
+                        // No stamp at all
+                        var userManager = context.HttpContext.ApplicationServices.GetRequiredService<UserManager<ApplicationUser>>();
+                        userManager.AddClaimAsync(dbUser, new Claim("ClaimsStamp", Guid.NewGuid().ToString())).Wait();
+                    }
+                    var signInManager = context.HttpContext.ApplicationServices.GetRequiredService<SignInManager<ApplicationUser>>();
+                    signInManager.RefreshSignInAsync(dbUser).Wait();
+                }
+            }
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -72,8 +102,6 @@ namespace Dangl.WebDocumentation
         {
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
             loggerFactory.AddDebug();
-
-
 
             app.UseApplicationInsightsRequestTelemetry();
 
