@@ -49,10 +49,7 @@ namespace Dangl.WebDocumentation
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders();
 
-            //services.AddMvc();
-
-            services.AddMvc(options =>
-                options.Filters.Add(new RefreshUserClaimsFilterAttribute()));
+            services.AddMvc();
 
             services.Configure<AppSettings>(Configuration);
         }
