@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Dangl.WebDocumentation.Models;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Hosting;
 using Microsoft.AspNet.Identity.EntityFramework;
@@ -9,26 +6,18 @@ using Microsoft.Data.Entity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.AspNet.Identity;
-using Dangl.WebDocumentation.Models;
-using Microsoft.AspNet.Mvc.Filters;
-using System.Security.Claims;
-using Microsoft.AspNet.Authorization;
-using AuthorizationContext = Microsoft.AspNet.Mvc.Filters.AuthorizationContext;
-
 
 namespace Dangl.WebDocumentation
 {
     public class Startup
     {
-
         public Startup(IHostingEnvironment env)
         {
             // Set up configuration sources.
 
             var builder = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json")
-                .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true);
+                .AddJsonFile($"appsettings.{env.EnvironmentName}.json", true);
 
             if (env.IsDevelopment())
             {
@@ -36,7 +25,7 @@ namespace Dangl.WebDocumentation
                 builder.AddUserSecrets();
 
                 // This will push telemetry data through Application Insights pipeline faster, allowing you to view results immediately.
-                builder.AddApplicationInsightsSettings(developerMode: true);
+                builder.AddApplicationInsightsSettings(true);
             }
 
             builder.AddEnvironmentVariables();
@@ -63,37 +52,9 @@ namespace Dangl.WebDocumentation
             //services.AddMvc();
 
             services.AddMvc(options =>
-            options.Filters.Add(new RefreshUserClaimsFilterAttribute()));
+                options.Filters.Add(new RefreshUserClaimsFilterAttribute()));
 
             services.Configure<AppSettings>(Configuration);
-        }
-
-        public class RefreshUserClaimsFilterAttribute : IAuthorizationFilter
-        {
-            public void OnAuthorization(AuthorizationContext context)
-            {
-                var User = context.HttpContext.User;
-                if (!User.Identity.IsAuthenticated)
-                {
-                    return;
-                }
-                var dbContext = context.HttpContext.RequestServices.GetRequiredService<ApplicationDbContext>();
-                var stampFromClaims = User.Claims.FirstOrDefault(Claim => Claim.Type == "ClaimsStamp")?.Value;
-                var stampFromDb = dbContext.UserClaims.FirstOrDefault(UserClaim => UserClaim.UserId == User.GetUserId() && UserClaim.ClaimType == "ClaimsStamp")?.ClaimValue;
-                if (string.IsNullOrWhiteSpace(stampFromClaims) || string.IsNullOrWhiteSpace(stampFromDb) || stampFromClaims != stampFromDb)
-                {
-                    var dbUser = dbContext.Users.FirstOrDefault(UserInDb => UserInDb.Id == User.GetUserId());
-                    // Need to recreate
-                    if (string.IsNullOrWhiteSpace(stampFromDb))
-                    {
-                        // No stamp at all
-                        var userManager = context.HttpContext.ApplicationServices.GetRequiredService<UserManager<ApplicationUser>>();
-                        userManager.AddClaimAsync(dbUser, new Claim("ClaimsStamp", Guid.NewGuid().ToString())).Wait();
-                    }
-                    var signInManager = context.HttpContext.ApplicationServices.GetRequiredService<SignInManager<ApplicationUser>>();
-                    signInManager.RefreshSignInAsync(dbUser).Wait();
-                }
-            }
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -136,7 +97,9 @@ namespace Dangl.WebDocumentation
                         }
                     }
                 }
-                catch { }
+                catch
+                {
+                }
             }
 
             app.UseIISPlatformHandler(options => options.AuthenticationDescriptions.Clear());
@@ -149,15 +112,7 @@ namespace Dangl.WebDocumentation
 
             // To configure external authentication please see http://go.microsoft.com/fwlink/?LinkID=532715
 
-            app.UseMvc(routes =>
-            {
-                routes.MapRoute(
-                    name: "default",
-                    template: "{controller=Home}/{action=Index}/{id?}");
-            });
-
-            
-
+            app.UseMvc(routes => { routes.MapRoute("default", "{controller=Home}/{action=Index}/{id?}"); });
         }
 
         // Entry point for the application.
