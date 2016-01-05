@@ -18,20 +18,17 @@ namespace Dangl.WebDocumentation.Controllers
     [Authorize(Roles = "Admin")]
     public class AdminController : Controller
     {
-        public AdminController(ApplicationDbContext context, IHostingEnvironment hostingEnvironment, UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager)
+        public AdminController(ApplicationDbContext context, IHostingEnvironment hostingEnvironment, UserManager<ApplicationUser> userManager)
         {
             Context = context;
             HostingEnvironment = hostingEnvironment;
             UserManager = userManager;
-            SignInManager = signInManager;
         }
 
         private ApplicationDbContext Context { get; }
 
         private IHostingEnvironment HostingEnvironment { get; }
         private UserManager<ApplicationUser> UserManager { get; }
-
-        private SignInManager<ApplicationUser> SignInManager { get; }
 
         public IActionResult Index()
         {
@@ -93,7 +90,6 @@ namespace Dangl.WebDocumentation.Controllers
             }
             var usersWithAccess = Context.UserProjects.Where(Assignment => Assignment.ProjectId == project.Id).Select(Assignment => Assignment.User.Email).ToList();
             var usersWithoutAccess = Context.Users.Select(CurrentUser => CurrentUser.Email).Where(CurrentUser => !usersWithAccess.Contains(CurrentUser)).ToList();
-
             var model = new EditProjectViewModel();
             model.ProjectName = project.Name;
             model.IsPublic = project.IsPublic;
@@ -117,35 +113,27 @@ namespace Dangl.WebDocumentation.Controllers
             {
                 return HttpNotFound();
             }
-
             databaseProject.ApiKey = model.ApiKey;
             databaseProject.IsPublic = model.IsPublic;
             databaseProject.Name = model.ProjectName;
             databaseProject.PathToIndex = model.PathToIndexPage;
             Context.SaveChanges();
-
             var selectedUsersIds = Context.Users.Where(User => SelectedUsers.Contains(User.Email)).Select(User => User.Id).ToList();
-
             // Add missing users
             var usersToAdd = selectedUsersIds.Where(CurrentId => Context.UserProjects.All(Assignment => Assignment.UserId != CurrentId));
             foreach (var newUserId in usersToAdd)
             {
                 Context.UserProjects.Add(new UserProjectAccess {UserId = newUserId, ProjectId = databaseProject.Id});
             }
-
             // Remove users that no longer have access
             var usersToRemove = Context.UserProjects.Where(Assignment => Assignment.ProjectId == databaseProject.Id).Where(Assignment => !selectedUsersIds.Contains(Assignment.UserId));
             Context.UserProjects.RemoveRange(usersToRemove);
-
             Context.SaveChanges();
-
             var usersWithAccess = Context.UserProjects.Where(Assignment => Assignment.ProjectId == databaseProject.Id).Select(Assignment => Assignment.User.Email).ToList();
             var usersWithoutAccess = Context.Users.Select(CurrentUser => CurrentUser.Email).Where(CurrentUser => !usersWithAccess.Contains(CurrentUser)).ToList();
             model.UsersWithAccess = usersWithAccess;
             model.AvailableUsers = usersWithoutAccess;
-
             ViewBag.SuccessMessage = $"Changed project {databaseProject.Name}.";
-
             return View(model);
         }
 
@@ -308,7 +296,6 @@ namespace Dangl.WebDocumentation.Controllers
             if (claim != null)
             {
                 await UserManager.RemoveClaimAsync(user, claim);
-                //await UserManager.ReplaceClaimAsync(user, claim, new System.Security.Claims.Claim("ClaimsStamp", Guid.NewGuid().ToString()));
             }
             await UserManager.AddClaimAsync(user, new System.Security.Claims.Claim("ClaimsStamp", Guid.NewGuid().ToString()));
         }

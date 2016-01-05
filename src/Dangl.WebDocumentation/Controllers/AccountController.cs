@@ -17,7 +17,6 @@ namespace Dangl.WebDocumentation.Controllers
         private readonly ILogger _logger;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly UserManager<ApplicationUser> _userManager;
-
         private readonly AppSettings AppSettings;
 
         public AccountController(
@@ -67,7 +66,6 @@ namespace Dangl.WebDocumentation.Controllers
                 ModelState.AddModelError(string.Empty, "Invalid login attempt.");
                 return View(model);
             }
-
             // If we got this far, something failed, redisplay form
             return View(model);
         }

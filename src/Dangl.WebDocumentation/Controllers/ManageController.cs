@@ -1,28 +1,25 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Security.Claims;
 using System.Threading.Tasks;
-using System.Security.Claims;
+using Dangl.WebDocumentation.Models;
+using Dangl.WebDocumentation.ViewModels.Manage;
 using Microsoft.AspNet.Authorization;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Mvc;
 using Microsoft.Extensions.Logging;
-using Dangl.WebDocumentation.Models;
-using Dangl.WebDocumentation.ViewModels.Manage;
 
 namespace Dangl.WebDocumentation.Controllers
 {
     [Authorize]
     public class ManageController : Controller
     {
-        private readonly UserManager<ApplicationUser> _userManager;
-        private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly ILogger _logger;
+        private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly UserManager<ApplicationUser> _userManager;
 
         public ManageController(
-        UserManager<ApplicationUser> userManager,
-        SignInManager<ApplicationUser> signInManager,
-        ILoggerFactory loggerFactory)
+            UserManager<ApplicationUser> userManager,
+            SignInManager<ApplicationUser> signInManager,
+            ILoggerFactory loggerFactory)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -36,12 +33,12 @@ namespace Dangl.WebDocumentation.Controllers
         {
             ViewData["StatusMessage"] =
                 message == ManageMessageId.ChangePasswordSuccess ? "Your password has been changed."
-                : message == ManageMessageId.SetPasswordSuccess ? "Your password has been set."
-                : message == ManageMessageId.SetTwoFactorSuccess ? "Your two-factor authentication provider has been set."
-                : message == ManageMessageId.Error ? "An error has occurred."
-                : message == ManageMessageId.AddPhoneSuccess ? "Your phone number was added."
-                : message == ManageMessageId.RemovePhoneSuccess ? "Your phone number was removed."
-                : "";
+                    : message == ManageMessageId.SetPasswordSuccess ? "Your password has been set."
+                        : message == ManageMessageId.SetTwoFactorSuccess ? "Your two-factor authentication provider has been set."
+                            : message == ManageMessageId.Error ? "An error has occurred."
+                                : message == ManageMessageId.AddPhoneSuccess ? "Your phone number was added."
+                                    : message == ManageMessageId.RemovePhoneSuccess ? "Your phone number was removed."
+                                        : "";
 
             var user = await GetCurrentUserAsync();
             var model = new IndexViewModel
@@ -55,7 +52,6 @@ namespace Dangl.WebDocumentation.Controllers
             return View(model);
         }
 
-
         //
         // POST: /Manage/DisableTwoFactorAuthentication
         [HttpPost]
@@ -66,7 +62,7 @@ namespace Dangl.WebDocumentation.Controllers
             if (user != null)
             {
                 await _userManager.SetTwoFactorEnabledAsync(user, false);
-                await _signInManager.SignInAsync(user, isPersistent: false);
+                await _signInManager.SignInAsync(user, false);
                 _logger.LogInformation(2, "User disabled two-factor authentication.");
             }
             return RedirectToAction(nameof(Index), "Manage");
@@ -96,16 +92,15 @@ namespace Dangl.WebDocumentation.Controllers
                 var result = await _userManager.ChangePasswordAsync(user, model.OldPassword, model.NewPassword);
                 if (result.Succeeded)
                 {
-                    await _signInManager.SignInAsync(user, isPersistent: false);
+                    await _signInManager.SignInAsync(user, false);
                     _logger.LogInformation(3, "User changed their password successfully.");
-                    return RedirectToAction(nameof(Index), new { Message = ManageMessageId.ChangePasswordSuccess });
+                    return RedirectToAction(nameof(Index), new {Message = ManageMessageId.ChangePasswordSuccess});
                 }
                 AddErrors(result);
                 return View(model);
             }
-            return RedirectToAction(nameof(Index), new { Message = ManageMessageId.Error });
+            return RedirectToAction(nameof(Index), new {Message = ManageMessageId.Error});
         }
-
 
         #region Helpers
 
