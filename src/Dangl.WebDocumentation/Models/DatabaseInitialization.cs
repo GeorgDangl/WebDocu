@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Linq;
+using Microsoft.AspNet.Identity.EntityFramework;
 
 namespace Dangl.WebDocumentation.Models
 {
@@ -14,10 +12,10 @@ namespace Dangl.WebDocumentation.Models
 
         private static void SetUpRoles(ApplicationDbContext Context)
         {
-            // Add Admin role
+            // Add Admin role if not present
             if (Context.Roles.All(Role => Role.Name != "Admin"))
             {
-                Context.Roles.Add(new Microsoft.AspNet.Identity.EntityFramework.IdentityRole {Name = "Admin"});
+                Context.Roles.Add(new IdentityRole {Name = "Admin"});
                 Context.SaveChanges();
             }
         }

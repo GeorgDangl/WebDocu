@@ -1,15 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNet.Identity.EntityFramework;
+﻿using Microsoft.AspNet.Identity.EntityFramework;
 using Microsoft.Data.Entity;
+using Microsoft.Data.Entity.Metadata;
 
 namespace Dangl.WebDocumentation.Models
 {
     public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
-
         public DbSet<DocumentationProject> DocumentationProjects { get; set; }
 
         public DbSet<UserProjectAccess> UserProjects { get; set; }
@@ -18,28 +14,24 @@ namespace Dangl.WebDocumentation.Models
         {
             base.OnModelCreating(builder);
 
+            // Make the Name unique so it can be used as a single identifier for a project ( -> Urls may contain the project name instead of the Guid)
             builder.Entity<DocumentationProject>()
                 .HasIndex(Entity => Entity.Name)
                 .IsUnique();
 
+            // Make the ApiKey unique so it can be used as a single identifier for a project
             builder.Entity<DocumentationProject>()
                 .HasIndex(Entity => Entity.ApiKey)
                 .IsUnique();
 
-            //builder.Entity<DocumentationProject>()
-            //    .HasKey(Entity => Entity.Id);
-
+            // Composite key for UserProject Access
             builder.Entity<UserProjectAccess>()
                 .HasKey(Entity => new {Entity.ProjectId, Entity.UserId});
 
             builder.Entity<UserProjectAccess>()
                 .HasOne(Entity => Entity.Project)
                 .WithMany(Project => Project.UserAccess)
-                .OnDelete(Microsoft.Data.Entity.Metadata.DeleteBehavior.Cascade);
-
-            // Customize the ASP.NET Identity model and override the defaults if needed.
-            // For example, you can rename the ASP.NET Identity table names and more.
-            // Add your customizations after calling base.OnModelCreating(builder);
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

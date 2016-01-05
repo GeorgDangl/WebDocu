@@ -1,27 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Dangl.WebDocumentation.Models
 {
     public class DocumentationProject
     {
-
         public DocumentationProject()
         {
+            // Ensures key is created on initialization.
             ApiKey = Guid.NewGuid().ToString().Replace("-", string.Empty).ToUpperInvariant();
         }
 
         public Guid Id { get; set; }
 
-        // TODO max length
-        [MaxLength(60, ErrorMessage ="Project name may not exceed 60 characters"), Required]
+        [MaxLength(60, ErrorMessage = "Project name may not exceed 60 characters"), Required]
         public string Name { get; set; }
 
-        [Display(Name="Path to start page"), Required]
+        [Display(Name = "Path to start page"), Required]
         public string PathToIndex { get; set; }
 
         public bool IsPublic { get; set; }
