@@ -17,7 +17,7 @@ namespace Dangl.WebDocumentation.Controllers
         private readonly ILogger _logger;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly AppSettings AppSettings;
+        private AppSettings AppSettings { get; }
 
         public AccountController(
             UserManager<ApplicationUser> userManager,
@@ -30,7 +30,7 @@ namespace Dangl.WebDocumentation.Controllers
             _signInManager = signInManager;
             _logger = loggerFactory.CreateLogger<AccountController>();
             Context = context;
-            AppSettings = appSettings.Value;
+            AppSettings = appSettings?.Value;
         }
 
         private ApplicationDbContext Context { get; }
