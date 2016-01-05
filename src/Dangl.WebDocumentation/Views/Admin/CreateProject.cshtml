@@ -18,20 +18,20 @@
                 <div class="form-group">
                     <label asp-for="ProjectName" class="col-md-2 control-label"></label>
                     <div class="col-md-10">
-                        <input asp-for="ProjectName" class="form-control" />
+                        <input asp-for="ProjectName" class="form-control"/>
                         <span asp-validation-for="ProjectName" class="text-danger"></span>
                     </div>
                 </div>
                 <div class="form-group">
                     <label asp-for="IsPublic" class="col-md-2 control-label"></label>
                     <div class="col-md-10">
-                        <input asp-for="IsPublic" />
+                        <input asp-for="IsPublic"/>
                     </div>
                 </div>
                 <div class="form-group">
                     <label asp-for="PathToIndexPage" class="col-md-2 control-label"></label>
                     <div class="col-md-10">
-                        <input asp-for="PathToIndexPage" class="form-control" />
+                        <input asp-for="PathToIndexPage" class="form-control"/>
                         <span asp-validation-for="PathToIndexPage" class="text-danger"></span>
                     </div>
                 </div>
@@ -41,9 +41,9 @@
                         @{
                             foreach (var availableUser in Model.AvailableUsers)
                             {
-                                    <input type="checkbox" id="User_@availableUser" name="SelectedUsers" value="@availableUser" />
+                                <input type="checkbox" id="User_@availableUser" name="SelectedUsers" value="@availableUser"/>
                                 <label for="User_@availableUser">@availableUser</label>
-                                <br />
+                                <br/>
                             }
                         }
                     </div>
@@ -57,3 +57,4 @@
         </section>
     </div>
 </div>
+<p class="text-info">When a project is set to be publicly accessible, anyone including non-registered users may view it.</p>

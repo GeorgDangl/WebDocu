@@ -27,11 +27,7 @@ namespace Dangl.WebDocumentation.Controllers
                 accessibleProjects = accessibleProjects.Union(projectsWithUserAccess).ToList();
             }
             var model = new IndexViewModel();
-            model.Projects = accessibleProjects.ToList();
-            foreach (var FoundProject in model.Projects)
-            {
-                FoundProject.ToString();
-            }
+            model.Projects = accessibleProjects.OrderBy(Project => Project.Name);
             return View(model);
         }
 

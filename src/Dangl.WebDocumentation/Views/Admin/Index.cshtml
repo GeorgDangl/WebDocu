@@ -1,4 +1,7 @@
-﻿@model Dangl.WebDocumentation.ViewModels.Admin.IndexViewModel
+﻿@using System.Threading.Tasks
+@using Microsoft.Extensions.OptionsModel
+@inject IOptions<AppSettings> AppSettings
+@model Dangl.WebDocumentation.ViewModels.Admin.IndexViewModel
 
 <h1>Admin Section</h1>
 
@@ -15,21 +18,38 @@
     {
         <table class="table">
             <tbody>
-            @{
-                foreach (var project in Model.Projects)
-                {
-                    <tr>
-                        <td>@project.Name</td>
-                        <td><a asp-action="EditProject" asp-route-ProjectId="@project.Id">Edit</a></td>
-                        <td><a asp-action="DeleteProject" asp-route-ProjectId="@project.Id">Delete</a></td>
-                        <td><a asp-action="UploadProject" asp-route-ProjectId="@project.Id">Upload Package</a></td>
-                    </tr>
+                @{
+                    foreach (var project in Model.Projects)
+                    {
+                        <tr>
+                            <td>@project.Name</td>
+                            <td><a asp-action="EditProject" asp-route-ProjectId="@project.Id">Edit</a></td>
+                            <td><a asp-action="DeleteProject" asp-route-ProjectId="@project.Id">Delete</a></td>
+                            <td><a asp-action="UploadProject" asp-route-ProjectId="@project.Id">Upload Package</a></td>
+                        </tr>
+                    }
                 }
-            }
             </tbody>
         </table>
-    }
+                    }
 }
 
 <h3>Users</h3>
 <a asp-action="ManageUsers">Manage users</a>
+<br />
+<br />
+<p class="text-info">
+    User registration can be globally enabled or disabled in the appsettings.json configuration file. Current status is:
+    <b>
+        @{
+            if (AppSettings.Value.AllowUserRegistration)
+            {
+                <text>Enabled</text>
+            }
+            else
+            {
+                <text>Disabled</text>
+            }
+        }
+    </b>
+</p>

@@ -13,7 +13,7 @@
                 <div class="form-group">
                     <label asp-for="ProjectId" class="col-md-2 control-label"></label>
                     <div class="col-md-10">
-                        <input asp-for="ProjectId" class="form-control" type="hidden" />
+                        <input asp-for="ProjectId" class="form-control" type="hidden"/>
                         <span>@Model.ProjectId</span>
                         <span asp-validation-for="ProjectName" class="text-danger"></span>
                     </div>
@@ -29,7 +29,7 @@
                 <div class="form-group">
                     <label asp-for="ConfirmDelete" class="col-md-2 control-label"></label>
                     <div class="col-md-10">
-                        <input asp-for="ConfirmDelete" />
+                        <input asp-for="ConfirmDelete"/>
                     </div>
                 </div>
                 <div class="form-group">
@@ -41,3 +41,4 @@
         </section>
     </div>
 </div>
+<p class="text-warning">Deletion of the project is not reversible and will delete all physical files from that project on the server.</p>

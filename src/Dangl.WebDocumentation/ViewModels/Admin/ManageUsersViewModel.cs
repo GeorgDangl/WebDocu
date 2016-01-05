@@ -7,15 +7,6 @@ namespace Dangl.WebDocumentation.ViewModels.Admin
 {
     public class ManageUsersViewModel
     {
-        public IEnumerable<UserAdminRole> Users { get; set; }
+        public IEnumerable<UserAdminRoleViewModel> Users { get; set; }
     }
-
-
-    public class UserAdminRole
-    {
-        public string Name { get; set; }
-
-        public bool IsAdmin { get; set; }
-    }
-
 }

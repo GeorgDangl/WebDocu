@@ -247,7 +247,7 @@ namespace Dangl.WebDocumentation.Controllers
         {
             var adminRoleId = Context.Roles.FirstOrDefault(Role => Role.Name == "Admin").Id;
             var model = new ManageUsersViewModel();
-            model.Users = Context.Users.Select(User => new UserAdminRole {Name = User.Email, IsAdmin = User.Roles.Any(Role => Role.RoleId == adminRoleId)});
+            model.Users = Context.Users.Select(User => new UserAdminRoleViewModel { Name = User.Email, IsAdmin = User.Roles.Any(Role => Role.RoleId == adminRoleId)});
             return View(model);
         }
 
@@ -286,7 +286,7 @@ namespace Dangl.WebDocumentation.Controllers
 
             ViewBag.SuccessMessage = "Updated users.";
             var model = new ManageUsersViewModel();
-            model.Users = Context.Users.Select(WebsiteUser => new UserAdminRole {Name = WebsiteUser.Email, IsAdmin = WebsiteUser.Roles.Any(Role => Role.RoleId == adminRole.Id)});
+            model.Users = Context.Users.Select(WebsiteUser => new UserAdminRoleViewModel { Name = WebsiteUser.Email, IsAdmin = WebsiteUser.Roles.Any(Role => Role.RoleId == adminRole.Id)});
             return View(model);
         }
 
