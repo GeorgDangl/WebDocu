@@ -153,6 +153,13 @@ namespace Dangl.WebDocumentation.Controllers
         [Route("UploadProject/{ProjectId}")]
         public IActionResult UploadProject(Guid ProjectId)
         {
+            var project = Context.DocumentationProjects.FirstOrDefault(Project => Project.Id == ProjectId);
+            if (project == null)
+            {
+                return HttpNotFound();
+            }
+            ViewBag.ProjectName = project.Name;
+            ViewBag.ApiKey = project.ApiKey;
             return View();
         }
 

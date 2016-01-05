@@ -1,7 +1,7 @@
 ﻿<p>
     <a asp-action="Index">Back to overview</a>
 </p>
-<h3>Upload a Package</h3>
+<h3>Upload a Package to project @ViewBag.ProjectName</h3>
 <p>Use a zip file that contains the project. Make sure the correct path to the index or starting page is specified.</p>
 <div class="row">
     <div class="col-md-8">
@@ -10,7 +10,7 @@
                 <div asp-validation-summary="ValidationSummary.All" class="text-danger"></div>
                 <div class="form-group">
                     <div class="col-md-10">
-                        <input type="file" name="projectPackage"/>
+                        <input type="file" name="projectPackage" />
                     </div>
                 </div>
                 <div class="form-group">
@@ -22,3 +22,13 @@
         </section>
     </div>
 </div>
+<h4>Upload via the API</h4>
+<p>You can also use the API to upload a project package, for that you need the API key of the project (get or change it on the Project Edit page) and then perform a web request to upload the file.</p>
+<p>Example with cURL:</p>
+<code>curl -F "ApiKey=@ViewBag.ApiKey" -F "ProjectPackage=\"C:\Path\To\Package.zip\"" @Url.Action("Upload", "ApiProjects", null, Context.Request.Scheme)</code>
+<p>
+    <b>Where</b><br/>
+    <code>ApiKey</code><span>The API key configured for your project</span><br />
+    <code>ProjectPackage</code><span>The path to the file you want to upload</span><br />
+    <code>@Url.Action("Upload", "ApiProjects", null, Context.Request.Scheme)</code><span>The resource endpoint for Api project uploads</span>
+</p>
