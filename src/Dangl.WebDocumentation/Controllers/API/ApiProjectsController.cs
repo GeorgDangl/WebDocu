@@ -11,9 +11,9 @@ using Microsoft.AspNet.Mvc;
 namespace Dangl.WebDocumentation.Controllers.API
 {
     [AllowAnonymous]
-    public class ProjectsController : Controller
+    public class ApiProjectsController : Controller
     {
-        public ProjectsController(ApplicationDbContext context, IHostingEnvironment hostingEnvironment)
+        public ApiProjectsController(ApplicationDbContext context, IHostingEnvironment hostingEnvironment)
         {
             Context = context;
             HostingEnvironment = hostingEnvironment;
