@@ -77,24 +77,21 @@ namespace Dangl.WebDocumentation
                 {
                     return;
                 }
-                using (var dbContext = context.HttpContext.ApplicationServices.GetRequiredService<ApplicationDbContext>())
+                var dbContext = context.HttpContext.RequestServices.GetRequiredService<ApplicationDbContext>();
+                var stampFromClaims = User.Claims.FirstOrDefault(Claim => Claim.Type == "ClaimsStamp")?.Value;
+                var stampFromDb = dbContext.UserClaims.FirstOrDefault(UserClaim => UserClaim.UserId == User.GetUserId() && UserClaim.ClaimType == "ClaimsStamp")?.ClaimValue;
+                if (string.IsNullOrWhiteSpace(stampFromClaims) || string.IsNullOrWhiteSpace(stampFromDb) || stampFromClaims != stampFromDb)
                 {
-                    var stampFromClaims = User.Claims.FirstOrDefault(Claim => Claim.Type == "ClaimsStamp")?.Value;
-                    var stampFromDb = dbContext.UserClaims.Where(UserClaim => UserClaim.UserId == User.GetUserId()).ToList().FirstOrDefault(UserClaim => UserClaim.ClaimType == "ClaimsStamp")?.ClaimValue; // This is rather strange, but somehow it get the same values from the 
-                    // database call as I get from the User.Claims if I don't force a Sql query with ToList(). I guess it's some kind of optimization in the IdentityDbContext class implementation. Well, tricky one=)
-                    if (string.IsNullOrWhiteSpace(stampFromClaims) || string.IsNullOrWhiteSpace(stampFromDb) || stampFromClaims != stampFromDb)
+                    var dbUser = dbContext.Users.FirstOrDefault(UserInDb => UserInDb.Id == User.GetUserId());
+                    // Need to recreate
+                    if (string.IsNullOrWhiteSpace(stampFromDb))
                     {
-                        var dbUser = dbContext.Users.FirstOrDefault(UserInDb => UserInDb.Id == User.GetUserId());
-                        // Need to recreate
-                        if (string.IsNullOrWhiteSpace(stampFromDb))
-                        {
-                            // No stamp at all
-                            var userManager = context.HttpContext.ApplicationServices.GetRequiredService<UserManager<ApplicationUser>>();
-                            userManager.AddClaimAsync(dbUser, new Claim("ClaimsStamp", Guid.NewGuid().ToString())).Wait();
-                        }
-                        var signInManager = context.HttpContext.ApplicationServices.GetRequiredService<SignInManager<ApplicationUser>>();
-                        signInManager.RefreshSignInAsync(dbUser).Wait();
+                        // No stamp at all
+                        var userManager = context.HttpContext.ApplicationServices.GetRequiredService<UserManager<ApplicationUser>>();
+                        userManager.AddClaimAsync(dbUser, new Claim("ClaimsStamp", Guid.NewGuid().ToString())).Wait();
                     }
+                    var signInManager = context.HttpContext.ApplicationServices.GetRequiredService<SignInManager<ApplicationUser>>();
+                    signInManager.RefreshSignInAsync(dbUser).Wait();
                 }
             }
         }
