@@ -270,7 +270,6 @@ namespace Dangl.WebDocumentation.Controllers
             foreach (var user in oldAdminsToDelete)
             {
                 await UserManager.RemoveFromRoleAsync(user.User, adminRole.Name);
-                await RefreshUserClaimsStamp(user.User);
             }
 
             // Add new admin users
@@ -281,23 +280,12 @@ namespace Dangl.WebDocumentation.Controllers
             foreach (var user in newAdminsToAdd)
             {
                 await UserManager.AddToRoleAsync(user, adminRole.Name);
-                await RefreshUserClaimsStamp(user);
             }
 
             ViewBag.SuccessMessage = "Updated users.";
             var model = new ManageUsersViewModel();
             model.Users = Context.Users.Select(WebsiteUser => new UserAdminRoleViewModel { Name = WebsiteUser.Email, IsAdmin = WebsiteUser.Roles.Any(Role => Role.RoleId == adminRole.Id)});
             return View(model);
-        }
-
-        private async Task RefreshUserClaimsStamp(ApplicationUser user)
-        {
-            var claim = UserManager.GetClaimsAsync(user).Result.FirstOrDefault(Claim => Claim.Type == "ClaimsStamp");
-            if (claim != null)
-            {
-                await UserManager.RemoveClaimAsync(user, claim);
-            }
-            await UserManager.AddClaimAsync(user, new System.Security.Claims.Claim("ClaimsStamp", Guid.NewGuid().ToString()));
         }
     }
 }
