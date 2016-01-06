@@ -61,7 +61,7 @@ namespace Dangl.WebDocumentation
             loggerFactory.AddDebug();
 
             app.UseApplicationInsightsRequestTelemetry();
-            d
+            
             if (env.IsDevelopment())
             {
                 app.UseBrowserLink();
