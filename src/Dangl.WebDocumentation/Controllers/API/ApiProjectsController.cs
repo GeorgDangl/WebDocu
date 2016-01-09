@@ -38,6 +38,11 @@ namespace Dangl.WebDocumentation.Controllers.API
             {
                 return HttpBadRequest();
             }
+            if (string.IsNullOrWhiteSpace(ApiKey))
+            {
+                // Not accepting empty API key -> Disable API upload to projects by setting the API key empty
+                return HttpNotFound();
+            }
             var projectEntry = Context.DocumentationProjects.FirstOrDefault(Project => Project.ApiKey == ApiKey);
             if (projectEntry == null)
             {
