@@ -18,7 +18,7 @@ Admins create and manage projects, set which users can access them and upload pa
 Projects are expected in zip format. The zip archives content is copied on the server under the App_Data folder. Projects have a property defining which relative path to use initially, e.g. `index.html`.
 
 ### Via the web interface
-Admins can simply select `Upload Package` in the admin section for a project and upload a zip file.
+Admins can simply select Upload Package in the admin section for a project and upload a zip file.
 
 ### Via the API
 In the project edit section, the API key for a project is set, it is used for http uploads.
