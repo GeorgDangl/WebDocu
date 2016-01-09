@@ -8,6 +8,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{012DA659-FDC5-40FD-B401-43E029BB20C2}"
 	ProjectSection(SolutionItems) = preProject
 		global.json = global.json
+		License.md = License.md
+		Readme.md = Readme.md
 	EndProjectSection
 EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Dangl.WebDocumentation", "src\Dangl.WebDocumentation\Dangl.WebDocumentation.xproj", "{C64017EC-953E-4E6C-B5DF-21654B9F6760}"
