@@ -25,7 +25,7 @@
 <h4>Upload via the API</h4>
 <p>You can also use the API to upload a project package, for that you need the API key of the project (get or change it on the Project Edit page) and then perform a web request to upload the file.</p>
 <p>Example with cURL:</p>
-<code>curl -F "ApiKey=@ViewBag.ApiKey" -F "ProjectPackage=\"C:\Path\To\Package.zip\"" @Url.Action("Upload", "ApiProjects", null, Context.Request.Scheme)</code>
+<code>curl -F "ApiKey=@ViewBag.ApiKey" -F "ProjectPackage=@@\"C:\Path\To\Package.zip\"" @Url.Action("Upload", "ApiProjects", null, Context.Request.Scheme)</code>
 <p>
     <b>Where</b><br/>
     <code>ApiKey</code><span>The API key configured for your project</span><br />
