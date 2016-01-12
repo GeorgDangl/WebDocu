@@ -35,7 +35,7 @@ namespace Dangl.WebDocumentation.Controllers
             // Find only public projects or projects where the user has access to (if logged in)
             var project = (from Project in Context.DocumentationProjects
                 where Project.Name.ToUpper() == ProjectName.ToUpper()
-                      && Project.IsPublic || (!string.IsNullOrWhiteSpace(userId) && Context.UserProjects.Any(ProjectAccess => ProjectAccess.UserId == userId && ProjectAccess.ProjectId == Project.Id))
+                      && (Project.IsPublic || (!string.IsNullOrWhiteSpace(userId) && Context.UserProjects.Any(ProjectAccess => ProjectAccess.UserId == userId && ProjectAccess.ProjectId == Project.Id)))
                 select Project).FirstOrDefault();
             if (project == null)
             {
