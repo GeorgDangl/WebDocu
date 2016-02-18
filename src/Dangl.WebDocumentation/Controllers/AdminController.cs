@@ -118,9 +118,13 @@ namespace Dangl.WebDocumentation.Controllers
             databaseProject.Name = model.ProjectName;
             databaseProject.PathToIndex = model.PathToIndexPage;
             Context.SaveChanges();
-            var selectedUsersIds = Context.Users.Where(User => SelectedUsers.Contains(User.Email)).Select(User => User.Id).ToList();
+            var selectedUsersIds = Context.Users
+                .Where(user => SelectedUsers.Contains(user.Email))
+                .Select(user => user.Id)
+                .ToList();
             // Add missing users
-            var usersToAdd = selectedUsersIds.Where(CurrentId => Context.UserProjects.All(Assignment => Assignment.UserId != CurrentId));
+            var knownUsersInProject = Context.UserProjects.Where(rel => rel.ProjectId == databaseProject.Id).Select(rel => rel.UserId).ToList();
+            var usersToAdd = selectedUsersIds.Where(userId => !knownUsersInProject.Contains(userId));
             foreach (var newUserId in usersToAdd)
             {
                 Context.UserProjects.Add(new UserProjectAccess {UserId = newUserId, ProjectId = databaseProject.Id});
