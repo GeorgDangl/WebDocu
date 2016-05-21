@@ -6,6 +6,8 @@ namespace Dangl.WebDocumentation.Models
 {
     public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
+        public ApplicationDbContext(DbContextOptions options) : base(options) { }
+
         public DbSet<DocumentationProject> DocumentationProjects { get; set; }
 
         public DbSet<UserProjectAccess> UserProjects { get; set; }
