@@ -3,10 +3,10 @@ using System.IO.Compression;
 using System.Linq;
 using Dangl.WebDocumentation.Models;
 using Dangl.WebDocumentation.Repository;
-using Microsoft.AspNet.Authorization;
-using Microsoft.AspNet.Hosting;
-using Microsoft.AspNet.Http;
-using Microsoft.AspNet.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Dangl.WebDocumentation.Controllers.API
 {

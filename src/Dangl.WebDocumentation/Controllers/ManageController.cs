@@ -2,9 +2,9 @@
 using System.Threading.Tasks;
 using Dangl.WebDocumentation.Models;
 using Dangl.WebDocumentation.ViewModels.Manage;
-using Microsoft.AspNet.Authorization;
-using Microsoft.AspNet.Identity;
-using Microsoft.AspNet.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
 namespace Dangl.WebDocumentation.Controllers

@@ -2,7 +2,7 @@
 using System.Security.Claims;
 using Dangl.WebDocumentation.Models;
 using Dangl.WebDocumentation.ViewModels.Home;
-using Microsoft.AspNet.Mvc;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Dangl.WebDocumentation.Controllers
 {

@@ -7,11 +7,10 @@ using System.Threading.Tasks;
 using Dangl.WebDocumentation.Models;
 using Dangl.WebDocumentation.Repository;
 using Dangl.WebDocumentation.ViewModels.Admin;
-using Microsoft.AspNet.Authorization;
-using Microsoft.AspNet.Hosting;
-using Microsoft.AspNet.Http;
-using Microsoft.AspNet.Identity;
-using Microsoft.AspNet.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Dangl.WebDocumentation.Controllers
 {

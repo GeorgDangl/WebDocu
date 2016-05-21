@@ -2,10 +2,10 @@
 using System.Linq;
 using System.Security.Claims;
 using Dangl.WebDocumentation.Models;
-using Microsoft.AspNet.Authorization;
-using Microsoft.AspNet.Hosting;
-using Microsoft.AspNet.Mvc;
-using Microsoft.AspNet.StaticFiles;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.StaticFiles;
 
 namespace Dangl.WebDocumentation.Controllers
 {
