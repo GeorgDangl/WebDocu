@@ -16,6 +16,7 @@ namespace Dangl.WebDocumentation
             // Set up configuration sources.
 
             var builder = new ConfigurationBuilder()
+                .SetBasePath(env.ContentRootPath)
                 .AddJsonFile("appsettings.json")
                 .AddJsonFile($"appsettings.{env.EnvironmentName}.json", true);
 
