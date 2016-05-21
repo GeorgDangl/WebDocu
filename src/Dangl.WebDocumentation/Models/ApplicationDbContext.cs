@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace Dangl.WebDocumentation.Models
 {
@@ -14,6 +15,11 @@ namespace Dangl.WebDocumentation.Models
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
+            foreach (var entity in builder.Model.GetEntityTypes())
+            {
+                entity.Relational().TableName = entity.DisplayName();
+            }
+
             base.OnModelCreating(builder);
 
             // Make the Name unique so it can be used as a single identifier for a project ( -> Urls may contain the project name instead of the Guid)
