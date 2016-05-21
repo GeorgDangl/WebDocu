@@ -1,9 +1,9 @@
 ﻿using System.IO;
 using System.Linq;
-using System.Security.Claims;
 using Dangl.WebDocumentation.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.StaticFiles;
 
@@ -12,14 +12,16 @@ namespace Dangl.WebDocumentation.Controllers
     [Authorize]
     public class ProjectsController : Controller
     {
-        public ProjectsController(ApplicationDbContext context, IHostingEnvironment hostingEnvironment)
+        public ProjectsController(ApplicationDbContext context, IHostingEnvironment hostingEnvironment, UserManager<ApplicationUser> userManager)
         {
             Context = context;
             HostingEnvironment = hostingEnvironment;
+            UserManager = userManager;
         }
 
         private ApplicationDbContext Context { get; }
         private IHostingEnvironment HostingEnvironment { get; }
+        private UserManager<ApplicationUser> UserManager { get; }
 
         /// <summary>
         /// Returns a requested file for the project if the user has access or the project is public.
@@ -31,7 +33,7 @@ namespace Dangl.WebDocumentation.Controllers
         [Route("Projects/{ProjectName}/{*PathToFile}")]
         public IActionResult GetFile(string ProjectName, string PathToFile)
         {
-            var userId = User.GetUserId();
+            var userId = UserManager.GetUserId(User);
             // Find only public projects or projects where the user has access to (if logged in)
             var project = (from Project in Context.DocumentationProjects
                 where Project.Name.ToUpper() == ProjectName.ToUpper()
@@ -42,7 +44,7 @@ namespace Dangl.WebDocumentation.Controllers
                 // HttpNotFound for either the project not existing or the user not having access
                 return NotFound();
             }
-            var projectFolder = HostingEnvironment.MapPath("App_Data/" + project.FolderGuid);
+            var projectFolder = System.IO.Path.Combine(HostingEnvironment.WebRootPath, "App_Data/" + project.FolderGuid);
             if (string.IsNullOrWhiteSpace(PathToFile))
             {
                 return RedirectToAction(nameof(GetFile), new {ProjectName, PathToFile = project.PathToIndex});
