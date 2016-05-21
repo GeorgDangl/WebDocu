@@ -40,7 +40,7 @@ namespace Dangl.WebDocumentation.Controllers
             if (project == null)
             {
                 // HttpNotFound for either the project not existing or the user not having access
-                return HttpNotFound();
+                return NotFound();
             }
             var projectFolder = HostingEnvironment.MapPath("App_Data/" + project.FolderGuid);
             if (string.IsNullOrWhiteSpace(PathToFile))
@@ -50,7 +50,7 @@ namespace Dangl.WebDocumentation.Controllers
             var filePath = Path.Combine(projectFolder, PathToFile);
             if (!System.IO.File.Exists(filePath))
             {
-                return HttpNotFound();
+                return NotFound();
             }
             string mimeType;
             if (!new FileExtensionContentTypeProvider().TryGetContentType(filePath, out mimeType))

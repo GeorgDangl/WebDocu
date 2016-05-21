@@ -78,7 +78,7 @@ namespace Dangl.WebDocumentation.Controllers
         {
             if (!AppSettings.AllowUserRegistration)
             {
-                return HttpNotFound();
+                return NotFound();
             }
             return View();
         }
@@ -92,7 +92,7 @@ namespace Dangl.WebDocumentation.Controllers
         {
             if (!AppSettings.AllowUserRegistration)
             {
-                return HttpNotFound();
+                return NotFound();
             }
             if (ModelState.IsValid)
             {
