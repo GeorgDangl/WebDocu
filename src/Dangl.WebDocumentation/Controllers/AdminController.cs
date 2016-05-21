@@ -9,6 +9,7 @@ using Dangl.WebDocumentation.Repository;
 using Dangl.WebDocumentation.ViewModels.Admin;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
@@ -175,7 +176,7 @@ namespace Dangl.WebDocumentation.Controllers
                 {
                     using (var archive = new ZipArchive(inputStream))
                     {
-                        var physicalRootDirectory = HostingEnvironment.MapPath("App_Data/");
+                        var physicalRootDirectory = System.IO.Path.Combine(HostingEnvironment.WebRootPath, "App_Data/");
                         var result = ProjectWriter.CreateProjectFilesFromZip(archive, physicalRootDirectory, projectEntry.Id, Context);
                         if (!result)
                         {
@@ -234,7 +235,7 @@ namespace Dangl.WebDocumentation.Controllers
             if (documentationProject.FolderGuid != Guid.Empty)
             {
                 // Check if physical files present and if yes, delete them
-                var physicalDirectory = HostingEnvironment.MapPath("App_Data/" + documentationProject.FolderGuid);
+                var physicalDirectory = System.IO.Path.Combine(HostingEnvironment.WebRootPath, "App_Data/" + documentationProject.FolderGuid);
                 if (Directory.Exists(physicalDirectory))
                 {
                     Directory.Delete(physicalDirectory, true);
