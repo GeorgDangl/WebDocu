@@ -1,6 +1,7 @@
 ﻿{
   "userSecretsId": "aspnet5-Dangl.WebDocumentation-0c87600e-7481-4adb-82c4-92da09b0300c",
   "version": "1.0.0-*",
+  "authors": [ "Georg Dangl" ],
   "buildOptions": {
     "emitEntryPoint": true,
     "preserveCompilationContext": true
