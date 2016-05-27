@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Linq;
 using Dangl.WebDocumentation.Models;
-using Microsoft.AspNet.Identity.EntityFramework;
-using Microsoft.Data.Entity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
@@ -13,9 +12,8 @@ namespace Dangl.WebDocumentation.Tests.Models
         public DatabaseInitializationTestsFixture()
         {
             var services = new ServiceCollection();
-            services.AddEntityFramework()
-                .AddInMemoryDatabase()
-                .AddDbContext<ApplicationDbContext>(options => options.UseInMemoryDatabase());
+            services.AddEntityFrameworkInMemoryDatabase()
+                .AddDbContext<ApplicationDbContext>(o => o.UseInMemoryDatabase());
 
             var serviceProvider = services.BuildServiceProvider();
 
