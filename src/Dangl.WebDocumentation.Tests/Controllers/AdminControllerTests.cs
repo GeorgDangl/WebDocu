@@ -21,7 +21,7 @@ namespace Dangl.WebDocumentation.Tests.Controllers
         {
             var services = new ServiceCollection();
             services.AddEntityFrameworkInMemoryDatabase()
-                .AddDbContext<ApplicationDbContext>(o => o.UseInMemoryDatabase());
+                .AddDbContext<ApplicationDbContext>(o => o.UseInMemoryDatabase().UseInternalServiceProvider(services.BuildServiceProvider()));
 
             services.AddIdentity<ApplicationUser, IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
