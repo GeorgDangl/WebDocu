@@ -63,6 +63,7 @@ namespace Dangl.WebDocumentation
                     using (var dbContext = serviceScope.ServiceProvider.GetService<ApplicationDbContext>())
                     {
                         dbContext.Database.Migrate();
+                        dbContext.SaveChanges();
                         DatabaseInitialization.Initialize(dbContext);
                     }
                 }

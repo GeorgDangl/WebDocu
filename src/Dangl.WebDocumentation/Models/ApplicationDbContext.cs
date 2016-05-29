@@ -15,10 +15,12 @@ namespace Dangl.WebDocumentation.Models
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
+            /*
             foreach (var entity in builder.Model.GetEntityTypes())
             {
                 entity.Relational().TableName = entity.DisplayName();
             }
+            */
 
             base.OnModelCreating(builder);
 
