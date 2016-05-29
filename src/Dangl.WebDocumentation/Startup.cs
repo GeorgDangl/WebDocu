@@ -1,11 +1,11 @@
 ﻿using Dangl.WebDocumentation.Models;
-using Microsoft.AspNet.Builder;
-using Microsoft.AspNet.Hosting;
-using Microsoft.AspNet.Identity.EntityFramework;
-using Microsoft.Data.Entity;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
 
 namespace Dangl.WebDocumentation
 {
@@ -16,17 +16,12 @@ namespace Dangl.WebDocumentation
             // Set up configuration sources.
 
             var builder = new ConfigurationBuilder()
+                .SetBasePath(env.ContentRootPath)
                 .AddJsonFile("appsettings.json")
                 .AddJsonFile($"appsettings.{env.EnvironmentName}.json", true);
 
             // For more details on using the user secret store see http://go.microsoft.com/fwlink/?LinkID=532709
             builder.AddUserSecrets();
-
-            if (env.IsDevelopment())
-            {
-                // This will push telemetry data through Application Insights pipeline faster, allowing you to view results immediately.
-                builder.AddApplicationInsightsSettings(true);
-            }
 
             builder.AddEnvironmentVariables();
             Configuration = builder.Build();
@@ -38,12 +33,9 @@ namespace Dangl.WebDocumentation
         public void ConfigureServices(IServiceCollection services)
         {
             // Add framework services.
-            services.AddApplicationInsightsTelemetry(Configuration);
 
-            services.AddEntityFramework()
-                .AddSqlServer()
-                .AddDbContext<ApplicationDbContext>(options =>
-                    options.UseSqlServer(Configuration["Data:DefaultConnection:ConnectionString"]));
+            services.AddDbContext<ApplicationDbContext>(options =>
+                options.UseSqlServer(Configuration["Data:DefaultConnection:ConnectionString"]));
 
             services.AddIdentity<ApplicationUser, IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>()
@@ -60,8 +52,6 @@ namespace Dangl.WebDocumentation
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
             loggerFactory.AddDebug();
 
-            app.UseApplicationInsightsRequestTelemetry();
-            
             if (env.IsDevelopment())
             {
                 app.UseBrowserLink();
@@ -73,6 +63,7 @@ namespace Dangl.WebDocumentation
                     using (var dbContext = serviceScope.ServiceProvider.GetService<ApplicationDbContext>())
                     {
                         dbContext.Database.Migrate();
+                        dbContext.SaveChanges();
                         DatabaseInitialization.Initialize(dbContext);
                     }
                 }
@@ -99,10 +90,6 @@ namespace Dangl.WebDocumentation
                 }
             }
 
-            app.UseIISPlatformHandler(options => options.AuthenticationDescriptions.Clear());
-
-            app.UseApplicationInsightsExceptionTelemetry();
-
             app.UseStaticFiles();
 
             app.UseIdentity();
@@ -111,8 +98,5 @@ namespace Dangl.WebDocumentation
 
             app.UseMvc(routes => { routes.MapRoute("default", "{controller=Home}/{action=Index}/{id?}"); });
         }
-
-        // Entry point for the application.
-        public static void Main(string[] args) => WebApplication.Run<Startup>(args);
     }
 }

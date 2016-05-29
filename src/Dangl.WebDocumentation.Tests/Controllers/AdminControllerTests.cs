@@ -4,14 +4,11 @@ using System.Threading.Tasks;
 using Dangl.WebDocumentation.Controllers;
 using Dangl.WebDocumentation.Models;
 using Dangl.WebDocumentation.ViewModels.Account;
-using Microsoft.AspNet.Http;
-using Microsoft.AspNet.Http.Features;
-using Microsoft.AspNet.Http.Features.Authentication;
-using Microsoft.AspNet.Http.Features.Authentication.Internal;
-using Microsoft.AspNet.Http.Internal;
-using Microsoft.AspNet.Identity;
-using Microsoft.AspNet.Identity.EntityFramework;
-using Microsoft.Data.Entity;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Features.Authentication;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Xunit;
@@ -23,9 +20,8 @@ namespace Dangl.WebDocumentation.Tests.Controllers
         public AdminControllerTestsFixture()
         {
             var services = new ServiceCollection();
-            services.AddEntityFramework()
-                .AddInMemoryDatabase()
-                .AddDbContext<ApplicationDbContext>(options => options.UseInMemoryDatabase());
+            services.AddEntityFrameworkInMemoryDatabase()
+                .AddDbContext<ApplicationDbContext>(o => o.UseInMemoryDatabase().UseInternalServiceProvider(services.BuildServiceProvider()));
 
             services.AddIdentity<ApplicationUser, IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>();

@@ -7,11 +7,11 @@ using System.Threading.Tasks;
 using Dangl.WebDocumentation.Models;
 using Dangl.WebDocumentation.Repository;
 using Dangl.WebDocumentation.ViewModels.Admin;
-using Microsoft.AspNet.Authorization;
-using Microsoft.AspNet.Hosting;
-using Microsoft.AspNet.Http;
-using Microsoft.AspNet.Identity;
-using Microsoft.AspNet.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Dangl.WebDocumentation.Controllers
 {
@@ -86,7 +86,7 @@ namespace Dangl.WebDocumentation.Controllers
             var project = Context.DocumentationProjects.FirstOrDefault(Curr => Curr.Id == ProjectId);
             if (project == null)
             {
-                return HttpNotFound();
+                return NotFound();
             }
             var usersWithAccess = Context.UserProjects.Where(Assignment => Assignment.ProjectId == project.Id).Select(Assignment => Assignment.User.Email).ToList();
             var usersWithoutAccess = Context.Users.Select(CurrentUser => CurrentUser.Email).Where(CurrentUser => !usersWithAccess.Contains(CurrentUser)).ToList();
@@ -111,7 +111,7 @@ namespace Dangl.WebDocumentation.Controllers
             var databaseProject = Context.DocumentationProjects.FirstOrDefault(Project => Project.Id == ProjectId);
             if (databaseProject == null)
             {
-                return HttpNotFound();
+                return NotFound();
             }
             databaseProject.ApiKey = model.ApiKey;
             databaseProject.IsPublic = model.IsPublic;
@@ -148,7 +148,7 @@ namespace Dangl.WebDocumentation.Controllers
             var project = Context.DocumentationProjects.FirstOrDefault(Project => Project.Id == ProjectId);
             if (project == null)
             {
-                return HttpNotFound();
+                return NotFound();
             }
             ViewBag.ProjectName = project.Name;
             ViewBag.ApiKey = project.ApiKey;
@@ -167,7 +167,7 @@ namespace Dangl.WebDocumentation.Controllers
             var projectEntry = Context.DocumentationProjects.FirstOrDefault(Project => Project.Id == ProjectId);
             if (projectEntry == null)
             {
-                return HttpNotFound();
+                return NotFound();
             }
             // Try to read as zip file
             using (var inputStream = projectPackage.OpenReadStream())
@@ -176,7 +176,7 @@ namespace Dangl.WebDocumentation.Controllers
                 {
                     using (var archive = new ZipArchive(inputStream))
                     {
-                        var physicalRootDirectory = HostingEnvironment.MapPath("App_Data/");
+                        var physicalRootDirectory = System.IO.Path.Combine(HostingEnvironment.WebRootPath, "App_Data/");
                         var result = ProjectWriter.CreateProjectFilesFromZip(archive, physicalRootDirectory, projectEntry.Id, Context);
                         if (!result)
                         {
@@ -207,7 +207,7 @@ namespace Dangl.WebDocumentation.Controllers
             var project = Context.DocumentationProjects.FirstOrDefault(Project => Project.Id == ProjectId);
             if (project == null)
             {
-                return HttpNotFound();
+                return NotFound();
             }
             var model = new DeleteProjectViewModel();
             model.ProjectName = project.Name;
@@ -230,12 +230,12 @@ namespace Dangl.WebDocumentation.Controllers
             var documentationProject = Context.DocumentationProjects.FirstOrDefault(Project => Project.Id == model.ProjectId);
             if (documentationProject == null)
             {
-                return HttpNotFound();
+                return NotFound();
             }
             if (documentationProject.FolderGuid != Guid.Empty)
             {
                 // Check if physical files present and if yes, delete them
-                var physicalDirectory = HostingEnvironment.MapPath("App_Data/" + documentationProject.FolderGuid);
+                var physicalDirectory = System.IO.Path.Combine(HostingEnvironment.WebRootPath, "App_Data/" + documentationProject.FolderGuid);
                 if (Directory.Exists(physicalDirectory))
                 {
                     Directory.Delete(physicalDirectory, true);

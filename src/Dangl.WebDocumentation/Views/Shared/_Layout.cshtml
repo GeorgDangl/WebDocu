@@ -1,6 +1,6 @@
 ﻿@using System.Threading.Tasks
-@using Microsoft.Extensions.OptionsModel
-@inject IOptions<AppSettings> AppSettings
+@using Microsoft.Extensions.Options
+@inject IOptions<Dangl.WebDocumentation.AppSettings> AppSettings
 
 <!DOCTYPE html>
 <html>
@@ -27,7 +27,6 @@
                   asp-fallback-test-class="sr-only" asp-fallback-test-property="position" asp-fallback-test-value="absolute" />
             <link rel="stylesheet" href="~/css/site.min.css" asp-append-version="true" />
         </environment>
-        @Html.ApplicationInsightsJavaScript(TelemetryConfiguration)
     </head>
 <body>
 

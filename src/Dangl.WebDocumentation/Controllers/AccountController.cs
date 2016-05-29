@@ -3,11 +3,11 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Dangl.WebDocumentation.Models;
 using Dangl.WebDocumentation.ViewModels.Account;
-using Microsoft.AspNet.Authorization;
-using Microsoft.AspNet.Identity;
-using Microsoft.AspNet.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.OptionsModel;
+using Microsoft.Extensions.Options;
 
 namespace Dangl.WebDocumentation.Controllers
 {
@@ -78,7 +78,7 @@ namespace Dangl.WebDocumentation.Controllers
         {
             if (!AppSettings.AllowUserRegistration)
             {
-                return HttpNotFound();
+                return NotFound();
             }
             return View();
         }
@@ -92,7 +92,7 @@ namespace Dangl.WebDocumentation.Controllers
         {
             if (!AppSettings.AllowUserRegistration)
             {
-                return HttpNotFound();
+                return NotFound();
             }
             if (ModelState.IsValid)
             {
@@ -155,11 +155,6 @@ namespace Dangl.WebDocumentation.Controllers
             {
                 ModelState.AddModelError(string.Empty, error.Description);
             }
-        }
-
-        private async Task<ApplicationUser> GetCurrentUserAsync()
-        {
-            return await _userManager.FindByIdAsync(HttpContext.User.GetUserId());
         }
 
         private IActionResult RedirectToLocal(string returnUrl)

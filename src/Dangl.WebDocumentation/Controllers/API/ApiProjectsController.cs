@@ -3,10 +3,10 @@ using System.IO.Compression;
 using System.Linq;
 using Dangl.WebDocumentation.Models;
 using Dangl.WebDocumentation.Repository;
-using Microsoft.AspNet.Authorization;
-using Microsoft.AspNet.Hosting;
-using Microsoft.AspNet.Http;
-using Microsoft.AspNet.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Dangl.WebDocumentation.Controllers.API
 {
@@ -36,17 +36,17 @@ namespace Dangl.WebDocumentation.Controllers.API
         {
             if (ProjectPackage == null)
             {
-                return HttpBadRequest();
+                return BadRequest();
             }
             if (string.IsNullOrWhiteSpace(ApiKey))
             {
                 // Not accepting empty API key -> Disable API upload to projects by setting the API key empty
-                return HttpNotFound();
+                return NotFound();
             }
             var projectEntry = Context.DocumentationProjects.FirstOrDefault(Project => Project.ApiKey == ApiKey);
             if (projectEntry == null)
             {
-                return HttpNotFound();
+                return NotFound();
             }
             // Try to read as zip file
             using (var inputStream = ProjectPackage.OpenReadStream())
@@ -55,22 +55,22 @@ namespace Dangl.WebDocumentation.Controllers.API
                 {
                     using (var archive = new ZipArchive(inputStream))
                     {
-                        var physicalRootDirectory = HostingEnvironment.MapPath("App_Data/");
+                        var physicalRootDirectory = System.IO.Path.Combine(HostingEnvironment.WebRootPath, "App_Data/");
                         var result = ProjectWriter.CreateProjectFilesFromZip(archive, physicalRootDirectory, projectEntry.Id, Context);
                         if (!result)
                         {
-                            return HttpBadRequest();
+                            return BadRequest();
                         }
                     }
                     return Ok();
                 }
                 catch (InvalidDataException caughtException)
                 {
-                    return HttpBadRequest(new {Error = "Could not read file as zip."});
+                    return BadRequest(new {Error = "Could not read file as zip."});
                 }
                 catch
                 {
-                    return HttpBadRequest();
+                    return BadRequest();
                 }
             }
         }
