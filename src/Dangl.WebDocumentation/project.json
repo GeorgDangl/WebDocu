@@ -92,7 +92,9 @@
             "wwwroot",
             "Views",
             "appsettings.json",
-            "web.config"
+            "appsettings.*.json",
+            "web.config",
+            "project.json"
         ]
     },
     "scripts": {
