@@ -22,7 +22,8 @@
         "Dangl.WebDocumentation": "*",
         "Microsoft.EntityFrameworkCore.InMemory": "1.0.0-rc2-final",
         "OpenCover": "4.6.261-rc",
-        "OpenCoverToCoberturaConverter": "0.2.4"
+        "OpenCoverToCoberturaConverter": "0.2.4",
+        "ReportGenerator": "2.4.5"
     },
     "testRunner": "xunit"
 }
