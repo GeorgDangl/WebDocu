@@ -44,7 +44,7 @@ namespace Dangl.WebDocumentation.Controllers
                 // HttpNotFound for either the project not existing or the user not having access
                 return NotFound();
             }
-            var projectFolder = System.IO.Path.Combine(HostingEnvironment.WebRootPath, "App_Data/" + project.FolderGuid);
+            var projectFolder = System.IO.Path.Combine(HostingEnvironment.WebRootPath, "App_Data", project.FolderGuid.ToString());
             if (string.IsNullOrWhiteSpace(PathToFile))
             {
                 return RedirectToAction(nameof(GetFile), new {ProjectName, PathToFile = project.PathToIndex});
