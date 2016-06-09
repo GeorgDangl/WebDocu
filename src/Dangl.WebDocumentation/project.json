@@ -94,6 +94,7 @@
             "appsettings.json",
             "appsettings.*.json",
             "web.config",
+            "web.*.config",
             "project.json"
         ]
     },
