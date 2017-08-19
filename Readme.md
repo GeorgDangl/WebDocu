@@ -1,7 +1,5 @@
 # Dangl.WebDocumentation - Readme
 
-![Build Status](https://jenkins.dan.gl/buildStatus/icon?job=Dangl.WebDocumentation)
-
 This is a small web application that I use to host generated project documentation in Html format. It allows to control access to whom can access a project, either by making projects publicly available or by enabling access to projects for specific users.  
 It does accept a zip file as input and will then make the content available to be browsable through the web. You can use, for example, [Sharpdox](https://github.com/Geaz/sharpDox) to create html documentation for C# projects, zip the output and upload it as project.
 
