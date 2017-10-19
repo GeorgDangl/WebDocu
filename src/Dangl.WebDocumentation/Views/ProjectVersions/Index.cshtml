@@ -5,16 +5,22 @@
 
 <h2>@ViewData["Title"]</h2>
 
-<table class="table">
-    <tbody>
-    @{
-        foreach (var version in Model.Versions)
-        {
-            <tr>
-                <td>@version</td>
-                <td><a asp-controller="Projects" asp-action="GetFile" asp-route-projectName="@Model.ProjectName" asp-route-version="@version" asp-route-pathToFile="@Model.PathToIndex">View</a></td>
-            </tr>
+@if (!Model.Versions.Any())
+{
+    <h3>No versions available.</h3>
+}
+else
+{
+    <table class="table">
+        <tbody>
+        @{
+            foreach (var version in Model.Versions)
+            {
+                <tr>
+                    <td><a asp-controller="Projects" asp-action="GetFile" asp-route-projectName="@Model.ProjectName" asp-route-version="@version" asp-route-pathToFile="@Model.PathToIndex">Version @version</a></td>
+                </tr>
+            }
         }
-    }
-    </tbody>
-</table>
+        </tbody>
+    </table>
+}
