@@ -1,5 +1,4 @@
-﻿using System.Security.Claims;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Dangl.WebDocumentation.Models;
 using Dangl.WebDocumentation.ViewModels.Manage;
 using Microsoft.AspNetCore.Authorization;
@@ -26,8 +25,6 @@ namespace Dangl.WebDocumentation.Controllers
             _logger = loggerFactory.CreateLogger<ManageController>();
         }
 
-        //
-        // GET: /Manage/Index
         [HttpGet]
         public async Task<IActionResult> Index(ManageMessageId? message = null)
         {
@@ -48,8 +45,6 @@ namespace Dangl.WebDocumentation.Controllers
             return View(model);
         }
 
-        //
-        // POST: /Manage/DisableTwoFactorAuthentication
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DisableTwoFactorAuthentication()
@@ -64,16 +59,12 @@ namespace Dangl.WebDocumentation.Controllers
             return RedirectToAction(nameof(Index), "Manage");
         }
 
-        //
-        // GET: /Manage/ChangePassword
         [HttpGet]
         public IActionResult ChangePassword()
         {
             return View();
         }
 
-        //
-        // POST: /Manage/ChangePassword
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model)

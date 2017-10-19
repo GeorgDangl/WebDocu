@@ -1,5 +1,4 @@
 ﻿using System.Linq;
-using System.Security.Claims;
 using Dangl.WebDocumentation.Models;
 using Dangl.WebDocumentation.ViewModels.Home;
 using Microsoft.AspNetCore.Identity;
@@ -22,16 +21,16 @@ namespace Dangl.WebDocumentation.Controllers
         public IActionResult Index()
         {
             // Get a list of all projects that the user has access to
-            var accessibleProjects = Context.DocumentationProjects.Where(Project => Project.IsPublic).ToList(); // Show all public projects
+            var accessibleProjects = Context.DocumentationProjects.Where(project => project.IsPublic).ToList(); // Show all public projects
             var userId = UserManager.GetUserId(User);
 
             if (!string.IsNullOrWhiteSpace(userId))
             {
-                var projectsWithUserAccess = Context.UserProjects.Where(Assignment => Assignment.UserId == userId).Select(Assignment => Assignment.Project).ToList();
+                var projectsWithUserAccess = Context.UserProjects.Where(assignment => assignment.UserId == userId).Select(assignment => assignment.Project).ToList();
                 accessibleProjects = accessibleProjects.Union(projectsWithUserAccess).ToList();
             }
             var model = new IndexViewModel();
-            model.Projects = accessibleProjects.OrderBy(Project => Project.Name);
+            model.Projects = accessibleProjects.OrderBy(project => project.Name);
             return View(model);
         }
 

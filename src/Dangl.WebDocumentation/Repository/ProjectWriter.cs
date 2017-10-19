@@ -12,7 +12,7 @@ namespace Dangl.WebDocumentation.Repository
         {
             try
             {
-                var databaseProject = context.DocumentationProjects.FirstOrDefault(Project => Project.Id == projectId);
+                var databaseProject = context.DocumentationProjects.FirstOrDefault(project => project.Id == projectId);
                 if (databaseProject == null)
                 {
                     throw new ArgumentException(nameof(projectId) + " is not a valid Guid for a project.");

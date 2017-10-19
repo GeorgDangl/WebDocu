@@ -19,7 +19,7 @@ namespace Dangl.WebDocumentation.Controllers.API
             HostingEnvironment = hostingEnvironment;
         }
 
-        public ApplicationDbContext Context { get; }
+        private ApplicationDbContext Context { get; }
         private IHostingEnvironment HostingEnvironment { get; }
 
         /// <summary>
@@ -27,35 +27,35 @@ namespace Dangl.WebDocumentation.Controllers.API
         ///     Exemplary cURL usage:
         ///     curl -F "ApiKey=123" -F "ProjectPackage=@\"C:\Path\to\file.zip\"" http://localhost:10013/API/Projects/Upload
         /// </summary>
-        /// <param name="ApiKey">The ApiKey to authorize a project upload.</param>
-        /// <param name="ProjectPackage">The project content as zip file.</param>
+        /// <param name="apiKey">The ApiKey to authorize a project upload.</param>
+        /// <param name="projectPackage">The project content as zip file.</param>
         /// <returns></returns>
         [HttpPost]
         [Route("API/Projects/Upload")]
-        public IActionResult Upload(string ApiKey, IFormFile ProjectPackage)
+        public IActionResult Upload(string apiKey, IFormFile projectPackage)
         {
-            if (ProjectPackage == null)
+            if (projectPackage == null)
             {
                 return BadRequest();
             }
-            if (string.IsNullOrWhiteSpace(ApiKey))
+            if (string.IsNullOrWhiteSpace(apiKey))
             {
                 // Not accepting empty API key -> Disable API upload to projects by setting the API key empty
                 return NotFound();
             }
-            var projectEntry = Context.DocumentationProjects.FirstOrDefault(Project => Project.ApiKey == ApiKey);
+            var projectEntry = Context.DocumentationProjects.FirstOrDefault(project => project.ApiKey == apiKey);
             if (projectEntry == null)
             {
                 return NotFound();
             }
             // Try to read as zip file
-            using (var inputStream = ProjectPackage.OpenReadStream())
+            using (var inputStream = projectPackage.OpenReadStream())
             {
                 try
                 {
                     using (var archive = new ZipArchive(inputStream))
                     {
-                        var physicalRootDirectory = System.IO.Path.Combine(HostingEnvironment.WebRootPath, "App_Data/");
+                        var physicalRootDirectory = Path.Combine(HostingEnvironment.WebRootPath, "App_Data/");
                         var result = ProjectWriter.CreateProjectFilesFromZip(archive, physicalRootDirectory, projectEntry.Id, Context);
                         if (!result)
                         {

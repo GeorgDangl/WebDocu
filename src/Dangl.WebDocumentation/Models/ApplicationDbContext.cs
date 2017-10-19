@@ -1,7 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace Dangl.WebDocumentation.Models
 {
@@ -15,32 +13,25 @@ namespace Dangl.WebDocumentation.Models
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
-            /*
-            foreach (var entity in builder.Model.GetEntityTypes())
-            {
-                entity.Relational().TableName = entity.DisplayName();
-            }
-            */
-
             base.OnModelCreating(builder);
 
             // Make the Name unique so it can be used as a single identifier for a project ( -> Urls may contain the project name instead of the Guid)
             builder.Entity<DocumentationProject>()
-                .HasIndex(Entity => Entity.Name)
+                .HasIndex(entity => entity.Name)
                 .IsUnique();
 
             // Make the ApiKey unique so it can be used as a single identifier for a project
             builder.Entity<DocumentationProject>()
-                .HasIndex(Entity => Entity.ApiKey)
+                .HasIndex(entity => entity.ApiKey)
                 .IsUnique();
 
             // Composite key for UserProject Access
             builder.Entity<UserProjectAccess>()
-                .HasKey(Entity => new {Entity.ProjectId, Entity.UserId});
+                .HasKey(entity => new {entity.ProjectId, entity.UserId});
 
             builder.Entity<UserProjectAccess>()
-                .HasOne(Entity => Entity.Project)
-                .WithMany(Project => Project.UserAccess)
+                .HasOne(entity => entity.Project)
+                .WithMany(project => project.UserAccess)
                 .OnDelete(DeleteBehavior.Cascade);
 
             builder.Entity<ApplicationUser>()

@@ -26,36 +26,35 @@ namespace Dangl.WebDocumentation.Controllers
         /// <summary>
         /// Returns a requested file for the project if the user has access or the project is public.
         /// </summary>
-        /// <param name="ProjectName"></param>
-        /// <param name="PathToFile"></param>
+        /// <param name="projectName"></param>
+        /// <param name="pathToFile"></param>
         /// <returns></returns>
         [HttpGet]
-        [Route("Projects/{ProjectName}/{*PathToFile}")]
-        public IActionResult GetFile(string ProjectName, string PathToFile)
+        [Route("Projects/{projectName}/{*pathToFile}")]
+        public IActionResult GetFile(string projectName, string pathToFile)
         {
             var userId = UserManager.GetUserId(User);
             // Find only public projects or projects where the user has access to (if logged in)
-            var project = (from Project in Context.DocumentationProjects
-                where Project.Name.ToUpper() == ProjectName.ToUpper()
-                      && (Project.IsPublic || (!string.IsNullOrWhiteSpace(userId) && Context.UserProjects.Any(ProjectAccess => ProjectAccess.UserId == userId && ProjectAccess.ProjectId == Project.Id)))
-                select Project).FirstOrDefault();
+            var project = (from dbProject in Context.DocumentationProjects
+                where dbProject.Name.ToUpper() == projectName.ToUpper()
+                      && (dbProject.IsPublic || (!string.IsNullOrWhiteSpace(userId) && Context.UserProjects.Any(projectAccess => projectAccess.UserId == userId && projectAccess.ProjectId == dbProject.Id)))
+                select dbProject).FirstOrDefault();
             if (project == null)
             {
                 // HttpNotFound for either the project not existing or the user not having access
                 return NotFound();
             }
-            var projectFolder = System.IO.Path.Combine(HostingEnvironment.WebRootPath, "App_Data", project.FolderGuid.ToString());
-            if (string.IsNullOrWhiteSpace(PathToFile))
+            var projectFolder = Path.Combine(HostingEnvironment.WebRootPath, "App_Data", project.FolderGuid.ToString());
+            if (string.IsNullOrWhiteSpace(pathToFile))
             {
-                return RedirectToAction(nameof(GetFile), new {ProjectName, PathToFile = project.PathToIndex});
+                return RedirectToAction(nameof(GetFile), new {ProjectName = projectName, PathToFile = project.PathToIndex});
             }
-            var filePath = Path.Combine(projectFolder, PathToFile);
+            var filePath = Path.Combine(projectFolder, pathToFile);
             if (!System.IO.File.Exists(filePath))
             {
                 return NotFound();
             }
-            string mimeType;
-            if (!new FileExtensionContentTypeProvider().TryGetContentType(filePath, out mimeType))
+            if (!new FileExtensionContentTypeProvider().TryGetContentType(filePath, out var mimeType))
             {
                 mimeType = "application/octet-stream";
             }

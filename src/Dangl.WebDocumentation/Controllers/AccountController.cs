@@ -1,5 +1,4 @@
 ﻿using System.Linq;
-using System.Security.Claims;
 using System.Threading.Tasks;
 using Dangl.WebDocumentation.Models;
 using Dangl.WebDocumentation.ViewModels.Account;
@@ -35,8 +34,6 @@ namespace Dangl.WebDocumentation.Controllers
 
         private ApplicationDbContext Context { get; }
 
-        //
-        // GET: /Account/Login
         [HttpGet]
         [AllowAnonymous]
         public IActionResult Login(string returnUrl = null)
@@ -45,8 +42,6 @@ namespace Dangl.WebDocumentation.Controllers
             return View();
         }
 
-        //
-        // POST: /Account/Login
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
@@ -70,8 +65,6 @@ namespace Dangl.WebDocumentation.Controllers
             return View(model);
         }
 
-        //
-        // GET: /Account/Register
         [HttpGet]
         [AllowAnonymous]
         public IActionResult Register()
@@ -83,8 +76,6 @@ namespace Dangl.WebDocumentation.Controllers
             return View();
         }
 
-        //
-        // POST: /Account/Register
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
@@ -136,8 +127,6 @@ namespace Dangl.WebDocumentation.Controllers
             return result;
         }
 
-        //
-        // POST: /Account/LogOff
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> LogOff()

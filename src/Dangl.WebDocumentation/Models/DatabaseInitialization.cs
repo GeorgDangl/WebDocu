@@ -1,29 +1,28 @@
 ﻿using System.Linq;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
 namespace Dangl.WebDocumentation.Models
 {
     public static class DatabaseInitialization
     {
-        public static void Initialize(ApplicationDbContext Context)
+        public static void Initialize(ApplicationDbContext context)
         {
-            SetUpRoles(Context);
+            SetUpRoles(context);
         }
 
-        private static void SetUpRoles(ApplicationDbContext Context)
+        private static void SetUpRoles(ApplicationDbContext context)
         {
             // Add Admin role if not present
-            if (Context.Roles.All(role => role.Name != "Admin"))
+            if (context.Roles.All(role => role.Name != "Admin"))
             {
-                Context.Roles.Add(new IdentityRole {Name = "Admin", NormalizedName = "ADMIN"});
-                Context.SaveChanges();
+                context.Roles.Add(new IdentityRole {Name = "Admin", NormalizedName = "ADMIN"});
+                context.SaveChanges();
             }
-            else if (Context.Roles.Any(role => role.Name == "Admin" && role.NormalizedName != "Admin"))
+            else if (context.Roles.Any(role => role.Name == "Admin" && role.NormalizedName != "Admin"))
             {
-                var adminRole = Context.Roles.FirstOrDefault(role => role.Name == "Admin");
+                var adminRole = context.Roles.FirstOrDefault(role => role.Name == "Admin");
                 adminRole.NormalizedName = "ADMIN";
-                Context.SaveChanges();
+                context.SaveChanges();
             }
         }
     }

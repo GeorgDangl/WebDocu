@@ -41,7 +41,7 @@
                     <label asp-for="AvailableUsers" class="col-md-2 control-label"></label>
                     <div class="col-md-10">
                         @{
-                            var users = Model.UsersWithAccess.Select(Entry => new {Name = Entry, IsEnabled = true}).Union(Model.AvailableUsers.Select(Entry => new {Name = Entry, IsEnabled = false})).OrderBy(Entry => Entry.Name).ToList();
+                            var users = Model.UsersWithAccess.Select(entry => new {Name = entry, IsEnabled = true}).Union(Model.AvailableUsers.Select(entry => new {Name = entry, IsEnabled = false})).OrderBy(entry => entry.Name).ToList();
                             foreach (var user in users)
                             {
                                 <input type="checkbox" id="User_@user.Name" name="SelectedUsers" value="@user.Name" @{if (user.IsEnabled)
