@@ -1,6 +1,8 @@
 ﻿using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Dangl.WebDocumentation.Models;
+using Dangl.WebDocumentation.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
@@ -12,16 +14,18 @@ namespace Dangl.WebDocumentation.Controllers
     [Authorize]
     public class ProjectsController : Controller
     {
-        public ProjectsController(ApplicationDbContext context, IHostingEnvironment hostingEnvironment, UserManager<ApplicationUser> userManager)
-        {
-            Context = context;
-            HostingEnvironment = hostingEnvironment;
-            UserManager = userManager;
-        }
+        private readonly IProjectFilesService _projectFilesService;
+        private readonly IProjectsService _projectsService;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        private ApplicationDbContext Context { get; }
-        private IHostingEnvironment HostingEnvironment { get; }
-        private UserManager<ApplicationUser> UserManager { get; }
+        public ProjectsController(UserManager<ApplicationUser> userManager,
+            IProjectFilesService projectFilesService,
+            IProjectsService projectsService)
+        {
+            _projectFilesService = projectFilesService;
+            _projectsService = projectsService;
+            _userManager = userManager;
+        }
 
         /// <summary>
         /// Returns a requested file for the project if the user has access or the project is public.
@@ -31,35 +35,21 @@ namespace Dangl.WebDocumentation.Controllers
         /// <returns></returns>
         [HttpGet]
         [Route("Projects/{projectName}/{*pathToFile}")]
-        public IActionResult GetFile(string projectName, string pathToFile)
+        public async Task<IActionResult> GetFile(string projectName, string pathToFile)
         {
-            var userId = UserManager.GetUserId(User);
-            // Find only public projects or projects where the user has access to (if logged in)
-            var project = (from dbProject in Context.DocumentationProjects
-                where dbProject.Name.ToUpper() == projectName.ToUpper()
-                      && (dbProject.IsPublic || (!string.IsNullOrWhiteSpace(userId) && Context.UserProjects.Any(projectAccess => projectAccess.UserId == userId && projectAccess.ProjectId == dbProject.Id)))
-                select dbProject).FirstOrDefault();
-            if (project == null)
+            var userId = _userManager.GetUserId(User);
+            var hasProjectAccess = await _projectsService.UserHasAccessToProject(projectName, userId);
+            if (!hasProjectAccess)
             {
                 // HttpNotFound for either the project not existing or the user not having access
                 return NotFound();
             }
-            var projectFolder = Path.Combine(HostingEnvironment.WebRootPath, "App_Data", project.FolderGuid.ToString());
-            if (string.IsNullOrWhiteSpace(pathToFile))
-            {
-                return RedirectToAction(nameof(GetFile), new {ProjectName = projectName, PathToFile = project.PathToIndex});
-            }
-            var filePath = Path.Combine(projectFolder, pathToFile);
-            if (!System.IO.File.Exists(filePath))
+            var projectFile = await _projectFilesService.GetFileForProject(projectName, pathToFile);
+            if (projectFile == null)
             {
                 return NotFound();
             }
-            if (!new FileExtensionContentTypeProvider().TryGetContentType(filePath, out var mimeType))
-            {
-                mimeType = "application/octet-stream";
-            }
-            var fileData = System.IO.File.ReadAllBytes(filePath);
-            return File(fileData, mimeType);
+            return File(projectFile.FileStream, projectFile.MimeType);
         }
     }
 }

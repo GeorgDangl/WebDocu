@@ -1,4 +1,5 @@
 ﻿using Dangl.WebDocumentation.Models;
+using Dangl.WebDocumentation.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
@@ -33,6 +34,14 @@ namespace Dangl.WebDocumentation
             services.AddMvc();
 
             services.Configure<AppSettings>(Configuration);
+
+            services.AddTransient<IProjectsService, ProjectsService>();
+            services.AddTransient<IProjectFilesService, ProjectFilesService>(factory =>
+            {
+                var context = factory.GetRequiredService<ApplicationDbContext>();
+                var projectsRootFolder = Configuration["ProjectsRootFolder"];
+                return new ProjectFilesService(context, projectsRootFolder);
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
