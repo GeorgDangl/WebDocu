@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
 using Dangl.WebDocumentation.Models;
+using Dangl.WebDocumentation.Services;
 using Dangl.WebDocumentation.ViewModels.Account;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -15,6 +16,7 @@ namespace Dangl.WebDocumentation.Controllers
     {
         private readonly ILogger _logger;
         private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly IEmailSender _emailSender;
         private readonly UserManager<ApplicationUser> _userManager;
         private AppSettings AppSettings { get; }
 
@@ -23,10 +25,12 @@ namespace Dangl.WebDocumentation.Controllers
             SignInManager<ApplicationUser> signInManager,
             ILoggerFactory loggerFactory,
             ApplicationDbContext context,
-            IOptions<AppSettings> appSettings)
+            IOptions<AppSettings> appSettings,
+            IEmailSender emailSender)
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            _emailSender = emailSender;
             _logger = loggerFactory.CreateLogger<AccountController>();
             Context = context;
             AppSettings = appSettings?.Value;
@@ -104,6 +108,79 @@ namespace Dangl.WebDocumentation.Controllers
                 AddErrors(result);
             }
             // If we got this far, something failed, redisplay form
+            return View(model);
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult ForgotPassword()
+        {
+            var model = new ForgotPasswordViewModel();
+            return View(model);
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var user = await _userManager.FindByEmailAsync(model.Email);
+                if (user == null)
+                {
+                    ModelState.AddModelError(string.Empty, "There is no user with this email registered");
+                }
+                else
+                {
+                    var resetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
+                    var resetUrl = Url.Action(nameof(ResetPassword), "Account", new {emailAddress = model.Email, resetToken}, Request.Scheme);
+                    await _emailSender.SendForgotPasswordEmail(model.Email, resetUrl);
+                    return View("PasswordResetRequested");
+                }
+            }
+            return View(model);
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult ResetPassword(string emailAddress, string resetToken)
+        {
+            var model = new ResetPasswordViewModel
+            {
+                Email = emailAddress,
+                Token = resetToken
+            };
+            return View(model);
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
+        {
+            if (model.Password != model.ConfirmPassword)
+            {
+                ModelState.AddModelError(string.Empty, "Passwords do not match");
+            }
+            if (ModelState.IsValid)
+            {
+                var user = await _userManager.FindByEmailAsync(model.Email);
+                if (user == null)
+                {
+                    ModelState.AddModelError(string.Empty, "There is no user with this email registered");
+                }
+                else
+                {
+                    var passwordResetResult = await _userManager.ResetPasswordAsync(user, model.Token, model.Password);
+                    if (passwordResetResult.Succeeded)
+                    {
+                        await _signInManager.SignInAsync(user, false);
+                        return RedirectToAction(nameof(ManageController.Index), "Manage");
+                    }
+                    AddErrors(passwordResetResult);
+                }
+            }
             return View(model);
         }
 

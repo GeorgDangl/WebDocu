@@ -173,7 +173,7 @@ namespace Dangl.WebDocumentation.Tests.Controllers
 
             private AccountController Controller()
             {
-                return new AccountController(UserManager, SignInManager, LoggerFactory, Context, null);
+                return new AccountController(UserManager, SignInManager, LoggerFactory, Context, null, null);
             }
 
             /// <summary>

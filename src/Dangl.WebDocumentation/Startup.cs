@@ -41,7 +41,10 @@ namespace Dangl.WebDocumentation
             services.AddMvc();
 
             services.Configure<AppSettings>(Configuration);
+            services.Configure<EmailSettings>(Configuration.GetSection(nameof(AppSettings.EmailSettings)));
 
+
+            services.AddTransient<IEmailSender, EmailSender>();
             services.AddTransient<IProjectVersionsService, ProjectVersionsService>();
             services.AddTransient<IProjectsService, ProjectsService>();
             services.AddTransient<IProjectFilesService, ProjectFilesService>(factory =>
