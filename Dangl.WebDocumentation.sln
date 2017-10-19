@@ -1,20 +1,19 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.24720.0
+# Visual Studio 15
+VisualStudioVersion = 15.0.27004.2002
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{F5E4D742-3F81-4437-88E7-05DDF84EE012}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{012DA659-FDC5-40FD-B401-43E029BB20C2}"
 	ProjectSection(SolutionItems) = preProject
-		global.json = global.json
 		License.md = License.md
 		Readme.md = Readme.md
 	EndProjectSection
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Dangl.WebDocumentation", "src\Dangl.WebDocumentation\Dangl.WebDocumentation.xproj", "{C64017EC-953E-4E6C-B5DF-21654B9F6760}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dangl.WebDocumentation", "src\Dangl.WebDocumentation\Dangl.WebDocumentation.csproj", "{C64017EC-953E-4E6C-B5DF-21654B9F6760}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Dangl.WebDocumentation.Tests", "src\Dangl.WebDocumentation.Tests\Dangl.WebDocumentation.Tests.xproj", "{2AF9048D-8B53-4DE7-A2F8-6A4A7151C414}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dangl.WebDocumentation.Tests", "src\Dangl.WebDocumentation.Tests\Dangl.WebDocumentation.Tests.csproj", "{2AF9048D-8B53-4DE7-A2F8-6A4A7151C414}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -37,5 +36,8 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{C64017EC-953E-4E6C-B5DF-21654B9F6760} = {F5E4D742-3F81-4437-88E7-05DDF84EE012}
 		{2AF9048D-8B53-4DE7-A2F8-6A4A7151C414} = {F5E4D742-3F81-4437-88E7-05DDF84EE012}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {1642C10B-8198-427C-92FE-799CDA633B7A}
 	EndGlobalSection
 EndGlobal
