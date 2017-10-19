@@ -3,14 +3,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using Dangl.WebDocumentation.Controllers;
 using Dangl.WebDocumentation.Models;
-using Dangl.WebDocumentation.ViewModels.Account;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features.Authentication;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Xunit;
 
 namespace Dangl.WebDocumentation.Tests.Controllers
@@ -98,9 +95,9 @@ namespace Dangl.WebDocumentation.Tests.Controllers
                 UserManager = fixture.UserManager;
             }
 
-            public ApplicationDbContext Context { get; }
+            private ApplicationDbContext Context { get; }
 
-            public UserManager<ApplicationUser> UserManager { get; }
+            private UserManager<ApplicationUser> UserManager { get; }
 
 
             [Fact]
@@ -127,9 +124,8 @@ namespace Dangl.WebDocumentation.Tests.Controllers
                 DatabaseInitialization.Initialize(Context);
             }
 
-            public ApplicationDbContext Context { get; }
-
-            public UserManager<ApplicationUser> UserManager { get; }
+            private ApplicationDbContext Context { get; }
+            private UserManager<ApplicationUser> UserManager { get; }
 
 
             private AdminController Controller()
@@ -156,12 +152,12 @@ namespace Dangl.WebDocumentation.Tests.Controllers
                 await UserManager.CreateAsync(user, "SomePassword123!");
                 user = Context.Users.FirstOrDefault(dbUser => dbUser.UserName == user.UserName);
                 // Add two projects
-                var firstProject = new Dangl.WebDocumentation.Models.DocumentationProject
+                var firstProject = new DocumentationProject
                 {
                     Name = "First Project",
                     PathToIndex = "index.html"
                 };
-                var secondProject = new Dangl.WebDocumentation.Models.DocumentationProject
+                var secondProject = new DocumentationProject
                 {
                     Name = "Second Project",
                     PathToIndex = "index.html"

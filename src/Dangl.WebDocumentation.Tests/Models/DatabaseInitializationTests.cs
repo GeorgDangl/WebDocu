@@ -49,13 +49,13 @@ namespace Dangl.WebDocumentation.Tests.Models
         [Fact]
         public void DatabaseHasAdminRole()
         {
-            Assert.True(Context.Roles.Any(Role => Role.Name == "Admin"));
+            Assert.True(Context.Roles.Any(role => role.Name == "Admin"));
         }
 
         [Fact]
         public void DatabaseHasNoDuplicatedRoles()
         {
-            Assert.Equal(Context.Roles.Count(), Context.Roles.Select(Role => Role.Name).Distinct().Count());
+            Assert.Equal(Context.Roles.Count(), Context.Roles.Select(role => role.Name).Distinct().Count());
         }
     }
 }

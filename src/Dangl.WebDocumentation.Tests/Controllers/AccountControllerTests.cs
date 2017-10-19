@@ -5,11 +5,8 @@ using Dangl.WebDocumentation.Controllers;
 using Dangl.WebDocumentation.Models;
 using Dangl.WebDocumentation.ViewModels.Account;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Http.Features.Authentication;
-using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
@@ -114,13 +111,13 @@ namespace Dangl.WebDocumentation.Tests.Controllers
                 ServiceProvider = fixture.ServiceProvider;
             }
 
-            public ApplicationDbContext Context { get; }
+            private ApplicationDbContext Context { get; }
 
-            public UserManager<ApplicationUser> UserManager { get; }
+            private UserManager<ApplicationUser> UserManager { get; }
 
-            public SignInManager<ApplicationUser> SignInManager { get; }
-            public ILoggerFactory LoggerFactory { get; }
-            public IServiceProvider ServiceProvider { get; }
+            private SignInManager<ApplicationUser> SignInManager { get; }
+            private ILoggerFactory LoggerFactory { get; }
+            private IServiceProvider ServiceProvider { get; }
 
             [Fact]
             public void ContextNotNull()
@@ -168,13 +165,11 @@ namespace Dangl.WebDocumentation.Tests.Controllers
                 DatabaseInitialization.Initialize(Context);
             }
 
-            public ApplicationDbContext Context { get; }
-
-            public UserManager<ApplicationUser> UserManager { get; }
-            public SignInManager<ApplicationUser> SignInManager { get; }
-
-            public ILoggerFactory LoggerFactory { get; }
-            public IServiceProvider ServiceProvider { get; }
+            private ApplicationDbContext Context { get; }
+            private UserManager<ApplicationUser> UserManager { get; }
+            private SignInManager<ApplicationUser> SignInManager { get; }
+            private ILoggerFactory LoggerFactory { get; }
+            private IServiceProvider ServiceProvider { get; }
 
             private AccountController Controller()
             {
@@ -211,12 +206,12 @@ namespace Dangl.WebDocumentation.Tests.Controllers
                 Assert.Equal(1, Context.Users.Count());
 
                 var createdUser = Context.Users.FirstOrDefault();
-                var adminRole = Context.Roles.FirstOrDefault(Role => Role.Name == "Admin");
+                var adminRole = Context.Roles.FirstOrDefault(role => role.Name == "Admin");
 
                 // Ensure role is present
                 Assert.NotNull(adminRole);
 
-                var userHasAdminRole = Context.UserRoles.Any(Enrollment => Enrollment.RoleId == adminRole.Id && Enrollment.UserId == createdUser.Id);
+                var userHasAdminRole = Context.UserRoles.Any(enrollment => enrollment.RoleId == adminRole.Id && enrollment.UserId == createdUser.Id);
                 Assert.True(userHasAdminRole);
             }
 
@@ -243,12 +238,12 @@ namespace Dangl.WebDocumentation.Tests.Controllers
                 Assert.Equal(2, Context.Users.Count());
 
                 var createdUser = Context.Users.FirstOrDefault();
-                var adminRole = Context.Roles.FirstOrDefault(Role => Role.Name == "Admin");
+                var adminRole = Context.Roles.FirstOrDefault(role => role.Name == "Admin");
 
                 // Ensure role is present
                 Assert.NotNull(adminRole);
 
-                var userHasAdminRole = Context.UserRoles.Any(Enrollment => Enrollment.RoleId == adminRole.Id && Enrollment.UserId == createdUser.Id);
+                var userHasAdminRole = Context.UserRoles.Any(enrollment => enrollment.RoleId == adminRole.Id && enrollment.UserId == createdUser.Id);
                 Assert.False(userHasAdminRole);
             }
         }
