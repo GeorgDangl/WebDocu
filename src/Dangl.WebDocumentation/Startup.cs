@@ -82,7 +82,7 @@ namespace Dangl.WebDocumentation
 
             app.UseStaticFiles();
 
-            app.UseIdentity();
+            app.UseAuthentication();
 
             // To configure external authentication please see http://go.microsoft.com/fwlink/?LinkID=532715
 
