@@ -187,7 +187,7 @@ namespace Dangl.WebDocumentation.Controllers
                     ViewBag.SuccessMessage = "Uploaded package.";
                     return View();
                 }
-                catch (InvalidDataException caughtException)
+                catch (InvalidDataException)
                 {
                     ModelState.AddModelError("", "Cannot read the file as zip archive.");
                     return View();

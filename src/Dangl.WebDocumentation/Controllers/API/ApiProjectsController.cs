@@ -64,7 +64,7 @@ namespace Dangl.WebDocumentation.Controllers.API
                     }
                     return Ok();
                 }
-                catch (InvalidDataException caughtException)
+                catch (InvalidDataException)
                 {
                     return BadRequest(new {Error = "Could not read file as zip."});
                 }
