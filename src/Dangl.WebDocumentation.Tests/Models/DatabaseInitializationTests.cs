@@ -13,7 +13,7 @@ namespace Dangl.WebDocumentation.Tests.Models
         {
             var services = new ServiceCollection();
             services.AddEntityFrameworkInMemoryDatabase()
-                .AddDbContext<ApplicationDbContext>(o => o.UseInMemoryDatabase().UseInternalServiceProvider(services.BuildServiceProvider()));
+                .AddDbContext<ApplicationDbContext>(o => o.UseInMemoryDatabase(Guid.NewGuid().ToString()));
 
             var serviceProvider = services.BuildServiceProvider();
 
