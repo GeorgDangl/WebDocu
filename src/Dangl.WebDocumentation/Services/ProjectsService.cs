@@ -26,5 +26,14 @@ namespace Dangl.WebDocumentation.Services
                 select dbProject).AnyAsync();
             return projectIsPublicOrUserHasAccess;
         }
+
+        public Task<string> GetProjectNameForApiKey(string apiKey)
+        {
+            var projectName = _context.DocumentationProjects
+                .Where(p => p.ApiKey == apiKey)
+                .Select(p => p.Name)
+                .FirstOrDefaultAsync();
+            return projectName;
+        }
     }
 }

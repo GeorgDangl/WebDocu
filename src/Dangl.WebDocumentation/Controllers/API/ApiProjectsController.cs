@@ -1,8 +1,10 @@
 ﻿using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Threading.Tasks;
 using Dangl.WebDocumentation.Models;
 using Dangl.WebDocumentation.Repository;
+using Dangl.WebDocumentation.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -13,14 +15,16 @@ namespace Dangl.WebDocumentation.Controllers.API
     [AllowAnonymous]
     public class ApiProjectsController : Controller
     {
-        public ApiProjectsController(ApplicationDbContext context, IHostingEnvironment hostingEnvironment)
+        private readonly IProjectsService _projectsService;
+        private readonly IProjectFilesService _projectFilesService;
+
+        public ApiProjectsController(IProjectsService projectsService,
+            IProjectFilesService projectFilesService)
         {
-            Context = context;
-            HostingEnvironment = hostingEnvironment;
+            _projectsService = projectsService;
+            _projectFilesService = projectFilesService;
         }
 
-        private ApplicationDbContext Context { get; }
-        private IHostingEnvironment HostingEnvironment { get; }
 
         /// <summary>
         ///     Provides an Api to upload projects.
@@ -32,7 +36,7 @@ namespace Dangl.WebDocumentation.Controllers.API
         /// <returns></returns>
         [HttpPost]
         [Route("API/Projects/Upload")]
-        public IActionResult Upload(string apiKey, IFormFile projectPackage)
+        public async Task<IActionResult> Upload(string apiKey, IFormFile projectPackage)
         {
             if (projectPackage == null)
             {
@@ -43,35 +47,19 @@ namespace Dangl.WebDocumentation.Controllers.API
                 // Not accepting empty API key -> Disable API upload to projects by setting the API key empty
                 return NotFound();
             }
-            var projectEntry = Context.DocumentationProjects.FirstOrDefault(project => project.ApiKey == apiKey);
-            if (projectEntry == null)
+            var projectName = await _projectsService.GetProjectNameForApiKey(apiKey);
+            if (string.IsNullOrWhiteSpace(projectName))
             {
                 return NotFound();
             }
-            // Try to read as zip file
-            using (var inputStream = projectPackage.OpenReadStream())
+            using (var projectPackageStream = projectPackage.OpenReadStream())
             {
-                try
+                var packageUploadResult = await _projectFilesService.UploadProjectPackage(projectName, projectPackageStream);
+                if (packageUploadResult)
                 {
-                    using (var archive = new ZipArchive(inputStream))
-                    {
-                        var physicalRootDirectory = Path.Combine(HostingEnvironment.WebRootPath, "App_Data/");
-                        var result = ProjectWriter.CreateProjectFilesFromZip(archive, physicalRootDirectory, projectEntry.Id, Context);
-                        if (!result)
-                        {
-                            return BadRequest();
-                        }
-                    }
                     return Ok();
                 }
-                catch (InvalidDataException)
-                {
-                    return BadRequest(new {Error = "Could not read file as zip."});
-                }
-                catch
-                {
-                    return BadRequest();
-                }
+                return BadRequest();
             }
         }
     }

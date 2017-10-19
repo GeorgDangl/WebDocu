@@ -27,7 +27,14 @@ namespace Dangl.WebDocumentation
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(Configuration["Data:DefaultConnection:ConnectionString"]));
 
-            services.AddIdentity<ApplicationUser, IdentityRole>()
+            services.AddIdentity<ApplicationUser, IdentityRole>(identityOptions =>
+                {
+                    identityOptions.Password.RequireDigit = false;
+                    identityOptions.Password.RequiredLength = 12;
+                    identityOptions.Password.RequireLowercase = false;
+                    identityOptions.Password.RequireNonAlphanumeric = false;
+                    identityOptions.Password.RequireUppercase = false;
+                })
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders();
 
