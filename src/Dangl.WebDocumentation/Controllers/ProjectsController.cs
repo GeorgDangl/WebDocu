@@ -34,8 +34,8 @@ namespace Dangl.WebDocumentation.Controllers
         /// <param name="pathToFile"></param>
         /// <returns></returns>
         [HttpGet]
-        [Route("Projects/{projectName}/{*pathToFile}")]
-        public async Task<IActionResult> GetFile(string projectName, string pathToFile)
+        [Route("Projects/{projectName}/{version}/{*pathToFile}")]
+        public async Task<IActionResult> GetFile(string projectName, string version, string pathToFile)
         {
             var userId = _userManager.GetUserId(User);
             var hasProjectAccess = await _projectsService.UserHasAccessToProject(projectName, userId);
@@ -44,7 +44,7 @@ namespace Dangl.WebDocumentation.Controllers
                 // HttpNotFound for either the project not existing or the user not having access
                 return NotFound();
             }
-            var projectFile = await _projectFilesService.GetFileForProject(projectName, pathToFile);
+            var projectFile = await _projectFilesService.GetFileForProject(projectName, version, pathToFile);
             if (projectFile == null)
             {
                 return NotFound();

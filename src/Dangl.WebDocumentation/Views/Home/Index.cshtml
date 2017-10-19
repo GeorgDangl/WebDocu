@@ -15,7 +15,8 @@
                 {
                     <tr>
                         <td>@project.Name</td>
-                        <td><a asp-controller="Projects" asp-action="GetFile" asp-route-projectName="@project.Name" asp-route-pathToFile="@project.PathToIndex">View</a></td>
+                        <td><a asp-controller="ProjectVersions" asp-action="Index" asp-route-projectName="@project.Name">View</a></td>
+                        @*<td><a asp-controller="Projects" asp-action="GetFile" asp-route-projectName="@project.Name" asp-route-pathToFile="@project.PathToIndex">View</a></td>*@
                     </tr>
                 }
             }

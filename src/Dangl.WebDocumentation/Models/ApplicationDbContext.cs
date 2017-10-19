@@ -8,12 +8,15 @@ namespace Dangl.WebDocumentation.Models
         public ApplicationDbContext(DbContextOptions options) : base(options) { }
 
         public DbSet<DocumentationProject> DocumentationProjects { get; set; }
+        public DbSet<DocumentationProjectVersion> DocumentationProjectVersionss { get; set; }
 
         public DbSet<UserProjectAccess> UserProjects { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
+
+            DocumentationProjectVersion.OnModelCreating(builder);
 
             // Make the Name unique so it can be used as a single identifier for a project ( -> Urls may contain the project name instead of the Guid)
             builder.Entity<DocumentationProject>()

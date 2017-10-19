@@ -42,6 +42,7 @@ namespace Dangl.WebDocumentation
 
             services.Configure<AppSettings>(Configuration);
 
+            services.AddTransient<IProjectVersionsService, ProjectVersionsService>();
             services.AddTransient<IProjectsService, ProjectsService>();
             services.AddTransient<IProjectFilesService, ProjectFilesService>(factory =>
             {

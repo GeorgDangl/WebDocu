@@ -1,0 +1,20 @@
+﻿@model Dangl.WebDocumentation.ViewModels.ProjectVersions.IndexViewModel
+@{
+    ViewData["Title"] = Model.ProjectName + " Versions";
+}
+
+<h2>@ViewData["Title"]</h2>
+
+<table class="table">
+    <tbody>
+    @{
+        foreach (var version in Model.Versions)
+        {
+            <tr>
+                <td>@version</td>
+                <td><a asp-controller="Projects" asp-action="GetFile" asp-route-projectName="@Model.ProjectName" asp-route-version="@version" asp-route-pathToFile="@Model.PathToIndex">View</a></td>
+            </tr>
+        }
+    }
+    </tbody>
+</table>

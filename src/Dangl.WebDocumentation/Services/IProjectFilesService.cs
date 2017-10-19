@@ -8,7 +8,8 @@ namespace Dangl.WebDocumentation.Services
 {
     public interface IProjectFilesService
     {
-        Task<ProjectFileDto> GetFileForProject(string projectName, string filePath);
-        Task<bool> UploadProjectPackage(string projectName, Stream zipArchiveStream);
+        Task<string> GetEntryFilePathForProject(string projectName);
+        Task<ProjectFileDto> GetFileForProject(string projectName, string version, string filePath);
+        Task<bool> UploadProjectPackage(string projectName, string version, Stream zipArchiveStream);
     }
 }
