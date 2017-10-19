@@ -48,6 +48,7 @@ namespace Dangl.WebDocumentation.Controllers
             {
                 return NotFound();
             }
+            Response.Headers.Add("Cache-Control", new Microsoft.Extensions.Primitives.StringValues("max-age=604800"));
             return File(projectFile.FileStream, projectFile.MimeType);
         }
     }
