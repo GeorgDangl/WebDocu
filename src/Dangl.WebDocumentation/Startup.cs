@@ -56,37 +56,10 @@ namespace Dangl.WebDocumentation
                 app.UseDeveloperExceptionPage();
                 app.UseDatabaseErrorPage();
                 app.UseStatusCodePages();
-                using (var serviceScope = app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope())
-                {
-                    using (var dbContext = serviceScope.ServiceProvider.GetService<ApplicationDbContext>())
-                    {
-                        dbContext.Database.Migrate();
-                        dbContext.SaveChanges();
-                        DatabaseInitialization.Initialize(dbContext);
-                    }
-                }
             }
             else
             {
                 app.UseExceptionHandler("/Home/Error");
-
-                // For more details on creating database during deployment see http://go.microsoft.com/fwlink/?LinkID=615859
-                try
-                {
-                    using (var serviceScope = app.ApplicationServices.GetRequiredService<IServiceScopeFactory>()
-                        .CreateScope())
-                    {
-                        using (var dbContext = serviceScope.ServiceProvider.GetService<ApplicationDbContext>())
-                        {
-                            dbContext.Database.Migrate();
-                            DatabaseInitialization.Initialize(dbContext);
-                        }
-                    }
-                }
-                catch
-                {
-                    /* Don't catch database initialization error at startup */
-                }
             }
 
             app.UseStaticFiles();
