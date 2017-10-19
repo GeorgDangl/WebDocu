@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.StaticFiles;
 
 namespace Dangl.WebDocumentation.Controllers
 {
-    [Authorize]
     public class ProjectsController : Controller
     {
         private readonly IProjectFilesService _projectFilesService;
