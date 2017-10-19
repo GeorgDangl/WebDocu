@@ -42,6 +42,11 @@ namespace Dangl.WebDocumentation.Models
                 .HasOne(Entity => Entity.Project)
                 .WithMany(Project => Project.UserAccess)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<ApplicationUser>()
+                .HasMany(user => user.Roles)
+                .WithOne()
+                .HasForeignKey(r => r.UserId);
         }
     }
 }
