@@ -240,3 +240,5 @@ site.min.js
 
 # Ignore VS _references.js
 _references.js
+
+*.coverageresults

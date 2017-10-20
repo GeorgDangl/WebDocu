@@ -25,13 +25,13 @@
     <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="2.0.0" />
     <PackageReference Include="xunit" Version="2.3.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="2.0.0" />
-    <PackageReference Include="OpenCover" Version="4.6.261-rc">
+    <PackageReference Include="OpenCover" Version="4.6.519">
       <PrivateAssets>All</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="OpenCoverToCoberturaConverter" Version="0.2.4">
+    <PackageReference Include="OpenCoverToCoberturaConverter" Version="0.2.6">
       <PrivateAssets>All</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="ReportGenerator" Version="2.4.5">
+    <PackageReference Include="ReportGenerator" Version="3.0.2">
       <PrivateAssets>All</PrivateAssets>
     </PackageReference>
     <DotNetCliToolReference Include="dotnet-xunit" Version="2.3.0" />
