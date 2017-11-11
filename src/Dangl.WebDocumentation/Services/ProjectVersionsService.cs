@@ -15,14 +15,16 @@ namespace Dangl.WebDocumentation.Services
             _context = context;
         }
 
-        public Task<List<string>> GetProjectVersions(string projectName)
+        public async Task<List<string>> GetProjectVersionsAsync(string projectName)
         {
-            var versions = _context.DocumentationProjectVersionss
+            var versions = await _context.DocumentationProjectVersionss
                 .Where(v => v.ProjectName == projectName)
                 .OrderByDescending(v => v.Version)
                 .Select(v => v.Version)
                 .ToListAsync();
-            return versions;
+            var semVerOrderer = new SemanticVersionsOrderer(versions);
+            var orderedVersions = semVerOrderer.GetVersionsOrderedBySemanticVersionDescending();
+            return orderedVersions;
         }
     }
 }

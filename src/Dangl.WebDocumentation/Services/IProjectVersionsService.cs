@@ -5,6 +5,11 @@ namespace Dangl.WebDocumentation.Services
 {
     public interface IProjectVersionsService
     {
-        Task<List<string>> GetProjectVersions(string projectName);
+        /// <summary>
+        /// This should order project versions descending by their Semantiv Versioning name.
+        /// </summary>
+        /// <param name="projectName"></param>
+        /// <returns></returns>
+        Task<List<string>> GetProjectVersionsAsync(string projectName);
     }
 }

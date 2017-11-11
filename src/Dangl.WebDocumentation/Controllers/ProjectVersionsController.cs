@@ -41,7 +41,7 @@ namespace Dangl.WebDocumentation.Controllers
             {
                 PathToIndex = entryFilePath,
                 ProjectName = projectName,
-                Versions = await _projectVersionsService.GetProjectVersions(projectName)
+                Versions = await _projectVersionsService.GetProjectVersionsAsync(projectName)
             };
             return View(model);
         }
