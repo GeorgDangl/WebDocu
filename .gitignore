@@ -242,3 +242,4 @@ site.min.js
 _references.js
 
 *.coverageresults
+*.testresults

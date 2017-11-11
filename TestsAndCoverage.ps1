@@ -1,6 +1,8 @@
 $testProjects = "Dangl.WebDocumentation.Tests"
+$testRuns = 1;
 
 & dotnet restore
+& dotnet build -c Debug
 
 # Get the most recent OpenCover NuGet package from the dotnet nuget packages
 $nugetOpenCoverPackage = Join-Path -Path $env:USERPROFILE -ChildPath "\.nuget\packages\OpenCover"
@@ -17,9 +19,14 @@ If (Test-Path "$PSScriptRoot\Cobertura.coverageresults"){
 	Remove-Item "$PSScriptRoot\Cobertura.coverageresults"
 }
 
+$oldResults = Get-ChildItem -Path "$PSScriptRoot\results_*.testresults"
+if ($oldResults) {
+    Remove-Item $oldResults
+}
+
 foreach ($testProject in $testProjects){
     # Arguments for running dotnet
-    $dotnetArguments = "xunit"
+    $dotnetArguments = "xunit -nobuild -xml \""$PSScriptRoot\results_$testRuns.testresults\"""
 
     "Running tests with OpenCover"
     & $latestOpenCover `
@@ -34,6 +41,7 @@ foreach ($testProject in $testProjects){
         -excludebyattribute:System.CodeDom.Compiler.GeneratedCodeAttribute `
         "-filter:+[Dangl.WebDocumentation*]* -[*.Tests]* -[*.Tests.*]*"
 
+	$testRuns++
 }
 
 "Converting coverage reports to Cobertura format"
