@@ -25,11 +25,11 @@ Admins can simply select Upload Package in the admin section for a project and u
 ### Via the API
 In the project edit section, the API key for a project is set, it is used for http uploads.
 Example with cURL:  
-`curl -F "ApiKey=<YourApiKey>" -F "Version=<DocVersion>" -F "ProjectPackage=@\"<PathToZipPackage>\"" http://<YourDomain>/API/Projects/Upload`
+`curl -F "ApiKey=<YourApiKey>" -F "Version=<DocVersion>" -F "ProjectPackage=@\"<PathToZipPackage>\"" https://<YourDomain>/API/Projects/Upload`
 
 ## Access a package
 
-Project names are required to be unique for pretty urls. Access is routed via `http://<YourDomain>/Projects/<ProjectName>/<PathToIndex>`
+Project names are required to be unique for pretty urls. Access is routed via `https://<YourDomain>/Projects/<ProjectName>/<Version>/<PathToIndex>`
 
 ## License
 
