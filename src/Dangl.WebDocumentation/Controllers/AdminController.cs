@@ -182,7 +182,7 @@ namespace Dangl.WebDocumentation.Controllers
             // Try to read as zip file
             using (var inputStream = projectPackage.OpenReadStream())
             {
-                var uploadResult = await _projectFilesService.UploadProjectPackage(projectEntry.Name, version, inputStream);
+                var uploadResult = await _projectFilesService.UploadProjectPackageAsync(projectEntry.Name, version, inputStream);
                 if (!uploadResult)
                 {
                     ModelState.AddModelError(string.Empty, "Failed to update the project files");
@@ -237,6 +237,52 @@ namespace Dangl.WebDocumentation.Controllers
             _context.DocumentationProjects.Remove(documentationProject);
             _context.SaveChanges();
             ViewBag.SuccessMessage = $"Deleted project {documentationProject.Name}.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpGet]
+        [Route("DeleteProjectVersion/{projectId}/{version}")]
+        public IActionResult DeleteProjectVersion(Guid projectId, string version)
+        {
+            var project = _context.DocumentationProjects.FirstOrDefault(p => p.Id == projectId);
+            if (project == null)
+            {
+                return NotFound();
+            }
+            var model = new DeleteProjectVersionViewModel
+            {
+                ConfirmDelete = false,
+                ProjectId = projectId,
+                ProjectName = project.Name,
+                Version = version
+            };
+            return View(model);
+        }
+
+        [HttpPost]
+        [Route("DeleteProjectVersion/{projectId}/{version}")]
+        public async Task<IActionResult> DeleteProjectVersion(Guid projectId, string version, DeleteProjectVersionViewModel model)
+        {
+            if (!model.ConfirmDelete)
+            {
+                ModelState.AddModelError(nameof(model.ConfirmDelete), "Please confirm the deletion by checking the checkbox.");
+            }
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+            var documentationProject = _context.DocumentationProjects.FirstOrDefault(project => project.Id == model.ProjectId);
+            if (documentationProject == null)
+            {
+                return NotFound();
+            }
+            var deletionResult = await _projectFilesService.DeleteProjectVersionPackageAsync(documentationProject.Id, model.Version);
+            if (!deletionResult)
+            {
+                ModelState.AddModelError("Error", "Could not delete project version.");
+                return View(model);
+            }
+            ViewBag.SuccessMessage = $"Deleted project version {documentationProject.Name}.";
             return RedirectToAction(nameof(Index));
         }
 

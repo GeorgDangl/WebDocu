@@ -96,7 +96,7 @@ namespace Dangl.WebDocumentation.Services
             return "application/octet-stream";
         }
 
-        public async Task<bool> UploadProjectPackage(string projectName, string version, Stream zipArchiveStream)
+        public async Task<bool> UploadProjectPackageAsync(string projectName, string version, Stream zipArchiveStream)
         {
             var projectId = await _context.DocumentationProjects
                 .Where(p => p.Name == projectName)
@@ -133,6 +133,28 @@ namespace Dangl.WebDocumentation.Services
             {
                 return false;
             }
+        }
+
+        public async Task<bool> DeleteProjectVersionPackageAsync(Guid projectId, string version)
+        {
+            var projectVersion = await _context.DocumentationProjectVersionss
+                .FirstOrDefaultAsync(v => v.Version == version && v.Project.Id == projectId);
+            if (projectVersion == null)
+            {
+                return false;
+            }
+            var packagePath = GetPackagePath(projectId, projectVersion.FileId);
+            try
+            {
+                File.Delete(packagePath);
+            }
+            catch
+            {
+                return false;
+            }
+            _context.DocumentationProjectVersionss.Remove(projectVersion);
+            await _context.SaveChangesAsync();
+            return true;
         }
 
         private string GetPackagePath(Guid projectId, Guid versionFileId)

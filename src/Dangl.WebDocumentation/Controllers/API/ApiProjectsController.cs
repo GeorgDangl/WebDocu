@@ -54,7 +54,7 @@ namespace Dangl.WebDocumentation.Controllers.API
             }
             using (var projectPackageStream = projectPackage.OpenReadStream())
             {
-                var packageUploadResult = await _projectFilesService.UploadProjectPackage(projectName, version, projectPackageStream);
+                var packageUploadResult = await _projectFilesService.UploadProjectPackageAsync(projectName, version, projectPackageStream);
                 if (packageUploadResult)
                 {
                     return Ok();

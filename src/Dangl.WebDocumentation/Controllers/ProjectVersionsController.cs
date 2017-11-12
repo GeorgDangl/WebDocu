@@ -2,6 +2,7 @@
 using Dangl.WebDocumentation.Models;
 using Dangl.WebDocumentation.Services;
 using Dangl.WebDocumentation.ViewModels.ProjectVersions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
@@ -39,6 +40,7 @@ namespace Dangl.WebDocumentation.Controllers
             var entryFilePath = await _projectFilesService.GetEntryFilePathForProject(projectName);
             var model = new IndexViewModel
             {
+                ProjectId = await _projectsService.GetIdForProjectByNameAsync(projectName),
                 PathToIndex = entryFilePath,
                 ProjectName = projectName,
                 Versions = await _projectVersionsService.GetProjectVersionsAsync(projectName)

@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Dangl.WebDocumentation.Dtos;
 
 namespace Dangl.WebDocumentation.Services
@@ -7,5 +8,6 @@ namespace Dangl.WebDocumentation.Services
     {
         Task<bool> UserHasAccessToProject(string projectName, string userId = null);
         Task<string> GetProjectNameForApiKey(string apiKey);
+        Task<Guid> GetIdForProjectByNameAsync(string projectName);
     }
 }

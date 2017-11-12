@@ -10,6 +10,7 @@ namespace Dangl.WebDocumentation.Services
     {
         Task<string> GetEntryFilePathForProject(string projectName);
         Task<ProjectFileDto> GetFileForProject(string projectName, string version, string filePath);
-        Task<bool> UploadProjectPackage(string projectName, string version, Stream zipArchiveStream);
+        Task<bool> UploadProjectPackageAsync(string projectName, string version, Stream zipArchiveStream);
+        Task<bool> DeleteProjectVersionPackageAsync(Guid projectId, string version);
     }
 }

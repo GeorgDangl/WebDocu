@@ -1,6 +1,7 @@
 ﻿@model Dangl.WebDocumentation.ViewModels.ProjectVersions.IndexViewModel
 @{
     ViewData["Title"] = Model.ProjectName + " Versions";
+    var isAdmin = User.IsInRole("Admin");
 }
 
 <h2>@ViewData["Title"]</h2>
@@ -18,6 +19,10 @@ else
             {
                 <tr>
                     <td><a asp-controller="Projects" asp-action="GetFile" asp-route-projectName="@Model.ProjectName" asp-route-version="@version" asp-route-pathToFile="@Model.PathToIndex">Version @version</a></td>
+                    @if (isAdmin)
+                    {
+                        <td><a asp-controller="Admin" asp-action="DeleteProjectVersion" asp-route-projectId="@Model.ProjectId" asp-route-version="@version">Remove</a></td>
+                    }
                 </tr>
             }
         }

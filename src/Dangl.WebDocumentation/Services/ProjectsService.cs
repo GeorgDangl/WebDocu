@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.IO;
 using System.Threading.Tasks;
 using Dangl.WebDocumentation.Dtos;
@@ -34,6 +35,14 @@ namespace Dangl.WebDocumentation.Services
                 .Select(p => p.Name)
                 .FirstOrDefaultAsync();
             return projectName;
+        }
+
+        public Task<Guid> GetIdForProjectByNameAsync(string projectName)
+        {
+            return _context.DocumentationProjects
+                .Where(p => p.Name == projectName)
+                .Select(p => p.Id)
+                .FirstOrDefaultAsync();
         }
     }
 }
