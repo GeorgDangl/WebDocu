@@ -113,6 +113,114 @@ namespace Dangl.WebDocumentation.Tests.Services
             AssertOrdersCorrect(input, expectedOutput);
         }
 
+        [Fact]
+        public void OrdersCorrect_05()
+        {
+            var input = new[]
+            {
+                "1.0.7-build-7",
+                "1.0.7-build-5",
+                "1.0.7-build-15",
+                "1.0.7-build-14"
+            };
+            var expectedOutput = new[]
+            {
+                "1.0.7-build-15",
+                "1.0.7-build-14",
+                "1.0.7-build-7",
+                "1.0.7-build-5"
+            };
+            AssertOrdersCorrect(input, expectedOutput);
+        }
+
+        [Fact]
+        public void OrdersCorrect_06()
+        {
+            var input = new[]
+            {
+                "1.0.7-build-15",
+                "1.0.7-build-14",
+                "1.0.7-build-7",
+                "1.0.7-build-5"
+            };
+            var expectedOutput = new[]
+            {
+                "1.0.7-build-15",
+                "1.0.7-build-14",
+                "1.0.7-build-7",
+                "1.0.7-build-5"
+            };
+            AssertOrdersCorrect(input, expectedOutput);
+        }
+
+        [Fact]
+        public void OrdersCorrect_07()
+        {
+            var input = new[]
+            {
+                "1.0.7-build.7",
+                "1.0.7-build.5",
+                "1.0.7-build.15",
+                "1.0.7-build.14"
+            };
+            var expectedOutput = new[]
+            {
+                "1.0.7-build.15",
+                "1.0.7-build.14",
+                "1.0.7-build.7",
+                "1.0.7-build.5"
+            };
+            AssertOrdersCorrect(input, expectedOutput);
+        }
+
+        [Fact]
+        public void OrdersCorrect_08()
+        {
+            var input = new[]
+            {
+                "1.0.0",
+                "1.0.1"
+            };
+            var expectedOutput = new[]
+            {
+                "1.0.1",
+                "1.0.0"
+            };
+            AssertOrdersCorrect(input, expectedOutput);
+        }
+
+        [Fact]
+        public void OrdersCorrect_09()
+        {
+            var input = new[]
+            {
+                "1.0.0",
+                "1.2.0"
+            };
+            var expectedOutput = new[]
+            {
+                "1.2.0",
+                "1.0.0"
+            };
+            AssertOrdersCorrect(input, expectedOutput);
+        }
+
+        [Fact]
+        public void OrdersCorrect_10()
+        {
+            var input = new[]
+            {
+                "a.b.c",
+                "a.b.d"
+            };
+            var expectedOutput = new[]
+            {
+                "a.b.d",
+                "a.b.c"
+            };
+            AssertOrdersCorrect(input, expectedOutput);
+        }
+
         private void AssertOrdersCorrect(string[] input, string[] expected)
         {
             var orderer = new SemanticVersionsOrderer(input.ToList());

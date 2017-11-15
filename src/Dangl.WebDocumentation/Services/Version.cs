@@ -25,6 +25,15 @@ namespace Dangl.WebDocumentation.Services
                 {
                     return -1;
                 }
+                if (int.TryParse(_splitted[i], out var thisInt) && int.TryParse(other._splitted[i], out var otherInt))
+                {
+                    if (thisInt != otherInt)
+                    {
+                        return thisInt > otherInt
+                            ? 1
+                            : -1;
+                    }
+                }
                 var stringComparison = string.CompareOrdinal(_splitted[i], other._splitted[i]);
                 if (stringComparison != 0)
                 {
