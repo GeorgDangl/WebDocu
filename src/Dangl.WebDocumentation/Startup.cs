@@ -51,7 +51,6 @@ namespace Dangl.WebDocumentation
             services.Configure<AppSettings>(Configuration);
             services.Configure<EmailSettings>(Configuration.GetSection(nameof(AppSettings.EmailSettings)));
 
-
             services.AddTransient<IEmailSender, EmailSender>();
             services.AddTransient<IProjectVersionsService, ProjectVersionsService>();
             services.AddTransient<IProjectsService, ProjectsService>();
@@ -66,9 +65,6 @@ namespace Dangl.WebDocumentation
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
-            loggerFactory.AddConsole(Configuration.GetSection("Logging"));
-            loggerFactory.AddDebug();
-
             if (env.IsDevelopment())
             {
                 app.UseBrowserLink();
