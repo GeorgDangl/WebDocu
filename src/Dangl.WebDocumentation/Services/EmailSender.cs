@@ -21,8 +21,8 @@ namespace Dangl.WebDocumentation.Services
             var message = new MimeMessage();
             message.To.Add(new MailboxAddress(userEmail));
             message.Subject = "Reset your documentation password";
-            var messageBodyHtml = "<h3>Hi!</h3>"
-                                  + "<p>This email was sent to you because you've requested to reset your password.</p>"
+            var messageBodyHtml = $"<h3>Hi {userEmail}!</h3>"
+                                  + "<p>This email was sent to you because you've requested to reset your password for DanglDocu.</p>"
                                   + "<p><b>If you did not request this, you don't have to take any action.</b></p>"
                                   + "<br />"
                                   + $"<p><a href=\"{passwordResetUrl}\">Click here to set a new password.</a></p>";
