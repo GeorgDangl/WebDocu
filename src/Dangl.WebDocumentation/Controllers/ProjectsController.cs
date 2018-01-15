@@ -30,6 +30,7 @@ namespace Dangl.WebDocumentation.Controllers
         /// Returns a requested file for the project if the user has access or the project is public.
         /// </summary>
         /// <param name="projectName"></param>
+        /// <param name="version"></param>
         /// <param name="pathToFile"></param>
         /// <returns></returns>
         [HttpGet]
@@ -42,6 +43,12 @@ namespace Dangl.WebDocumentation.Controllers
             {
                 // HttpNotFound for either the project not existing or the user not having access
                 return NotFound();
+            }
+            if (string.IsNullOrWhiteSpace(pathToFile))
+            {
+                // If not pathToFile is given, the response should redirect to the entry point for the project
+                var pathToEntryPoint = await _projectFilesService.GetEntryFilePathForProject(projectName);
+                return RedirectToAction(nameof(GetFile), new {projectName, version, pathToFile = pathToEntryPoint});
             }
             var projectFile = await _projectFilesService.GetFileForProject(projectName, version, pathToFile);
             if (projectFile == null)
