@@ -69,7 +69,7 @@ namespace Dangl.WebDocumentation.Services
             {
                 using (var zipArchive = new ZipArchive(fileStream))
                 {
-                    var fileEntry = zipArchive.Entries.FirstOrDefault(e => e.FullName == filePath.Replace('/', '\\'));
+                    var fileEntry = zipArchive.Entries.FirstOrDefault(e => e.FullName.Replace('/', '\\') == filePath.Replace('/', '\\'));
                     if (fileEntry == null)
                     {
                         return null;
