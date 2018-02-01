@@ -92,6 +92,7 @@ body {
     /* Set the fixed height of the footer here */
     height: 60px;
     background-color: #3b4c55;
+    color: #bdbdbd;
     text-align: center;
     padding-top: 20px;
 }
