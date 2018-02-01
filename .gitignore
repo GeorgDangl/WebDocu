@@ -243,3 +243,5 @@ _references.js
 
 *.coverageresults
 *.testresults
+
+src/Dangl.WebDocumentation/wwwroot/lib/
