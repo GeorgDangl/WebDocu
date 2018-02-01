@@ -64,12 +64,15 @@
     <div class="container body-content">
         @RenderBody()
         <hr />
-        <footer>
-            <p><a href="https://www.dangl-it.com" target="_blank">&copy; 2015 - @DateTime.Now.Year:  Georg Dangl</a>, <a href="https://github.com/GeorgDangl/WebDocu" target="_blank">@AppSettings.Value.SiteTitle</a></p>
-        </footer>
     </div>
+    
+    <footer class="footer">
+        <div class="container">
+            <p><a href="https://www.dangl-it.com" target="_blank">&copy; 2015 - @DateTime.Now.Year:  Georg Dangl</a>, <a href="https://github.com/GeorgDangl/WebDocu" target="_blank">@AppSettings.Value.SiteTitle</a></p>
+        </div>
+    </footer>
 
-    <environment names="Development">
+<environment names="Development">
         <script src="~/lib/jquery/dist/jquery.js"></script>
         <script src="~/lib/bootstrap/dist/js/bootstrap.js"></script>
         <script src="~/js/site.js" asp-append-version="true"></script>

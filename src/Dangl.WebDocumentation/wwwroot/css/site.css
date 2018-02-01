@@ -58,3 +58,44 @@ textarea {
     transform: rotate(359deg);
   }
 }
+
+.navbar {
+    background-color: #00acc1;
+    color: #fff;
+    border: none;
+}
+
+.navbar-inverse .navbar-brand {
+    color: #fff;
+}
+
+.navbar-inverse .navbar-nav > li > a {
+    color: #fff;
+}
+
+.navbar-inverse .btn-link {
+    color: #fff;
+}
+
+html {
+    position: relative;
+    min-height: 100%;
+}
+body {
+    /* Margin bottom by footer height */
+    margin-bottom: 60px;
+}
+.footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    /* Set the fixed height of the footer here */
+    height: 60px;
+    background-color: #3b4c55;
+    text-align: center;
+    padding-top: 20px;
+}
+
+.footer a {
+    color: #00acc1
+}
