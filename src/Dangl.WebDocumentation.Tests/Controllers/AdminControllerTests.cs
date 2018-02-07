@@ -43,7 +43,6 @@ namespace Dangl.WebDocumentation.Tests.Controllers
         public ApplicationDbContext Context { get; }
         public UserManager<ApplicationUser> UserManager { get; }
 
-
         public void Dispose()
         {
             Context.Database.EnsureDeleted();
@@ -84,7 +83,6 @@ namespace Dangl.WebDocumentation.Tests.Controllers
         }
     }
 
-
     public class AdminControllerTests
     {
         public class General : IClassFixture<AdminControllerTestsFixture>
@@ -98,7 +96,6 @@ namespace Dangl.WebDocumentation.Tests.Controllers
             private ApplicationDbContext Context { get; }
 
             private UserManager<ApplicationUser> UserManager { get; }
-
 
             [Fact]
             public void ContextNotNull()
@@ -126,7 +123,6 @@ namespace Dangl.WebDocumentation.Tests.Controllers
 
             private ApplicationDbContext Context { get; }
             private UserManager<ApplicationUser> UserManager { get; }
-
 
             private AdminController Controller()
             {
@@ -189,7 +185,7 @@ namespace Dangl.WebDocumentation.Tests.Controllers
                     IsPublic = false,
                     PathToIndexPage = "index.html",
                     ProjectName = "Second Project"
-                }, new System.Collections.Generic.List<string> { "First@user.com", "Second@user.com" });
+                }, new System.Collections.Generic.List<string> {"First@user.com", "Second@user.com"});
 
                 // Check that user is now in both projects
                 Assert.Equal(1, Context.UserProjects.Count(rel => rel.User.UserName == user.UserName && rel.ProjectId == firstProject.Id));

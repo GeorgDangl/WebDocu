@@ -31,6 +31,19 @@ Example with cURL:
 
 Project names are required to be unique for pretty urls. Access is routed via `https://<YourDomain>/Projects/<ProjectName>/<Version>/<PathToIndex>`
 
+## Conventions When Accessing Documentation
+
+Project file urls have the following format:
+
+    https://<YourDomain>/Projects/<ProjectName>/<Version>/<PathToFile>
+
+  * If `PathToFile` is missing, a redirect is returned pointing to the entry point, e.g.
+    `https://docs.dangl-it.com/Projects/LightQuery/1.1.0` redirects to `https://docs.dangl-it.com/Projects/LightQuery/1.1.0/index.html`
+  * If the `Version` is not found but a higher version is present, it redirects to the newer version. This is useful when you want to delete documentations
+    for prerelease version. For example, `1.0.0-beta1` is requested but not present, if `1.0.0` is present, it gets redirected to it. This keeps old urls
+    from becoming unavailable
+  * If `PathToFile` is pointing to a non-existing file, a redirect to the entry point is returned
+
 ## License
 
 [View](License.md)

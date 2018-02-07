@@ -15,220 +15,333 @@ namespace Dangl.WebDocumentation.Tests.Services
             Assert.Throws<ArgumentNullException>("versions", () => new SemanticVersionsOrderer(null));
         }
 
-        [Fact]
-        public void OrdersCorrect_01()
+        public class GetVersionsOrderedBySemanticVersionDescending
         {
-            var input = new[]
+            [Fact]
+            public void OrdersCorrect_01()
             {
-                "1.0.2",
-                "1.0.0",
-                "1.0.1-beta-3",
-                "1.0.2-build-6",
-                "1.0.2-build-5",
-                "1.0.1",
-                "1.0.2-build-7",
-                "1.0.1-build-4"
-            };
-            var expectedOutput = new[]
+                var input = new[]
+                {
+                    "1.0.2",
+                    "1.0.0",
+                    "1.0.1-beta-3",
+                    "1.0.2-build-6",
+                    "1.0.2-build-5",
+                    "1.0.1",
+                    "1.0.2-build-7",
+                    "1.0.1-build-4"
+                };
+                var expectedOutput = new[]
+                {
+                    "1.0.2",
+                    "1.0.2-build-7",
+                    "1.0.2-build-6",
+                    "1.0.2-build-5",
+                    "1.0.1",
+                    "1.0.1-build-4",
+                    "1.0.1-beta-3",
+                    "1.0.0"
+                };
+                AssertOrdersCorrect(input, expectedOutput);
+            }
+
+            [Fact]
+            public void OrdersCorrect_02()
             {
-                "1.0.2",
-                "1.0.2-build-7",
-                "1.0.2-build-6",
-                "1.0.2-build-5",
-                "1.0.1",
-                "1.0.1-build-4",
-                "1.0.1-beta-3",
-                "1.0.0"
-            };
-            AssertOrdersCorrect(input, expectedOutput);
+                var input = new[]
+                {
+                    "1.0.3",
+                    "1.0.4",
+                    "1.0.1",
+                    "1.0.2",
+                    "1.0.5-build-5",
+                    "1.0.5",
+                    "1.0.6-build-7",
+                    "1.0.7-build-4"
+                };
+                var expectedOutput = new[]
+                {
+                    "1.0.7-build-4",
+                    "1.0.6-build-7",
+                    "1.0.5",
+                    "1.0.5-build-5",
+                    "1.0.4",
+                    "1.0.3",
+                    "1.0.2",
+                    "1.0.1"
+                };
+                AssertOrdersCorrect(input, expectedOutput);
+            }
+
+            [Fact]
+            public void OrdersCorrect_03()
+            {
+                var input = new[]
+                {
+                    "Gamma",
+                    "Alpha",
+                    "Delta",
+                    "Beta"
+                };
+                var expectedOutput = new[]
+                {
+                    "Gamma",
+                    "Delta",
+                    "Beta",
+                    "Alpha"
+                };
+                AssertOrdersCorrect(input, expectedOutput);
+            }
+
+            [Fact]
+            public void OrdersCorrect_04()
+            {
+                var input = new[]
+                {
+                    "Gamma",
+                    "Alpha",
+                    "Alpha.02",
+                    "Delta",
+                    "Beta"
+                };
+                var expectedOutput = new[]
+                {
+                    "Gamma",
+                    "Delta",
+                    "Beta",
+                    "Alpha",
+                    "Alpha.02"
+                };
+                AssertOrdersCorrect(input, expectedOutput);
+            }
+
+            [Fact]
+            public void OrdersCorrect_05()
+            {
+                var input = new[]
+                {
+                    "1.0.7-build-7",
+                    "1.0.7-build-5",
+                    "1.0.7-build-15",
+                    "1.0.7-build-14"
+                };
+                var expectedOutput = new[]
+                {
+                    "1.0.7-build-15",
+                    "1.0.7-build-14",
+                    "1.0.7-build-7",
+                    "1.0.7-build-5"
+                };
+                AssertOrdersCorrect(input, expectedOutput);
+            }
+
+            [Fact]
+            public void OrdersCorrect_06()
+            {
+                var input = new[]
+                {
+                    "1.0.7-build-15",
+                    "1.0.7-build-14",
+                    "1.0.7-build-7",
+                    "1.0.7-build-5"
+                };
+                var expectedOutput = new[]
+                {
+                    "1.0.7-build-15",
+                    "1.0.7-build-14",
+                    "1.0.7-build-7",
+                    "1.0.7-build-5"
+                };
+                AssertOrdersCorrect(input, expectedOutput);
+            }
+
+            [Fact]
+            public void OrdersCorrect_07()
+            {
+                var input = new[]
+                {
+                    "1.0.7-build.7",
+                    "1.0.7-build.5",
+                    "1.0.7-build.15",
+                    "1.0.7-build.14"
+                };
+                var expectedOutput = new[]
+                {
+                    "1.0.7-build.15",
+                    "1.0.7-build.14",
+                    "1.0.7-build.7",
+                    "1.0.7-build.5"
+                };
+                AssertOrdersCorrect(input, expectedOutput);
+            }
+
+            [Fact]
+            public void OrdersCorrect_08()
+            {
+                var input = new[]
+                {
+                    "1.0.0",
+                    "1.0.1"
+                };
+                var expectedOutput = new[]
+                {
+                    "1.0.1",
+                    "1.0.0"
+                };
+                AssertOrdersCorrect(input, expectedOutput);
+            }
+
+            [Fact]
+            public void OrdersCorrect_09()
+            {
+                var input = new[]
+                {
+                    "1.0.0",
+                    "1.2.0"
+                };
+                var expectedOutput = new[]
+                {
+                    "1.2.0",
+                    "1.0.0"
+                };
+                AssertOrdersCorrect(input, expectedOutput);
+            }
+
+            [Fact]
+            public void OrdersCorrect_10()
+            {
+                var input = new[]
+                {
+                    "a.b.c",
+                    "a.b.d"
+                };
+                var expectedOutput = new[]
+                {
+                    "a.b.d",
+                    "a.b.c"
+                };
+                AssertOrdersCorrect(input, expectedOutput);
+            }
+
+            private void AssertOrdersCorrect(string[] input, string[] expected)
+            {
+                var orderer = new SemanticVersionsOrderer(input.ToList());
+                var actual = orderer.GetVersionsOrderedBySemanticVersionDescending();
+                Assert.Equal(input.Length, expected.Length);
+                for (var i = 0; i < expected.Length; i++)
+                {
+                    Assert.Equal(expected[i], actual[i]);
+                }
+            }
         }
 
-        [Fact]
-        public void OrdersCorrect_02()
+        public class GetNextHigherVersionOrNull
         {
-            var input = new[]
+            [Fact]
+            public void ArgumentNullExceptionForNullBase()
             {
-                "1.0.3",
-                "1.0.4",
-                "1.0.1",
-                "1.0.2",
-                "1.0.5-build-5",
-                "1.0.5",
-                "1.0.6-build-7",
-                "1.0.7-build-4"
-            };
-            var expectedOutput = new[]
-            {
-                "1.0.7-build-4",
-                "1.0.6-build-7",
-                "1.0.5",
-                "1.0.5-build-5",
-                "1.0.4",
-                "1.0.3",
-                "1.0.2",
-                "1.0.1"
-            };
-            AssertOrdersCorrect(input, expectedOutput);
-        }
+                Assert.Throws<ArgumentNullException>("baseVersion", () => new SemanticVersionsOrderer(new List<string> { "1", "2" }).GetNextHigherVersionOrNull(null));
+            }
 
-        [Fact]
-        public void OrdersCorrect_03()
-        {
-            var input = new[]
+            [Fact]
+            public void ArgumentNullExceptionForEmptyBase()
             {
-                "Gamma",
-                "Alpha",
-                "Delta",
-                "Beta"
-            };
-            var expectedOutput = new[]
-            {
-                "Gamma",
-                "Delta",
-                "Beta",
-                "Alpha"
-            };
-            AssertOrdersCorrect(input, expectedOutput);
-        }
+                Assert.Throws<ArgumentNullException>("baseVersion", () => new SemanticVersionsOrderer(new List<string> { "1", "2" }).GetNextHigherVersionOrNull(string.Empty));
+            }
 
-        [Fact]
-        public void OrdersCorrect_04()
-        {
-            var input = new[]
+            [Fact]
+            public void ReturnsNullForNoHigherVersion01()
             {
-                "Gamma",
-                "Alpha",
-                "Alpha.02",
-                "Delta",
-                "Beta"
-            };
-            var expectedOutput = new[]
-            {
-                "Gamma",
-                "Delta",
-                "Beta",
-                "Alpha",
-                "Alpha.02"
-            };
-            AssertOrdersCorrect(input, expectedOutput);
-        }
+                var baseVersion = "1.1.2";
+                var availableVersions = new List<string>
+                {
+                    "1.0.0",
+                    "1.0.2",
+                    "1.1.1",
+                    "1.1.1-build4"
+                };
+                AssertReturnsCorrectVersion(baseVersion, null, availableVersions);
+            }
 
-        [Fact]
-        public void OrdersCorrect_05()
-        {
-            var input = new[]
+            [Fact]
+            public void ReturnsNullForNoHigherVersion02()
             {
-                "1.0.7-build-7",
-                "1.0.7-build-5",
-                "1.0.7-build-15",
-                "1.0.7-build-14"
-            };
-            var expectedOutput = new[]
-            {
-                "1.0.7-build-15",
-                "1.0.7-build-14",
-                "1.0.7-build-7",
-                "1.0.7-build-5"
-            };
-            AssertOrdersCorrect(input, expectedOutput);
-        }
+                var baseVersion = "1.1.2";
+                var availableVersions = new List<string>
+                {
+                    "1.0.0",
+                    "1.0.2",
+                    "1.1.1",
+                    "1.1.2-build4"
+                };
+                AssertReturnsCorrectVersion(baseVersion, null, availableVersions);
+            }
 
-        [Fact]
-        public void OrdersCorrect_06()
-        {
-            var input = new[]
+            [Fact]
+            public void ReturnsCorrectHigherVersion01()
             {
-                "1.0.7-build-15",
-                "1.0.7-build-14",
-                "1.0.7-build-7",
-                "1.0.7-build-5"
-            };
-            var expectedOutput = new[]
-            {
-                "1.0.7-build-15",
-                "1.0.7-build-14",
-                "1.0.7-build-7",
-                "1.0.7-build-5"
-            };
-            AssertOrdersCorrect(input, expectedOutput);
-        }
+                var baseVersion = "1.1.0";
+                var expectedResult = "1.1.1";
+                var availableVersions = new List<string>
+                {
+                    "1.0.0",
+                    "1.0.2",
+                    "1.1.1",
+                    "1.1.2-build4"
+                };
+                AssertReturnsCorrectVersion(baseVersion, expectedResult, availableVersions);
+            }
 
-        [Fact]
-        public void OrdersCorrect_07()
-        {
-            var input = new[]
+            [Fact]
+            public void ReturnsCorrectHigherVersion02()
             {
-                "1.0.7-build.7",
-                "1.0.7-build.5",
-                "1.0.7-build.15",
-                "1.0.7-build.14"
-            };
-            var expectedOutput = new[]
-            {
-                "1.0.7-build.15",
-                "1.0.7-build.14",
-                "1.0.7-build.7",
-                "1.0.7-build.5"
-            };
-            AssertOrdersCorrect(input, expectedOutput);
-        }
+                var baseVersion = "0.1.0";
+                var expectedResult = "1.0.0";
+                var availableVersions = new List<string>
+                {
+                    "1.0.0",
+                    "1.0.2",
+                    "1.1.1",
+                    "1.1.2-build4"
+                };
+                AssertReturnsCorrectVersion(baseVersion, expectedResult, availableVersions);
+            }
 
-        [Fact]
-        public void OrdersCorrect_08()
-        {
-            var input = new[]
+            [Fact]
+            public void ReturnsCorrectHigherVersion03()
             {
-                "1.0.0",
-                "1.0.1"
-            };
-            var expectedOutput = new[]
-            {
-                "1.0.1",
-                "1.0.0"
-            };
-            AssertOrdersCorrect(input, expectedOutput);
-        }
+                var baseVersion = "1.0.3-build4";
+                var expectedResult = "1.1.1";
+                var availableVersions = new List<string>
+                {
+                    "1.0.0",
+                    "1.0.2",
+                    "1.1.1",
+                    "1.1.2-build4"
+                };
+                AssertReturnsCorrectVersion(baseVersion, expectedResult, availableVersions);
+            }
 
-        [Fact]
-        public void OrdersCorrect_09()
-        {
-            var input = new[]
+            [Fact]
+            public void ReturnsCorrectHigherVersion04()
             {
-                "1.0.0",
-                "1.2.0"
-            };
-            var expectedOutput = new[]
-            {
-                "1.2.0",
-                "1.0.0"
-            };
-            AssertOrdersCorrect(input, expectedOutput);
-        }
+                var baseVersion = "1.1.2-build3";
+                var expectedResult = "1.1.2-build4";
+                var availableVersions = new List<string>
+                {
+                    "1.0.0",
+                    "1.0.2",
+                    "1.1.1",
+                    "1.1.2-build4"
+                };
+                AssertReturnsCorrectVersion(baseVersion, expectedResult, availableVersions);
+            }
 
-        [Fact]
-        public void OrdersCorrect_10()
-        {
-            var input = new[]
+            private void AssertReturnsCorrectVersion(string baseVersion, string expectedResult, List<string> availableVersions)
             {
-                "a.b.c",
-                "a.b.d"
-            };
-            var expectedOutput = new[]
-            {
-                "a.b.d",
-                "a.b.c"
-            };
-            AssertOrdersCorrect(input, expectedOutput);
-        }
-
-        private void AssertOrdersCorrect(string[] input, string[] expected)
-        {
-            var orderer = new SemanticVersionsOrderer(input.ToList());
-            var actual = orderer.GetVersionsOrderedBySemanticVersionDescending();
-            Assert.Equal(input.Length, expected.Length);
-            for (var i = 0; i < expected.Length; i++)
-            {
-                Assert.Equal(expected[i], actual[i]);
+                var versionOrderer = new SemanticVersionsOrderer(availableVersions);
+                var actualResult = versionOrderer.GetNextHigherVersionOrNull(baseVersion);
+                Assert.Equal(expectedResult, actualResult);
             }
         }
     }

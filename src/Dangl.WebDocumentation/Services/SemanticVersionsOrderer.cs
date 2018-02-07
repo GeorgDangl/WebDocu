@@ -20,6 +20,7 @@ namespace Dangl.WebDocumentation.Services
             {
                 return _orderedVersions;
             }
+
             var orderedVersions = _versions
                 .Select(v => new Version(v))
                 .OrderByDescending(s => s)
@@ -27,6 +28,24 @@ namespace Dangl.WebDocumentation.Services
                 .ToList();
             _orderedVersions = orderedVersions;
             return _orderedVersions;
+        }
+
+        public string GetNextHigherVersionOrNull(string baseVersion)
+        {
+            if (string.IsNullOrWhiteSpace(baseVersion))
+            {
+                throw new ArgumentNullException(nameof(baseVersion));
+            }
+
+            var versions = _versions.Concat(new[] {baseVersion}).ToList();
+            var innerOrderer = new SemanticVersionsOrderer(versions);
+            var allVersions = Enumerable.Reverse(innerOrderer.GetVersionsOrderedBySemanticVersionDescending());
+
+            var nextHigherVersion = allVersions
+                .SkipWhile(version => version != baseVersion)
+                .Skip(1)
+                .FirstOrDefault();
+            return nextHigherVersion;
         }
     }
 }
