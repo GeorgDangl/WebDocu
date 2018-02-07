@@ -69,6 +69,10 @@ namespace Dangl.WebDocumentation.Controllers
             if (projectFile == null)
             {
                 var pathToEntryPoint = await _projectFilesService.GetEntryFilePathForProject(projectName);
+                if (pathToEntryPoint == pathToFile)
+                {
+                    return NotFound();
+                }
                 return RedirectToAction(nameof(GetFile), new {projectName, version, pathToFile = pathToEntryPoint});
             }
 
