@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Linq;
+using System.Threading.Tasks;
 using Dangl.WebDocumentation.Models;
 using Dangl.WebDocumentation.Services;
 using Microsoft.AspNetCore.Identity;
@@ -51,18 +53,25 @@ namespace Dangl.WebDocumentation.Controllers
             }
 
             var availableVersions = await _projectVersionsService.GetProjectVersionsAsync(projectName);
-            if (!availableVersions.Contains(version))
+            if (String.Equals(version, "latest", StringComparison.CurrentCultureIgnoreCase))
             {
-                // This makes sure that deleted earlier versions, e.g. prerelease versions,
-                // do not return 404 after they're deleted but get redirect to the next available version
-                var versionsOrderer = new SemanticVersionsOrderer(availableVersions);
-                var nextHigherVersion = versionsOrderer.GetNextHigherVersionOrNull(version);
-                if (nextHigherVersion == null)
+                version = availableVersions.FirstOrDefault();
+            }
+            else
+            {
+                if (!availableVersions.Contains(version))
                 {
-                    return NotFound();
-                }
+                    // This makes sure that deleted earlier versions, e.g. prerelease versions,
+                    // do not return 404 after they're deleted but get redirect to the next available version
+                    var versionsOrderer = new SemanticVersionsOrderer(availableVersions);
+                    var nextHigherVersion = versionsOrderer.GetNextHigherVersionOrNull(version);
+                    if (nextHigherVersion == null)
+                    {
+                        return NotFound();
+                    }
 
-                return RedirectToAction(nameof(GetFile), new {projectName, version = nextHigherVersion, pathToFile});
+                    return RedirectToAction(nameof(GetFile), new { projectName, version = nextHigherVersion, pathToFile });
+                }
             }
 
             var projectFile = await _projectFilesService.GetFileForProject(projectName, version, pathToFile);
