@@ -31,6 +31,8 @@ Example with cURL:
 
 Project names are required to be unique for pretty urls. Access is routed via `https://<YourDomain>/Projects/<ProjectName>/<Version>/<PathToIndex>`
 
+The `<Version>` parameter may be set to `latest` to display the most recent version of the package.
+
 ## Conventions When Accessing Documentation
 
 Project file urls have the following format:
