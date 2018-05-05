@@ -142,3 +142,7 @@ header .navbar {
     border-color: #00acc1;
     color: #00acc1;
 }
+
+.checkbox > label {
+    padding-left: .3rem;
+}
