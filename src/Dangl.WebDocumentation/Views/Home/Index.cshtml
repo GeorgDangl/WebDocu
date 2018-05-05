@@ -6,27 +6,28 @@
     {
         <h3>No projects available.</h3>
         @if (User.Identity.IsAuthenticated)
-         {
+        {
             <p>You are logged in but have no access to any projects. <a href="https://www.dangl-it.com/contact/" target="_blank">Please contact our staff to get access.</a></p>
-         }
-         else
-         {
-             <p>Please log in to see the projects you have access to.</p>
-         }
+        }
     }
     else
     {
         <table class="table">
             <tbody>
-            @{
-                foreach (var project in Model.Projects)
-                {
-                    <tr>
-                        <td><a asp-controller="ProjectVersions" asp-action="Index" asp-route-projectName="@project.Name">@project.Name</a></td>
-                    </tr>
+                @{
+                    foreach (var project in Model.Projects)
+                    {
+                        <tr>
+                            <td><a asp-controller="ProjectVersions" asp-action="Index" asp-route-projectName="@project.Name">@project.Name</a></td>
+                        </tr>
+                    }
                 }
-            }
             </tbody>
         </table>
+        <p>Missing some projects? <a href="https://www.dangl-it.com/contact/" target="_blank">Please contact our staff to get access to non-public projects.</a></p>
+    }
+    if (!User.Identity.IsAuthenticated)
+    {
+        <p>Please log in to see all projects you have access to.</p>
     }
 }

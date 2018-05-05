@@ -5,7 +5,8 @@ var gulp = require("gulp"),
     rimraf = require("rimraf"),
     concat = require("gulp-concat"),
     cssmin = require("gulp-cssmin"),
-    uglify = require("gulp-uglify");
+    uglify = require("gulp-uglify"),
+    sass = require("gulp-sass");
 
 var paths = {
     webroot: "./wwwroot/"
@@ -14,6 +15,7 @@ var paths = {
 paths.js = paths.webroot + "js/**/*.js";
 paths.minJs = paths.webroot + "js/**/*.min.js";
 paths.css = paths.webroot + "css/**/*.css";
+paths.sass = paths.webroot + "css/**/*.scss";
 paths.minCss = paths.webroot + "css/**/*.min.css";
 paths.concatJsDest = paths.webroot + "js/site.min.js";
 paths.concatCssDest = paths.webroot + "css/site.min.css";
@@ -59,4 +61,10 @@ gulp.task("min:css", function () {
         .pipe(gulp.dest("."));
 });
 
-gulp.task("min", ["min:js", "min:css"]);
+gulp.task("sass", function () {
+    return gulp.src(paths.sass)
+        .pipe(sass.sync().on('error', sass.logError))
+        .pipe(gulp.dest("./wwwroot/css/"));
+});
+
+gulp.task("min", ["min:js", "sass", "min:css"]);

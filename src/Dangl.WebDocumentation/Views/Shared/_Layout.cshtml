@@ -3,32 +3,35 @@
 
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-        @{
-            if (string.IsNullOrWhiteSpace(ViewData["Title"]?.ToString()))
-            {
-                <title>@AppSettings.Value.SiteTitle</title>
-            }
-            else
-            {
-                <title>@ViewData["Title"] - @AppSettings.Value.SiteTitle</title>
-            }
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    @{
+        if (string.IsNullOrWhiteSpace(ViewData["Title"]?.ToString()))
+        {
+            <title>@AppSettings.Value.FullTitle</title>
         }
-        <environment names="Development">
-            <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
-            <link rel="stylesheet" href="~/css/site.css" />
-        </environment>
-        <environment names="Staging,Production">
-            <link rel="stylesheet" href="https://ajax.aspnetcdn.com/ajax/bootstrap/3.3.7/css/bootstrap.min.css"
-                  asp-fallback-href="~/lib/bootstrap/dist/css/bootstrap.min.css"
-                  asp-fallback-test-class="sr-only" asp-fallback-test-property="position" asp-fallback-test-value="absolute" />
-            <link rel="stylesheet" href="~/css/site.min.css" asp-append-version="true" />
-        </environment>
-    </head>
+        else
+        {
+            <title>@ViewData["Title"] - @AppSettings.Value.FullTitle</title>
+        }
+    }
+    <environment names="Development">
+        <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css"/>
+        <link rel="stylesheet" href="~/css/site.css"/>
+        <link rel="stylesheet" href="~/css/logo.css"/>
+        <link rel="stylesheet" href="~/css/subnav.css"/>
+    </environment>
+    <environment names="Staging,Production">
+        <link rel="stylesheet" href="https://ajax.aspnetcdn.com/ajax/bootstrap/3.3.7/css/bootstrap.min.css"
+              asp-fallback-href="~/lib/bootstrap/dist/css/bootstrap.min.css"
+              asp-fallback-test-class="sr-only" asp-fallback-test-property="position" asp-fallback-test-value="absolute"/>
+        <link rel="stylesheet" href="~/css/site.min.css" asp-append-version="true"/>
+    </environment>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700|Indie+Flower:400|">
+</head>
 <body>
-
+<div>
     @{
         if (ViewBag.SuccessMessage != null)
         {
@@ -38,59 +41,90 @@
         }
     }
 
-    <div class="navbar navbar-inverse navbar-fixed-top">
-        <div class="container">
-            <div class="navbar-header">
-                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-                    <span class="sr-only">Toggle navigation</span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                </button>
-                <a asp-controller="Home" asp-action="Index" class="navbar-brand">@AppSettings.Value.SiteTitle</a>
+    <header>
+        <div class="navbar navbar-inverse navbar-fixed-top mat-toolbar ms-header ms-header-primary">
+            <div class="container">
+                <a asp-controller="Home" asp-action="Index" class="navbar-brand">
+                    <span class="gd-logo gd-logo-white">GD</span>
+                    <h1 style="display:inline;font-weight:300;vertical-align:bottom;">
+                        @AppSettings.Value.SiteTitlePrefix<strong style="vertical-align:bottom;font-weight:500;">@AppSettings.Value.SiteTitlePostfix</strong>
+                    </h1>
+                </a>
             </div>
-            <div class="navbar-collapse collapse">
-                <ul class="nav navbar-nav">
+        </div>
+
+
+    </header>
+
+    <div class="subnav">
+
+        <nav class="navbar navbar-expand-lg container subnav">
+            <a class="navbar-brand" href="/"></a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav mr-auto">
+                    <li class="nav-item @(ViewData["Section"] == "Home" ? "active" : "")">
+                        <a class="nav-link" href="/">
+                            Projects
+                            <div></div>
+                        </a>
+                    </li>
                     @{
                         if (User.IsInRole("Admin"))
                         {
-                            <li><a asp-controller="Admin" asp-action="Index">Admin</a></li>
-                        }}
+                            <li class="nav-item @(ViewData["Section"] == "Admin" ? "active" : "")">
+                                <a class="nav-link" asp-controller="Admin" asp-action="Index" style="position:relative;">
+                                    Admin
+                                    <div></div>
+                                </a>
+                            </li>
+                        }
+                    }
                 </ul>
-                @await Html.PartialAsync("_LoginPartial")
+                <div>
+                    @await Html.PartialAsync("_LoginPartial")
+                </div>
             </div>
-        </div>
+        </nav>
     </div>
-    <div class="container body-content">
-        @RenderBody()
+</div>
+
+
+<div class="container body-content" style="flex: 1 0 auto;">
+    @RenderBody()
+</div>
+
+<footer class="gd-footer">
+    <div class="container">
+        <p>
+            <span class="gd-logo">GD</span>
+            <a href="https://www.dangl-it.com" target="_blank">&copy; 2015 - @DateTime.Now.Year: Georg Dangl</a> &ndash;
+            <a href="https://github.com/GeorgDangl/WebDocu" target="_blank">
+                @AppSettings.Value.SiteTitlePrefix<strong>@AppSettings.Value.SiteTitlePostfix</strong>
+            </a>
+        </p>
     </div>
-    
-    <footer class="footer">
-        <div class="container">
-            <p><a href="https://www.dangl-it.com" target="_blank">&copy; 2015 - @DateTime.Now.Year:  Georg Dangl</a> &ndash; <a href="https://github.com/GeorgDangl/WebDocu" target="_blank">@AppSettings.Value.SiteTitle</a></p>
-        </div>
-    </footer>
+</footer>
 
 <environment names="Development">
-        <script src="~/lib/jquery/dist/jquery.js"></script>
-        <script src="~/lib/bootstrap/dist/js/bootstrap.js"></script>
-        <script src="~/js/site.js" asp-append-version="true"></script>
-    </environment>
-    <environment names="Staging,Production">
-        <script src="https://ajax.aspnetcdn.com/ajax/jquery/jquery-3.3.1.min.js"
-                asp-fallback-src="~/lib/jquery/dist/jquery.min.js"
-                asp-fallback-test="window.jQuery">
+    <script src="~/lib/jquery/dist/jquery.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+</environment>
+<environment names="Staging,Production">
+    <script src="https://ajax.aspnetcdn.com/ajax/jquery/jquery-3.3.1.min.js"
+            asp-fallback-src="~/lib/jquery/dist/jquery.min.js"
+            asp-fallback-test="window.jQuery">
         </script>
-        <script src="https://ajax.aspnetcdn.com/ajax/bootstrap/3.3.7/bootstrap.min.js"
-                asp-fallback-src="~/lib/bootstrap/dist/js/bootstrap.min.js"
-                asp-fallback-test="window.jQuery && window.jQuery.fn && window.jQuery.fn.modal">
+    <script src="https://ajax.aspnetcdn.com/ajax/bootstrap/3.3.7/bootstrap.min.js"
+            asp-fallback-src="~/lib/bootstrap/dist/js/bootstrap.min.js"
+            asp-fallback-test="window.jQuery && window.jQuery.fn && window.jQuery.fn.modal">
         </script>
-        <script src="~/js/site.min.js" asp-append-version="true"></script>
-    </environment>
+    <script src="~/js/site.min.js" asp-append-version="true"></script>
+</environment>
 
-    @RenderSection("scripts", required: false)
+@RenderSection("scripts", required: false)
 </body>
-
-
-
 </html>
