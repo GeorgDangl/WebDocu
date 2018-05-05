@@ -3,8 +3,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using Dangl.WebDocumentation.Models;
 using Dangl.WebDocumentation.Services;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Net.Http.Headers;
 
 namespace Dangl.WebDocumentation.Controllers
 {
@@ -53,7 +55,8 @@ namespace Dangl.WebDocumentation.Controllers
             }
 
             var availableVersions = await _projectVersionsService.GetProjectVersionsAsync(projectName);
-            if (String.Equals(version, "latest", StringComparison.CurrentCultureIgnoreCase))
+            var requestsLatestVersion = string.Equals(version, "latest", StringComparison.CurrentCultureIgnoreCase);
+            if (requestsLatestVersion)
             {
                 version = availableVersions.FirstOrDefault();
             }
@@ -85,7 +88,17 @@ namespace Dangl.WebDocumentation.Controllers
                 return RedirectToAction(nameof(GetFile), new {projectName, version, pathToFile = pathToEntryPoint});
             }
 
-            Response.Headers.Add("Cache-Control", new Microsoft.Extensions.Primitives.StringValues("max-age=604800"));
+            var responseCacheDuration = requestsLatestVersion
+                ? TimeSpan.FromMinutes(60) // If "latest" version is requested, only cache for 60 minutes
+                : TimeSpan.FromDays(7);
+            var responseCacheHeader = new CacheControlHeaderValue
+            {
+                Public = true,
+                MaxAge = responseCacheDuration
+            };
+
+            Response.GetTypedHeaders().CacheControl = responseCacheHeader;
+
             return File(projectFile.FileStream, projectFile.MimeType);
         }
     }

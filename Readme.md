@@ -46,6 +46,12 @@ Project file urls have the following format:
     from becoming unavailable
   * If `PathToFile` is pointing to a non-existing file, a redirect to the entry point is returned
 
+## Response Caching
+
+Responses for project files have two different `Cache-Control` headers:
+* `3600` (1 hour) if the version accessed is `latest`
+* `604800` (7 days) if any other version is accessed
+
 ## License
 
 [View](License.md)
