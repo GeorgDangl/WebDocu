@@ -37,6 +37,7 @@ namespace Dangl.WebDocumentation.Controllers
 
         public IActionResult Index()
         {
+            ViewData["Section"] = "Admin";
             var model = new IndexViewModel();
             model.Projects = _context.DocumentationProjects.OrderBy(project => project.Name);
             return View(model);
@@ -44,6 +45,7 @@ namespace Dangl.WebDocumentation.Controllers
 
         public IActionResult CreateProject()
         {
+            ViewData["Section"] = "Admin";
             var model = new CreateProjectViewModel();
             model.AvailableUsers = _context.Users.Select(appUser => appUser.UserName).OrderBy(username => username);
             return View(model);
@@ -52,6 +54,7 @@ namespace Dangl.WebDocumentation.Controllers
         [HttpPost]
         public IActionResult CreateProject(CreateProjectViewModel model, List<string> selectedUsers)
         {
+            ViewData["Section"] = "Admin";
             var usersToAdd = _context.Users.Where(currentUser => selectedUsers.Contains(currentUser.UserName)).ToList();
             if (selectedUsers.Any(selected => usersToAdd.All(foundUser => foundUser.UserName != selected)))
             {
@@ -88,6 +91,7 @@ namespace Dangl.WebDocumentation.Controllers
         [Route("EditProject/{projectId}")]
         public IActionResult EditProject(Guid projectId)
         {
+            ViewData["Section"] = "Admin";
             var project = _context.DocumentationProjects.FirstOrDefault(curr => curr.Id == projectId);
             if (project == null)
             {
@@ -109,6 +113,7 @@ namespace Dangl.WebDocumentation.Controllers
         [Route("EditProject/{projectId}")]
         public IActionResult EditProject(Guid projectId, EditProjectViewModel model, List<string> selectedUsers)
         {
+            ViewData["Section"] = "Admin";
             if (!ModelState.IsValid)
             {
                 return View(model);
@@ -150,6 +155,7 @@ namespace Dangl.WebDocumentation.Controllers
         [Route("UploadProject/{projectId}")]
         public IActionResult UploadProject(Guid projectId)
         {
+            ViewData["Section"] = "Admin";
             var project = _context.DocumentationProjects.FirstOrDefault(p=> p.Id == projectId);
             if (project == null)
             {
@@ -164,6 +170,7 @@ namespace Dangl.WebDocumentation.Controllers
         [Route("UploadProject/{projectId}")]
         public async Task<IActionResult> UploadProject(Guid projectId, string version, IFormFile projectPackage)
         {
+            ViewData["Section"] = "Admin";
             if (projectPackage == null)
             {
                 ModelState.AddModelError("", "Please select a file to upload.");
@@ -197,6 +204,7 @@ namespace Dangl.WebDocumentation.Controllers
         [Route("DeleteProject/{projectId}")]
         public IActionResult DeleteProject(Guid projectId)
         {
+            ViewData["Section"] = "Admin";
             var project = _context.DocumentationProjects.FirstOrDefault(p => p.Id == projectId);
             if (project == null)
             {
@@ -212,6 +220,7 @@ namespace Dangl.WebDocumentation.Controllers
         [Route("DeleteProject/{projectId}")]
         public IActionResult DeleteProject(Guid projectId, DeleteProjectViewModel model)
         {
+            ViewData["Section"] = "Admin";
             if (!model.ConfirmDelete)
             {
                 ModelState.AddModelError(nameof(model.ConfirmDelete), "Please confirm the deletion by checking the checkbox.");
@@ -244,6 +253,7 @@ namespace Dangl.WebDocumentation.Controllers
         [Route("DeleteProjectVersion/{projectId}/{version}")]
         public IActionResult DeleteProjectVersion(Guid projectId, string version)
         {
+            ViewData["Section"] = "Admin";
             var project = _context.DocumentationProjects.FirstOrDefault(p => p.Id == projectId);
             if (project == null)
             {
@@ -263,6 +273,7 @@ namespace Dangl.WebDocumentation.Controllers
         [Route("DeleteProjectVersion/{projectId}/{version}")]
         public async Task<IActionResult> DeleteProjectVersion(Guid projectId, string version, DeleteProjectVersionViewModel model)
         {
+            ViewData["Section"] = "Admin";
             if (!model.ConfirmDelete)
             {
                 ModelState.AddModelError(nameof(model.ConfirmDelete), "Please confirm the deletion by checking the checkbox.");
@@ -288,6 +299,7 @@ namespace Dangl.WebDocumentation.Controllers
 
         public IActionResult ManageUsers()
         {
+            ViewData["Section"] = "Admin";
             var adminRoleId = _context.Roles.FirstOrDefault(role => role.Name == "Admin").Id;
             var model = new ManageUsersViewModel();
             model.Users = _context.Users.Select(user => new UserAdminRoleViewModel { Name = user.Email, IsAdmin = user.Roles.Any(role => role.RoleId == adminRoleId)});
@@ -297,6 +309,7 @@ namespace Dangl.WebDocumentation.Controllers
         [HttpPost]
         public async Task<IActionResult> ManageUsers(IEnumerable<string> adminUsers)
         {
+            ViewData["Section"] = "Admin";
             var adminRole = _context.Roles.FirstOrDefault(role => role.Name == "Admin");
             if (adminRole == null)
             {

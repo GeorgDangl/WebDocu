@@ -31,6 +31,7 @@ namespace Dangl.WebDocumentation.Controllers
         [HttpGet]
         public async Task<IActionResult> Index(string projectName)
         {
+            ViewData["Section"] = "Home";
             var userId = _userManager.GetUserId(User);
             var hasProjectAccess = await _projectsService.UserHasAccessToProject(projectName, userId);
             if (!hasProjectAccess)
