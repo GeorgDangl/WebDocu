@@ -124,10 +124,17 @@ body {
     transform: scale(0.8);
 }
 
+/*
 .subnav {
     background-color: #424242;
     color: #fff;
 }
+*/
+
+/*.navbar-collapse.collapse.show {
+    background-color: #424242;
+    width: 100%;
+}*/
 
 .subnav .nav-link {
     color: #fff;
@@ -138,9 +145,13 @@ header .navbar {
     padding: 0;
 }
 
+/*
 .subnav {
     height: 50px;
 }
+*/
+
+
 
 .btn-default {
     background-color: #00acc1;
@@ -152,3 +163,12 @@ header .navbar {
 .btn-default:hover {
     background-color:#009aad ;
 }
+
+.navbar-toggler {
+    border-color: #00acc1;
+    color: #00acc1;
+}
+
+/*.navbar-toggler-icon {
+    background-image: url(data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 30 30' xmlns='http://ww…p='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E);
+}*/

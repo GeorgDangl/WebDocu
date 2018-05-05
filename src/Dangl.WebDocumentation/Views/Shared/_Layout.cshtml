@@ -32,55 +32,7 @@
 </head>
 <body>
 <div>
-
-    <header>
-        <div class="navbar navbar-inverse navbar-fixed-top mat-toolbar ms-header ms-header-primary">
-            <div class="container">
-                <a asp-controller="Home" asp-action="Index" class="navbar-brand">
-                    <span class="gd-logo gd-logo-white">GD</span>
-                    <h1 style="display:inline;font-weight:300;vertical-align:bottom;">
-                        @AppSettings.Value.SiteTitlePrefix<strong style="vertical-align:bottom;font-weight:500;">@AppSettings.Value.SiteTitlePostfix</strong>
-                    </h1>
-                </a>
-            </div>
-        </div>
-
-
-    </header>
-
-    <div class="subnav">
-
-        <nav class="navbar navbar-expand-lg container subnav">
-            <a class="navbar-brand" href="/"></a>
-            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse">
-                <ul class="navbar-nav mr-auto">
-                    <li class="nav-item @(ViewData["Section"] == "Home" ? "active" : "")">
-                        <a class="nav-link" href="/">
-                            Projects
-                            <div></div>
-                        </a>
-                    </li>
-                    @{
-                        if (User.IsInRole("Admin"))
-                        {
-                            <li class="nav-item @(ViewData["Section"] == "Admin" ? "active" : "")">
-                                <a class="nav-link" asp-controller="Admin" asp-action="Index" style="position:relative;">
-                                    Admin
-                                    <div></div>
-                                </a>
-                            </li>
-                        }
-                    }
-                </ul>
-                <div>
-                    @await Html.PartialAsync("_LoginPartial")
-                </div>
-            </div>
-        </nav>
-    </div>
+    @await Html.PartialAsync("_HeaderPartial")
 </div>
 
 @{
