@@ -18,9 +18,11 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <label asp-for="IsPublic" class="col-md-2 control-label"></label>
-                    <div class="col-md-10">
-                        <input asp-for="IsPublic"/>
+                    <div class="col-md-offset-2 col-md-10">
+                        <div class="checkbox">
+                            <input asp-for="IsPublic"/>
+                            <label asp-for="IsPublic"></label>
+                        </div>
                     </div>
                 </div>
                 <div class="form-group">
@@ -38,15 +40,21 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <label asp-for="AvailableUsers" class="col-md-2 control-label"></label>
-                    <div class="col-md-10">
+                    <label asp-for="AvailableUsers" class="col-md-4 control-label"></label>
+                    <div class="col-md-offset-2 col-md-10">
                         @{
                             var users = Model.UsersWithAccess.Select(entry => new {Name = entry, IsEnabled = true}).Union(Model.AvailableUsers.Select(entry => new {Name = entry, IsEnabled = false})).OrderBy(entry => entry.Name).ToList();
                             foreach (var user in users)
                             {
-                                <input type="checkbox" id="User_@user.Name" name="SelectedUsers" value="@user.Name" @{if (user.IsEnabled)
-                                                                                                                    {<text>checked</text>}}/>
-                                <label for="User_@user.Name">@user.Name</label>
+                                <div class="checkbox">
+                                    <input type="checkbox" id="User_@user.Name" name="SelectedUsers" value="@user.Name" @{
+                                                                                                                            if (user.IsEnabled)
+                                                                                                                            {
+                                                                                                                                <text> checked</text>
+                                                                                                                            }
+                                                                                                                        }/>
+                                    <label for="User_@user.Name">@user.Name</label>
+                                </div>
                                 <br/>
                             }
                         }

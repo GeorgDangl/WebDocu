@@ -3,11 +3,12 @@
 @model LoginViewModel
 @inject SignInManager<ApplicationUser> SignInManager
 
-<h2>Log in</h2>
+<h2>Login</h2>
 <div class="row">
     <div class="col-md-8">
         <section>
             <form asp-controller="Account" asp-action="Login" asp-route-returnurl="@ViewData["ReturnUrl"]" method="post" class="form-horizontal" role="form">
+                <h4>Login to @AppSettings.Value.SiteTitlePrefix<strong>@AppSettings.Value.SiteTitlePostfix</strong></h4>
                 <hr />
                 <div asp-validation-summary="All" class="text-danger"></div>
                 <div class="form-group">
@@ -34,20 +35,22 @@
                 </div>
                 <div class="form-group">
                     <div class="col-md-offset-2 col-md-10">
-                        <button type="submit" class="btn btn-default">Log in</button>
+                        <button type="submit" class="btn btn-default">&nbsp;Login&nbsp;</button>
                     </div>
                 </div>
-                @{
-                    if (AppSettings.Value.AllowUserRegistration)
-                    {
-                        <p>
-                            <a asp-action="Register">Register as a new user?</a>
-                        </p>
+                <div class="col-md-offset-2 col-md-10">
+                    @{
+            if (AppSettings.Value.AllowUserRegistration)
+            {
+                <p>
+                    <a asp-action="Register">Register as a new user?</a>
+                </p>
+}
+            <p>
+                <a asp-action="ForgotPassword">Forgot password?</a>
+            </p>
                     }
-                    <p>
-                        <a asp-action="ForgotPassword">Forgot password?</a>
-                    </p>
-                }
+                </div>
             </form>
         </section>
     </div>

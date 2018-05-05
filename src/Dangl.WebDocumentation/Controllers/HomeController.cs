@@ -20,6 +20,7 @@ namespace Dangl.WebDocumentation.Controllers
 
         public IActionResult Index()
         {
+            ViewData["Section"] = "Home";
             // Get a list of all projects that the user has access to
             var accessibleProjects = Context.DocumentationProjects.Where(project => project.IsPublic).ToList(); // Show all public projects
             var userId = UserManager.GetUserId(User);

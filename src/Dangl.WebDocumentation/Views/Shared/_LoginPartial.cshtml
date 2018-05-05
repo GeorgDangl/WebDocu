@@ -8,10 +8,10 @@
     <form asp-controller="Account" asp-action="LogOff" method="post" id="logoutForm" class="navbar-right">
         <ul class="nav navbar-nav navbar-right">
             <li>
-                <a asp-controller="Manage" asp-action="Index" title="Manage">Hello @UserManager.GetUserName(User)!</a>
+                <a class="nav-link" asp-controller="Manage" asp-action="Index" title="Manage">Hello @UserManager.GetUserName(User)!</a>
             </li>
             <li>
-                <button type="submit" class="btn btn-link navbar-btn navbar-link">Log off</button>
+                <button style="border:0;" type="submit" class="btn btn-link navbar-btn nav-link">Logout</button>
             </li>
         </ul>
     </form>
@@ -22,8 +22,10 @@ else
         @{
             if (AppSettings.Value.AllowUserRegistration)
             {
-                <li><a asp-controller="Account" asp-action="Register">Register</a></li>
+                <li><a class="nav-link" asp-controller="Account" asp-action="Register">Register</a></li>
             }}
-        <li><a asp-controller="Account" asp-action="Login">Log in</a></li>
+        <li>
+            <a class="nav-link" asp-controller="Account" asp-action="Login">Login</a>
+        </li>
     </ul>
 }

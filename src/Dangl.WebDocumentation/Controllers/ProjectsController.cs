@@ -39,6 +39,7 @@ namespace Dangl.WebDocumentation.Controllers
         [Route("Projects/{projectName}/{version}/{*pathToFile}")]
         public async Task<IActionResult> GetFile(string projectName, string version, string pathToFile)
         {
+            ViewData["Section"] = "Home";
             var userId = User == null ? null : _userManager.GetUserId(User);
             var hasProjectAccess = await _projectsService.UserHasAccessToProject(projectName, userId);
             if (!hasProjectAccess)
