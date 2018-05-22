@@ -35,6 +35,11 @@ namespace Dangl.WebDocumentation.Controllers
             return View(model);
         }
 
+        public IActionResult Privacy()
+        {
+            return View();
+        }
+
         public IActionResult Error()
         {
             return View();
