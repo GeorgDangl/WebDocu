@@ -31,10 +31,15 @@ namespace Dangl.WebDocumentation.Services
         {
             var versions = await GetProjectVersionsAsync(projectName);
 
+            return GetAllPreviewVersionsExceptFirstAndLast(versions);
+        }
+
+        public static List<string> GetAllPreviewVersionsExceptFirstAndLast(List<string> versions)
+        {
             var previewVersions = versions
-                .SkipWhile(v => !SemanticVersionsOrderer.IsStableVersion(v))
+                .Skip(1)
                 .Reverse()
-                .SkipWhile(v => !SemanticVersionsOrderer.IsStableVersion(v))
+                .Skip(1)
                 .Reverse()
                 .Where(v => !SemanticVersionsOrderer.IsStableVersion(v))
                 .ToList();
