@@ -222,7 +222,6 @@ namespace Dangl.WebDocumentation.Controllers
             return View(model);
         }
 
-        [Authorize(Roles = "Admin")]
         [HttpGet("Projects/DeleteBetaVersions/{projectName}")]
         public async Task<IActionResult> DeleteBetaVersions(string projectName)
         {
@@ -235,7 +234,6 @@ namespace Dangl.WebDocumentation.Controllers
             return View(model);
         }
 
-        [Authorize(Roles = "Admin")]
         [HttpPost("Projects/DeleteBetaVersions/{projectName}")]
         public async Task<IActionResult> ConfirmDeleteBetaVersions(string projectName)
         {
