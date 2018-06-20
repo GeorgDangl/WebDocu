@@ -67,7 +67,6 @@ namespace Dangl.WebDocumentation
         {
             if (env.IsDevelopment())
             {
-                app.UseBrowserLink();
                 app.UseDeveloperExceptionPage();
                 app.UseDatabaseErrorPage();
                 app.UseStatusCodePages();

@@ -1,9 +1,9 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <Description>Dangl.WebDocumentation.Tests Class Library</Description>
     <Authors>Georg Dangl</Authors>
-    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
     <AssemblyName>Dangl.WebDocumentation.Tests</AssemblyName>
     <PackageId>Dangl.WebDocumentation.Tests</PackageId>
     <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
@@ -13,8 +13,6 @@
     <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
     <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
     <GenerateAssemblyCopyrightAttribute>false</GenerateAssemblyCopyrightAttribute>
-    <!-- Required, otherwise multiple 2.0.x frameworks lead to xUnit not discovering the framework to run in -->
-    <RuntimeFrameworkVersion Condition=" '$(TargetFramework)' == 'netcoreapp2.0' ">2.0.5</RuntimeFrameworkVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -22,21 +20,21 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.5.0" />
-    <PackageReference Include="Moq" Version="4.8.1" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.0-beta1-build3919" />
-    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="2.0.1" />
-    <PackageReference Include="xunit" Version="2.4.0-beta1-build3919" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.7.2" />
+    <PackageReference Include="Moq" Version="4.8.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.0-beta.2.build4010" />
+    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="2.1.0" />
+    <PackageReference Include="xunit" Version="2.4.0-beta.2.build4010" />
     <PackageReference Include="OpenCover" Version="4.6.519">
       <PrivateAssets>All</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="OpenCoverToCoberturaConverter" Version="0.2.6">
+    <PackageReference Include="OpenCoverToCoberturaConverter" Version="0.3.3">
       <PrivateAssets>All</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="ReportGenerator" Version="3.0.2">
+    <PackageReference Include="ReportGenerator" Version="3.1.2">
       <PrivateAssets>All</PrivateAssets>
     </PackageReference>
-    <DotNetCliToolReference Include="dotnet-xunit" Version="2.4.0-beta1-build3919" />
+    <DotNetCliToolReference Include="dotnet-xunit" Version="2.4.0-beta.2.build4005" />
   </ItemGroup>
 
 </Project>
