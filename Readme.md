@@ -1,5 +1,5 @@
 # Dangl.WebDocumentation - Readme
-[![Build Status](https://jenkins.dangl.me/buildStatus/icon?job=WebDocu.Tests)](https://jenkins.dangl.me/job/WebDocu.Tests/)
+[![Build Status](https://jenkins.dangl.me/buildStatus/icon?job=WebDocu/master)](https://jenkins.dangl.me/job/WebDocu/job/master/)
 
 
 This is a small web application that I use to host generated project documentation in Html format. It allows to control access to whom can access a project, either by making projects publicly available or by enabling access to projects for specific users.  
