@@ -22,7 +22,7 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav mr-auto">
-                <li class="nav-item @(ViewData["Section"] == "Home" ? "active" : "")">
+                <li class="nav-item @((string)ViewData["Section"] == "Home" ? "active" : "")">
                     <a class="nav-link" href="/">
                         Projects
                         <div></div>
@@ -31,7 +31,7 @@
                 @{
                     if (User.IsInRole("Admin"))
                     {
-                        <li class="nav-item @(ViewData["Section"] == "Admin" ? "active" : "")">
+                        <li class="nav-item @((string)ViewData["Section"] == "Admin" ? "active" : "")">
                             <a class="nav-link" asp-controller="Admin" asp-action="Index" style="position:relative;">
                                 Admin
                                 <div></div>
