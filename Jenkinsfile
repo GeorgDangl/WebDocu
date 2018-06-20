@@ -30,7 +30,7 @@ pipeline {
                    openTasks(
                        canComputeNew: false,
                        defaultEncoding: '',
-                       excludePattern: 'src/Dangl.WebDocumentation/node_modules/**/*',
+                       excludePattern: '**/node_modules/**/*, **/wwwroot/lib/**/*',
                        healthy: '',
                        high: 'HACK, FIXME',
                        ignoreCase: true,
