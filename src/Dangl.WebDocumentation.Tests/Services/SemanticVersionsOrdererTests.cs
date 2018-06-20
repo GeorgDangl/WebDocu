@@ -15,6 +15,38 @@ namespace Dangl.WebDocumentation.Tests.Services
             Assert.Throws<ArgumentNullException>("versions", () => new SemanticVersionsOrderer(null));
         }
 
+        public class IsStableVersion
+        {
+            [Theory]
+            [InlineData(null, false)]
+            [InlineData("", false)]
+            [InlineData("beta", false)]
+            [InlineData("0.0.0", true)]
+            [InlineData("1.0.0", true)]
+            [InlineData("9999999999.9999999999.9999999999", true)]
+            [InlineData("0.1.0", true)]
+            [InlineData("0.0.1", true)]
+            [InlineData("1.1.0", true)]
+            [InlineData("0.999999999999.0", true)]
+            [InlineData("1.0.0-beta004", false)]
+            [InlineData("1.0.0-beta0004", false)]
+            [InlineData("1.0.0-beta.0004", false)]
+            [InlineData("1.0.0-beta", false)]
+            [InlineData("George", false)]
+            [InlineData("1.0.b", false)]
+            [InlineData("a.b.c", false)]
+            [InlineData("a.1.2", false)]
+            [InlineData("1.1", false)]
+            [InlineData("1.1.1.", false)]
+            [InlineData("1.1.1.0", false)]
+            [InlineData("1", false)]
+            public void DetectPreviewVersion(string version, bool isExpectedPreview)
+            {
+                var actual = SemanticVersionsOrderer.IsStableVersion(version);
+                Assert.Equal(isExpectedPreview, actual);
+            }
+        }
+
         public class GetVersionsOrderedBySemanticVersionDescending
         {
             [Fact]

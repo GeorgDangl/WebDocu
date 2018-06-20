@@ -1,0 +1,34 @@
+﻿@model Dangl.WebDocumentation.ViewModels.Admin.DeleteBetaVersionsViewModel
+@{
+    var isAdmin = User.IsInRole("Admin");
+}
+
+<h2>@ViewData["Title"]</h2>
+
+@if (!Model.VersionsToDelete.Any())
+{
+<h3>No versions available.</h3>
+}
+else
+{
+<h3>Delete All Unused Preview Versions</h3>
+<p>All preview versions that have a stable version before and after them will be deleted. The following versions are affected:</p>
+  {
+<p>
+    @foreach (var version in Model.VersionsToDelete)
+    {
+    <span>@version</span>
+    <br />
+    }
+</p>
+  }
+
+<form asp-controller="Admin" asp-action="ConfirmDeleteBetaVersions" asp-route-projectName="@Model.ProjectName" method="post" class="form-horizontal" role="form">
+    <div class="form-group">
+        <div class="col-md-offset-2 col-md-10">
+            <button type="submit" class="btn btn-default">&nbsp;Confirm Delete&nbsp;</button>
+        </div>
+    </div>
+</form>
+}
+

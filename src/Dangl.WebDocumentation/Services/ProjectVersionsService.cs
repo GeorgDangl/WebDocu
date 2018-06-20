@@ -26,5 +26,19 @@ namespace Dangl.WebDocumentation.Services
             var orderedVersions = semVerOrderer.GetVersionsOrderedBySemanticVersionDescending();
             return orderedVersions;
         }
+
+        public async Task<List<string>> GetAllPreviewVersionsExceptFirstAndLastAsync(string projectName)
+        {
+            var versions = await GetProjectVersionsAsync(projectName);
+
+            var previewVersions = versions
+                .SkipWhile(v => !SemanticVersionsOrderer.IsStableVersion(v))
+                .Reverse()
+                .SkipWhile(v => !SemanticVersionsOrderer.IsStableVersion(v))
+                .Reverse()
+                .Where(v => !SemanticVersionsOrderer.IsStableVersion(v))
+                .ToList();
+            return previewVersions;
+        }
     }
 }

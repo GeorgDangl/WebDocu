@@ -12,6 +12,13 @@
 }
 else
 {
+    { 
+        if (isAdmin)
+        {
+            <a asp-controller="Admin" asp-action="DeleteBetaVersions" asp-route-projectName="@Model.ProjectName">Delete All Preview Versions</a>
+        }
+    }
+
     <table class="table">
         <tbody>
         @{

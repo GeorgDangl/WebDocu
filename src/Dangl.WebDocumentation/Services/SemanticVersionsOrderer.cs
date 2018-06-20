@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace Dangl.WebDocumentation.Services
 {
@@ -46,6 +47,12 @@ namespace Dangl.WebDocumentation.Services
                 .Skip(1)
                 .FirstOrDefault();
             return nextHigherVersion;
+        }
+
+        public static bool IsStableVersion(string version)
+        {
+            const string stableSemverRegex = @"^\d+\.\d+\.\d+$";
+            return Regex.IsMatch(version ?? string.Empty, stableSemverRegex);
         }
     }
 }

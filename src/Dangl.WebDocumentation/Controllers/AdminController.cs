@@ -23,16 +23,22 @@ namespace Dangl.WebDocumentation.Controllers
         private readonly ApplicationDbContext _context;
         private readonly IHostingEnvironment _hostingEnvironment;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IProjectVersionsService _projectVersionsService;
+        private readonly IProjectsService _projectsService;
 
         public AdminController(ApplicationDbContext context,
             IHostingEnvironment hostingEnvironment,
             UserManager<ApplicationUser> userManager,
-            IProjectFilesService projectFilesService)
+            IProjectFilesService projectFilesService,
+            IProjectVersionsService projectVersionsService,
+            IProjectsService projectsService)
         {
             _projectFilesService = projectFilesService;
             _context = context;
             _hostingEnvironment = hostingEnvironment;
             _userManager = userManager;
+            _projectVersionsService = projectVersionsService;
+            _projectsService = projectsService;
         }
 
         public IActionResult Index()
@@ -214,6 +220,38 @@ namespace Dangl.WebDocumentation.Controllers
             model.ProjectName = project.Name;
             model.ProjectId = project.Id;
             return View(model);
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpGet("Projects/DeleteBetaVersions/{projectName}")]
+        public async Task<IActionResult> DeleteBetaVersions(string projectName)
+        {
+            var previewVersionsToDelete = await _projectVersionsService.GetAllPreviewVersionsExceptFirstAndLastAsync(projectName);
+            var model = new DeleteBetaVersionsViewModel
+            {
+                ProjectName = projectName,
+                VersionsToDelete = previewVersionsToDelete
+            };
+            return View(model);
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPost("Projects/DeleteBetaVersions/{projectName}")]
+        public async Task<IActionResult> ConfirmDeleteBetaVersions(string projectName)
+        {
+            var projectId = await _projectsService.GetIdForProjectByNameAsync(projectName);
+            var previewVersionsToDelete = await _projectVersionsService.GetAllPreviewVersionsExceptFirstAndLastAsync(projectName);
+            foreach (var previewVersionToDelete in previewVersionsToDelete)
+            {
+                await _projectFilesService.DeleteProjectVersionPackageAsync(projectId, previewVersionToDelete);
+            }
+            ViewBag.SuccessMessage = $"Deleted obsolete beta versions for {projectName}.";
+            var model = new DeleteBetaVersionsViewModel
+            {
+                ProjectName = projectName,
+                VersionsToDelete = new List<string>()
+            };
+            return View(nameof(DeleteBetaVersions),model);
         }
 
         [HttpPost]

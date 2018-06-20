@@ -11,5 +11,13 @@ namespace Dangl.WebDocumentation.Services
         /// <param name="projectName"></param>
         /// <returns></returns>
         Task<List<string>> GetProjectVersionsAsync(string projectName);
+
+        /// <summary>
+        /// This is supposed to return all versions that are not stable and that do have an earlier and a later
+        /// stable version. This is useful to bulk-delete unnecessary prerelease versions.
+        /// </summary>
+        /// <param name="projectName"></param>
+        /// <returns></returns>
+        Task<List<string>> GetAllPreviewVersionsExceptFirstAndLastAsync(string projectName);
     }
 }
