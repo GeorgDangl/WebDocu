@@ -67,6 +67,9 @@ pipeline {
             }
         }
         stage ('Deploy') {
+            when {
+                branch 'master'
+            }
             steps {
                 script {
                     env.WebDeploySiteName = 'WebDocu'
