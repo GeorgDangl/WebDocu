@@ -12,7 +12,7 @@ pipeline {
     stages {
         stage ('Test') {
             steps {
-                powershell './build.ps1 Coverage'
+                powershell './build.ps1 Coverage -Configuration Debug'
             }
             post {
                 always {
