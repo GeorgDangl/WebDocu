@@ -7,6 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Http;
 
 namespace Dangl.WebDocumentation
 {
@@ -46,7 +47,8 @@ namespace Dangl.WebDocumentation
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders();
 
-            services.AddMvc();
+            services.AddMvc()
+                .SetCompatibilityVersion(Microsoft.AspNetCore.Mvc.CompatibilityVersion.Version_2_1);
 
             services.Configure<AppSettings>(Configuration);
             services.Configure<EmailSettings>(Configuration.GetSection(nameof(AppSettings.EmailSettings)));
@@ -74,7 +76,10 @@ namespace Dangl.WebDocumentation
             else
             {
                 app.UseExceptionHandler("/Home/Error");
+                app.UseHsts();
             }
+
+            app.UseHttpsRedirection();
 
             app.UseStaticFiles();
 
