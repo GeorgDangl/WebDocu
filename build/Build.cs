@@ -48,35 +48,36 @@ class Build : NukeBuild
             });
 
     Target Coverage => _ => _
-    .DependsOn(Compile)
-    .Executes(() =>
-    {
-        var testProjectDirectory = SourceDirectory / "Dangl.WebDocumentation.Tests";
+        .DependsOn(Compile)
+        .Requires(() => Configuration.EqualsOrdinalIgnoreCase("Debug")) // Required for coverage data gathering
+        .Executes(() =>
+        {
+            var testProjectDirectory = SourceDirectory / "Dangl.WebDocumentation.Tests";
 
-        DotCoverAnalyse(x => x
-            .SetTargetExecutable(GetToolPath())
-            .SetTargetWorkingDirectory(testProjectDirectory)
-            .SetTargetArguments($"xunit -nobuild \"-xml {OutputDirectory / "testresults.xml"}\"")
-            .SetFilters("+:Dangl.WebDocumentation")
-            .SetAttributeFilters("System.CodeDom.Compiler.GeneratedCodeAttribute")
-            .SetOutputFile(OutputDirectory / "dotCover.xml")
-            .SetReportType(DotCoverReportType.DetailedXml));
+            DotCoverAnalyse(x => x
+                .SetTargetExecutable(GetToolPath())
+                .SetTargetWorkingDirectory(testProjectDirectory)
+                .SetTargetArguments($"xunit -nobuild \"-xml {OutputDirectory / "testresults.xml"}\"")
+                .SetFilters("+:Dangl.WebDocumentation")
+                .SetAttributeFilters("System.CodeDom.Compiler.GeneratedCodeAttribute")
+                .SetOutputFile(OutputDirectory / "dotCover.xml")
+                .SetReportType(DotCoverReportType.DetailedXml));
 
-        //// This is the report that's pretty and visualized in Jenkins
-        ReportGenerator(c => c
-            .SetReports(OutputDirectory / "dotCover.xml")
-            .SetTargetDirectory(OutputDirectory / "CoverageReport"));
+            //// This is the report that's pretty and visualized in Jenkins
+            ReportGenerator(c => c
+                .SetReports(OutputDirectory / "dotCover.xml")
+                .SetTargetDirectory(OutputDirectory / "CoverageReport"));
 
-        //// This is the report in Cobertura format that integrates so nice in Jenkins
-        //// dashboard and allows to extract more metrics and set build health based
-        //// on coverage readings
-        DotCoverToCobertura(s => s
-                .SetInputFile(OutputDirectory / "dotCover.xml")
-                .SetOutputFile(OutputDirectory / "cobertura.xml"))
-            .ConfigureAwait(false)
-            .GetAwaiter()
-            .GetResult();
-    });
+            //// This is the report in Cobertura format that integrates so nice in Jenkins
+            //// dashboard and allows to extract more metrics and set build health based
+            //// on coverage readings
+            DotCoverToCobertura(s => s
+                    .SetInputFile(OutputDirectory / "dotCover.xml")
+                    .SetOutputFile(OutputDirectory / "cobertura.xml"))
+                .ConfigureAwait(false)
+                .GetAwaiter()
+                .GetResult();
+        });
 
     Target Publish => _ => _
         .DependsOn(Restore)
