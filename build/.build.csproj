@@ -1,0 +1,36 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net471</TargetFramework>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <RootNamespace></RootNamespace>
+    <IsPackable>False</IsPackable>
+    <NoWarn>CS0649;CS0169</NoWarn>
+    
+    <!-- NUKE CONFIGURATION -->
+    <NukeVersion>0.5.3</NukeVersion>
+    <NukeCodeGeneration>False</NukeCodeGeneration>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Nuke.Common" Version="$(NukeVersion)" />
+    <PackageReference Include="Nuke.CodeGeneration" Version="$(NukeVersion)" Condition="'$(NukeCodeGeneration)' == 'True'" />
+    <PackageReference Include="Nuke.WebDeploy" Version="1.1.0" />
+    <PackageReference Include="Dangl.Nuke.CoberturaConverter" Version="1.1.4" />
+    <PackageReference Include="JetBrains.dotCover.CommandLineTools" Version="2018.1.2" />
+    <PackageReference Include="ReportGenerator" Version="3.1.2" />
+    <PackageReference Include="docfx.console" Version="2.36.2">
+      <ExcludeAssets>build</ExcludeAssets>
+    </PackageReference>
+    <PackageReference Include="WebConfigTransformRunner" Version="1.0.0.1">
+      <PrivateAssets>All</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <NukeMetadata Include="**/*.json" Exclude="bin/**;obj/**" />
+    <None Remove="*.csproj.DotSettings;*.ref.*.txt" />
+  </ItemGroup>
+
+</Project>
