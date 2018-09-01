@@ -12,17 +12,17 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Dangl.WebDocumentation.Services
 {
-    public class ProjectFilesService : IProjectFilesService
+    public class DiskStorageProjectFilesService : IProjectFilesService
     {
         private readonly ApplicationDbContext _context;
-        private readonly string _projectsRootFolder;
+        private readonly AspNetCore.FileHandling.IFileManager _fileManager;
         private static readonly FileExtensionContentTypeProvider _fileExtensionContentTypeProvider = new FileExtensionContentTypeProvider();
 
-        public ProjectFilesService(ApplicationDbContext context,
-            string projectsRootFolder)
+        public DiskStorageProjectFilesService(ApplicationDbContext context,
+            Dangl.AspNetCore.FileHandling.IFileManager fileManager)
         {
             _context = context;
-            _projectsRootFolder = projectsRootFolder;
+            _fileManager = fileManager;
         }
 
         public Task<string> GetEntryFilePathForProject(string projectName)
@@ -59,13 +59,14 @@ namespace Dangl.WebDocumentation.Services
 
         private async Task<ProjectFileDto> GetFileFromZipArchive(string archivePath, string filePath)
         {
-            if (!File.Exists(archivePath))
+            var mimeType = GetMimeTypeForFilePath(filePath);
+            var memoryStream = new MemoryStream();
+            var repoResult = await _fileManager.GetFileAsync(AppConstants.PROJECTS_CONTAINER, archivePath);
+            if (!repoResult.IsSuccess)
             {
                 return null;
             }
-            var mimeType = GetMimeTypeForFilePath(filePath);
-                    var memoryStream = new MemoryStream();
-            using (var fileStream = File.OpenRead(archivePath))
+            using (var fileStream = repoResult.Value)
             {
                 using (var zipArchive = new ZipArchive(fileStream))
                 {
@@ -115,14 +116,15 @@ namespace Dangl.WebDocumentation.Services
                     _context.DocumentationProjectVersionss.Add(newVersion);
                     await _context.SaveChangesAsync();
                     var packagePath = GetPackagePath(projectId, newVersion.FileId);
-                    Directory.CreateDirectory(Path.Combine(_projectsRootFolder, projectId.ToString()));
-                    using (var fileStream = File.Create(packagePath))
+
+                    var repoResult = await _fileManager.SaveFileAsync(AppConstants.PROJECTS_CONTAINER, packagePath, zipArchiveStream);
+                    if (repoResult.IsSuccess)
                     {
-                        await zipArchiveStream.CopyToAsync(fileStream);
+                        transaction.Commit();
+                        return true;
                     }
-                    transaction.Commit();
+                    return false;
                 }
-                return true;
             }
             catch (InvalidDataException)
             {
@@ -146,7 +148,7 @@ namespace Dangl.WebDocumentation.Services
             var packagePath = GetPackagePath(projectId, projectVersion.FileId);
             try
             {
-                File.Delete(packagePath);
+                await _fileManager.DeleteFileAsync(AppConstants.PROJECTS_CONTAINER, packagePath);
             }
             catch
             {
@@ -159,7 +161,7 @@ namespace Dangl.WebDocumentation.Services
 
         private string GetPackagePath(Guid projectId, Guid versionFileId)
         {
-            var packagePath = Path.Combine(_projectsRootFolder, projectId.ToString(), versionFileId + ".zip");
+            var packagePath = Path.Combine(projectId.ToString(), versionFileId + ".zip");
             return packagePath;
         }
     }
