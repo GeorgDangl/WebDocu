@@ -20,15 +20,18 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.7.2" />
-    <PackageReference Include="Moq" Version="4.8.3" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.0-beta.2.build4010" />
-    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="2.1.0" />
-    <PackageReference Include="xunit" Version="2.4.0-beta.2.build4010" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.8.0" />
+    <PackageReference Include="Moq" Version="4.9.0" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="2.1.1" />
+    <PackageReference Include="xunit" Version="2.4.0" />
     <PackageReference Include="OpenCover" Version="4.6.519">
       <PrivateAssets>All</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="OpenCoverToCoberturaConverter" Version="0.3.3">
+    <PackageReference Include="OpenCoverToCoberturaConverter" Version="0.3.4">
       <PrivateAssets>All</PrivateAssets>
     </PackageReference>
     <PackageReference Include="ReportGenerator" Version="3.1.2">
