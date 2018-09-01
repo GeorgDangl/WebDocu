@@ -57,7 +57,7 @@ class Build : NukeBuild
             DotCoverAnalyse(x => x
                 .SetTargetExecutable(GetToolPath())
                 .SetTargetWorkingDirectory(testProjectDirectory)
-                .SetTargetArguments($"xunit -nobuild \"-xml {OutputDirectory / "testresults.xml"}\"")
+                .SetTargetArguments($"test --no-build --test-adapter-path:. \"--logger:xunit;LogFilePath={OutputDirectory / "testresults.xml"}\"")
                 .SetFilters("+:Dangl.WebDocumentation")
                 .SetAttributeFilters("System.CodeDom.Compiler.GeneratedCodeAttribute")
                 .SetOutputFile(OutputDirectory / "dotCover.xml")
