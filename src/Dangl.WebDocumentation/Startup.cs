@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http;
+using Dangl.AspNetCore.FileHandling;
 
 namespace Dangl.WebDocumentation
 {
@@ -56,11 +57,18 @@ namespace Dangl.WebDocumentation
             services.AddTransient<IEmailSender, EmailSender>();
             services.AddTransient<IProjectVersionsService, ProjectVersionsService>();
             services.AddTransient<IProjectsService, ProjectsService>();
-            services.AddTransient<IProjectFilesService, ProjectFilesService>(factory =>
+
+            services.AddDiskFileManager(Configuration["ProjectsRootFolder"]);
+
+            services.AddTransient<IProjectFilesService>(c =>
             {
-                var context = factory.GetRequiredService<ApplicationDbContext>();
-                var projectsRootFolder = Configuration["ProjectsRootFolder"];
-                return new ProjectFilesService(context, projectsRootFolder);
+                var fileManager = c.GetRequiredService<IFileManager>();
+                if (fileManager is DiskFileManager diskFileManager)
+                {
+                    var context = c.GetRequiredService<ApplicationDbContext>();
+                    return new DiskStorageProjectFilesService(context, fileManager);
+                }
+                throw new System.NotImplementedException();
             });
         }
 
