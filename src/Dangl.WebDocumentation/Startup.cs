@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
 using Dangl.AspNetCore.FileHandling;
+using Dangl.AspNetCore.FileHandling.Azure;
 
 namespace Dangl.WebDocumentation
 {
@@ -57,7 +58,19 @@ namespace Dangl.WebDocumentation
             services.AddTransient<IProjectVersionsService, ProjectVersionsService>();
             services.AddTransient<IProjectsService, ProjectsService>();
 
-            services.AddDiskFileManager(Configuration["ProjectsRootFolder"]);
+            var projectsRootFolder = Configuration["ProjectsRootFolder"];
+            if (!string.IsNullOrWhiteSpace(projectsRootFolder))
+            {
+                services.AddDiskFileManager(Configuration["ProjectsRootFolder"]);
+            }
+            else
+            {
+                var azureBlobStorageConnectionString = Configuration["AzureBlobConnectionString"];
+                if (!string.IsNullOrWhiteSpace(azureBlobStorageConnectionString))
+                {
+                    services.AddAzureBlobFileManager(azureBlobStorageConnectionString);
+                }
+            }
 
             services.AddTransient<IProjectFilesService>(c =>
             {
@@ -65,8 +78,9 @@ namespace Dangl.WebDocumentation
                 if (fileManager is DiskFileManager diskFileManager)
                 {
                     var context = c.GetRequiredService<ApplicationDbContext>();
-                    return new DiskStorageProjectFilesService(context, fileManager);
+                    return new DiskStorageProjectFilesService(context, diskFileManager);
                 }
+
                 throw new System.NotImplementedException();
             });
         }

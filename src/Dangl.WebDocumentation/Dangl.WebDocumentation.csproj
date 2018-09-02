@@ -10,6 +10,10 @@
     <UserSecretsId>aspnet5-Dangl.WebDocumentation-0c87600e-7481-4adb-82c4-92da09b0300c</UserSecretsId>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
     <DebugType>full</DebugType>
     <DebugSymbols>True</DebugSymbols>

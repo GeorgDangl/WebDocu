@@ -1,14 +1,17 @@
-﻿using Dangl.WebDocumentation.Models;
+﻿using Dangl.AspNetCore.FileHandling;
+using Dangl.AspNetCore.FileHandling.Azure;
+using Dangl.WebDocumentation.Models;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using System.Threading.Tasks;
 
 namespace Dangl.WebDocumentation
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var host = CreateWebHostBuilder(args).Build();
 
@@ -22,6 +25,12 @@ namespace Dangl.WebDocumentation
                         dbContext.Database.Migrate();
                         DatabaseInitialization.Initialize(dbContext);
                     }
+
+                    // If using azure, containers must be intialized before they can be accessed
+                    if (scope.ServiceProvider.GetRequiredService<IFileManager>() is AzureBlobFileManager azureBlobHandler)
+                    {
+                        await azureBlobHandler.EnsureContainerCreated(AppConstants.PROJECTS_CONTAINER);
+                    }
                 }
             }
             catch
@@ -29,7 +38,7 @@ namespace Dangl.WebDocumentation
                 /* Don't catch database initialization error at startup */
             }
 
-            host.Run();
+            await host.RunAsync();
         }
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
