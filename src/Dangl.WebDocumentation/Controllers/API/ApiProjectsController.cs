@@ -3,7 +3,6 @@ using System.IO.Compression;
 using System.Linq;
 using System.Threading.Tasks;
 using Dangl.WebDocumentation.Models;
-using Dangl.WebDocumentation.Repository;
 using Dangl.WebDocumentation.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;

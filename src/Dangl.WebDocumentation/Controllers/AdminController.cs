@@ -5,7 +5,6 @@ using System.IO.Compression;
 using System.Linq;
 using System.Threading.Tasks;
 using Dangl.WebDocumentation.Models;
-using Dangl.WebDocumentation.Repository;
 using Dangl.WebDocumentation.Services;
 using Dangl.WebDocumentation.ViewModels.Admin;
 using Microsoft.AspNetCore.Authorization;

@@ -5,7 +5,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Dangl.WebDocumentation.Dtos;
 using Dangl.WebDocumentation.Models;
-using Dangl.WebDocumentation.Repository;
 using Microsoft.AspNetCore.Hosting.Internal;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
