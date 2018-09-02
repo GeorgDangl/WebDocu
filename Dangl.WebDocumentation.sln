@@ -17,6 +17,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dangl.WebDocumentation", "s
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dangl.WebDocumentation.Tests", "src\Dangl.WebDocumentation.Tests\Dangl.WebDocumentation.Tests.csproj", "{2AF9048D-8B53-4DE7-A2F8-6A4A7151C414}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "utils", "utils", "{F6288DCD-20BC-4D55-890B-FFBDC18EADCD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dangl.WebDocumentation.AzureMigration", "utils\Dangl.WebDocumentation.AzureMigration\Dangl.WebDocumentation.AzureMigration.csproj", "{8F23FBC6-E9E7-4545-B830-AABE411EA009}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +37,10 @@ Global
 		{2AF9048D-8B53-4DE7-A2F8-6A4A7151C414}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2AF9048D-8B53-4DE7-A2F8-6A4A7151C414}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2AF9048D-8B53-4DE7-A2F8-6A4A7151C414}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8F23FBC6-E9E7-4545-B830-AABE411EA009}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8F23FBC6-E9E7-4545-B830-AABE411EA009}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8F23FBC6-E9E7-4545-B830-AABE411EA009}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8F23FBC6-E9E7-4545-B830-AABE411EA009}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -40,6 +48,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{C64017EC-953E-4E6C-B5DF-21654B9F6760} = {F5E4D742-3F81-4437-88E7-05DDF84EE012}
 		{2AF9048D-8B53-4DE7-A2F8-6A4A7151C414} = {F5E4D742-3F81-4437-88E7-05DDF84EE012}
+		{8F23FBC6-E9E7-4545-B830-AABE411EA009} = {F6288DCD-20BC-4D55-890B-FFBDC18EADCD}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {1642C10B-8198-427C-92FE-799CDA633B7A}
