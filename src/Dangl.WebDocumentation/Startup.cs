@@ -62,6 +62,7 @@ namespace Dangl.WebDocumentation
             if (!string.IsNullOrWhiteSpace(projectsRootFolder))
             {
                 services.AddDiskFileManager(Configuration["ProjectsRootFolder"]);
+                services.AddTransient<IProjectFilesService, DiskStorageProjectFilesService>();
             }
             else
             {
@@ -69,20 +70,9 @@ namespace Dangl.WebDocumentation
                 if (!string.IsNullOrWhiteSpace(azureBlobStorageConnectionString))
                 {
                     services.AddAzureBlobFileManager(azureBlobStorageConnectionString);
+                    services.AddTransient<IProjectFilesService, AzureBlobStorageProjectFilesService>();
                 }
             }
-
-            services.AddTransient<IProjectFilesService>(c =>
-            {
-                var fileManager = c.GetRequiredService<IFileManager>();
-                if (fileManager is DiskFileManager diskFileManager)
-                {
-                    var context = c.GetRequiredService<ApplicationDbContext>();
-                    return new DiskStorageProjectFilesService(context, diskFileManager);
-                }
-
-                throw new System.NotImplementedException();
-            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
