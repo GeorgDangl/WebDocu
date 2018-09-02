@@ -15,16 +15,28 @@ using static Nuke.Common.Tools.DotNet.DotNetTasks;
 using static Nuke.Common.Tools.ReportGenerator.ReportGeneratorTasks;
 using static Nuke.Common.Tools.WebConfigTransformRunner.WebConfigTransformRunnerTasks;
 using static Nuke.WebDeploy.WebDeployTasks;
+using Nuke.Azure.KeyVault;
 
 class Build : NukeBuild
 {
     // Console application entry point. Also defines the default target.
     public static int Main() => Execute<Build>(x => x.Compile);
 
-    [Parameter] readonly string WebDeployUsername;
-    [Parameter] readonly string WebDeployPassword;
-    [Parameter] readonly string WebDeployPublishUrl;
-    [Parameter] readonly string WebDeploySiteName;
+    [KeyVaultSettings(
+        BaseUrlParameterName = nameof(KeyVaultBaseUrl),
+        ClientIdParameterName = nameof(KeyVaultClientId),
+        ClientSecretParameterName = nameof(KeyVaultClientSecret))]
+    readonly KeyVaultSettings KeyVaultSettings;
+
+    [Parameter] string KeyVaultBaseUrl;
+    [Parameter] string KeyVaultClientId;
+    [Parameter] string KeyVaultClientSecret;
+    [KeyVault] KeyVault KeyVault;
+
+    [Parameter] readonly string WebDeployUsernameSecretName;
+    [Parameter] readonly string WebDeployPasswordSecretName;
+    [Parameter] readonly string WebDeployPublishUrlSecretName;
+    [Parameter] readonly string WebDeploySiteNameSecretName;
 
     Target Clean => _ => _
             .Executes(() =>
@@ -110,18 +122,23 @@ class Build : NukeBuild
 
     Target Deploy => _ => _
         .DependsOn(Publish)
-        .Requires(() => WebDeployUsername)
-        .Requires(() => WebDeployPassword)
-        .Requires(() => WebDeployPublishUrl)
-        .Requires(() => WebDeploySiteName)
-        .Executes(() =>
+        .Requires(() => WebDeployUsernameSecretName)
+        .Requires(() => WebDeployPasswordSecretName)
+        .Requires(() => WebDeployPublishUrlSecretName)
+        .Requires(() => WebDeploySiteNameSecretName)
+        .Executes(async () =>
         {
+            var webDeployUsername = await KeyVault.GetSecret(WebDeployUsernameSecretName);
+            var webDeployPassword = await KeyVault.GetSecret(WebDeployPasswordSecretName);
+            var webDeployPublishUrl = await KeyVault.GetSecret(WebDeployPublishUrlSecretName);
+            var webDeploySiteName = await KeyVault.GetSecret(WebDeploySiteNameSecretName);
+
             WebDeploy(s => s.SetSourcePath(OutputDirectory)
-                .SetUsername(WebDeployUsername)
-                .SetPassword(WebDeployPassword)
+                .SetUsername(webDeployUsername)
+                .SetPassword(webDeployPassword)
                 .SetEnableAppOfflineRule(true)
-                .SetPublishUrl(WebDeployPublishUrl)
-                .SetSiteName(WebDeploySiteName)
+                .SetPublishUrl(webDeployPublishUrl.TrimEnd('/') + "/msdeploy.axd?site=" + webDeploySiteName)
+                .SetSiteName(webDeploySiteName)
                 .SetEnableDoNotDeleteRule(false)
                 .SetWrapAppOffline(true));
         });

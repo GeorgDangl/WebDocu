@@ -6,8 +6,9 @@ pipeline {
         }
     }
     environment {
-        WebDeployCredentials = credentials('Danglserver3DeployCredentials')
-        Danglserver3DeployEndpoint = credentials('Danglserver3DeployEndpoint')
+        KeyVaultBaseUrl = credentials('AzureCiKeyVaultBaseUrl')
+        KeyVaultClientId = credentials('AzureCiKeyVaultClientId')
+        KeyVaultClientSecret = credentials('AzureCiKeyVaultClientSecret')
     }
     stages {
         stage ('Test') {
@@ -72,10 +73,10 @@ pipeline {
             }
             steps {
                 script {
-                    env.WebDeploySiteName = 'WebDocu'
-                    env.WebDeployPublishUrl = env.Danglserver3DeployEndpoint + '/msdeploy.axd?site=WebDocu'
-                    env.WebDeployPassword = env.WebDeployCredentials_PSW
-                    env.WebDeployUsername = env.WebDeployCredentials_USR
+                    env.WebDeployUsernameSecretName = 'DanglDocu-Prod-WebDeployUsername'
+                    env.WebDeployPasswordSecretName = 'DanglDocu-Prod-WebDeployPassword'
+                    env.WebDeployPublishUrlSecretName = 'DanglDocu-Prod-WebDeployUrl'
+                    env.WebDeploySiteNameSecretName = 'DanglDocu-Prod-WebDeploySitename'
                 }
                 powershell './build.ps1 Deploy'
             }

@@ -16,16 +16,17 @@
   <ItemGroup>
     <PackageReference Include="Nuke.Common" Version="$(NukeVersion)" />
     <PackageReference Include="Nuke.CodeGeneration" Version="$(NukeVersion)" Condition="'$(NukeCodeGeneration)' == 'True'" />
+    <PackageReference Include="Nuke.Azure.KeyVault" Version="0.4.2" />
     <PackageReference Include="Nuke.WebDeploy" Version="1.2.1" />
     <PackageReference Include="Dangl.Nuke.CoberturaConverter" Version="1.2.0" />
     <PackageReference Include="JetBrains.dotCover.CommandLineTools" Version="2018.2.1">
       <ExcludeAssets>all</ExcludeAssets>
     </PackageReference>
     <PackageReference Include="ReportGenerator" Version="3.1.2" />
-    <PackageReference Include="docfx.console" Version="2.38.1">
+    <PackageReference Include="docfx.console" Version="2.39.0">
       <ExcludeAssets>build</ExcludeAssets>
       <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+      <IncludeAssets>runtime; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
     <PackageReference Include="WebConfigTransformRunner" Version="1.0.0.1">
       <PrivateAssets>All</PrivateAssets>
