@@ -1,4 +1,5 @@
-﻿using Dangl.WebDocumentation.Dtos;
+﻿using Dangl.AspNetCore.FileHandling;
+using Dangl.WebDocumentation.Dtos;
 using Dangl.WebDocumentation.Models;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
@@ -9,6 +10,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Dangl.WebDocumentation.Services
@@ -97,7 +99,7 @@ namespace Dangl.WebDocumentation.Services
                     _context.DocumentationProjectVersionss.Add(newVersion);
                     await _context.SaveChangesAsync();
 
-                    await SavedZipFileContentsToBlobStorage(projectId, newVersion.FileId, zipArchiveStream);
+                    await SavedZipFileContentsToBlobStorage(projectId, newVersion.FileId, zipArchiveStream, _fileManager);
 
                     transaction.Commit();
                     return true;
@@ -114,22 +116,38 @@ namespace Dangl.WebDocumentation.Services
             }
         }
 
-        private async Task SavedZipFileContentsToBlobStorage(Guid projectId, Guid versionId, Stream zipArchiveStream)
+        public static async Task SavedZipFileContentsToBlobStorage(Guid projectId, Guid versionId, Stream zipArchiveStream, IFileManager fileManager)
         {
-            List<string> savedFilePaths = new List<string>();
+            var savedFilePaths = new List<string>();
             using (var zipArchive = new ZipArchive(zipArchiveStream))
             {
-                foreach (var archiveEntry in zipArchive.Entries
-                    .Where(e => e.Length > 0)) // Length == 0 means it's just a folder
+                var entriesToUpload = zipArchive.Entries
+                    .Where(e => e.Length > 0) // Length == 0 means it's just a folder
+                    .ToList();
+
+                using (var semaphore = new SemaphoreSlim(16))
                 {
-                    using (var entryStream = archiveEntry.Open())
+                    var uploadTasks = entriesToUpload.Select(async entry =>
                     {
-                        var filePath = GetFilePath(projectId, versionId, archiveEntry.FullName);
-                        savedFilePaths.Add(filePath);
-                        await _fileManager.SaveFileAsync(AppConstants.PROJECTS_CONTAINER, filePath, entryStream).ConfigureAwait(false);
-                    }
+                        await semaphore.WaitAsync().ConfigureAwait(false);
+                        try
+                        {
+                            using (var entryStream = entry.Open())
+                            {
+                                var filePath = GetFilePath(projectId, versionId, entry.FullName);
+                                savedFilePaths.Add(filePath);
+                                await fileManager.SaveFileAsync(AppConstants.PROJECTS_CONTAINER, filePath, entryStream).ConfigureAwait(false);
+                            }
+                        }
+                        finally
+                        {
+                            semaphore.Release();
+                        }
+                    });
+                    await Task.WhenAll(uploadTasks).ConfigureAwait(false);
                 }
             }
+
 
             var metadataFileSavePath = GetMetadataSavedFilesPath(projectId, versionId);
             savedFilePaths.Add(metadataFileSavePath);
@@ -142,14 +160,14 @@ namespace Dangl.WebDocumentation.Services
                 }
 
                 memStream.Position = 0;
-                await _fileManager.SaveFileAsync(AppConstants.PROJECTS_CONTAINER, metadataFileSavePath, memStream);
+                await fileManager.SaveFileAsync(AppConstants.PROJECTS_CONTAINER, metadataFileSavePath, memStream);
             }
         }
 
         // This is a bit hacky, but since there's no real concept of directories or sub folders
         // in Azure blob storage, we're just saving a metadata file of all the file paths belonging
         // to a specific project / version combination so we can easily delete it later
-        private string GetMetadataSavedFilesPath(Guid projectId, Guid versionId)
+        private static string GetMetadataSavedFilesPath(Guid projectId, Guid versionId)
         {
             return GetFilePath(projectId, versionId, "METADATA_SAVED_FILES.json");
         }
@@ -189,7 +207,7 @@ namespace Dangl.WebDocumentation.Services
             }
         }
 
-        private string GetFilePath(Guid projectId, Guid versionId, string filePath)
+        private static string GetFilePath(Guid projectId, Guid versionId, string filePath)
         {
             filePath = filePath.Replace('/', '\\');
             return Path.Combine(projectId.ToString(), versionId.ToString(), filePath);
