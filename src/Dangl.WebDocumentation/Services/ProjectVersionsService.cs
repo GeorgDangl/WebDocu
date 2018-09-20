@@ -17,7 +17,7 @@ namespace Dangl.WebDocumentation.Services
 
         public async Task<List<string>> GetProjectVersionsAsync(string projectName)
         {
-            var versions = await _context.DocumentationProjectVersionss
+            var versions = await _context.DocumentationProjectVersions
                 .Where(v => v.ProjectName == projectName)
                 .OrderByDescending(v => v.Version)
                 .Select(v => v.Version)

@@ -14,6 +14,10 @@ namespace Dangl.WebDocumentation.Models
 
         public Guid Id { get; set; }
 
+        /// <summary>
+        /// This property is referenced as a principal key from <see cref="DocumentationProjectVersion"/>,
+        /// thus making it a unique index
+        /// </summary>
         [MaxLength(60, ErrorMessage = "Project name may not exceed 60 characters"), Required]
         public string Name { get; set; }
 

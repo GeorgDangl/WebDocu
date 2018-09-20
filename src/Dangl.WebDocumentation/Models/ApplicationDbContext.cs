@@ -8,7 +8,7 @@ namespace Dangl.WebDocumentation.Models
         public ApplicationDbContext(DbContextOptions options) : base(options) { }
 
         public DbSet<DocumentationProject> DocumentationProjects { get; set; }
-        public DbSet<DocumentationProjectVersion> DocumentationProjectVersionss { get; set; }
+        public DbSet<DocumentationProjectVersion> DocumentationProjectVersions { get; set; }
 
         public DbSet<UserProjectAccess> UserProjects { get; set; }
 
@@ -17,11 +17,6 @@ namespace Dangl.WebDocumentation.Models
             base.OnModelCreating(builder);
 
             DocumentationProjectVersion.OnModelCreating(builder);
-
-            // Make the Name unique so it can be used as a single identifier for a project ( -> Urls may contain the project name instead of the Guid)
-            builder.Entity<DocumentationProject>()
-                .HasIndex(entity => entity.Name)
-                .IsUnique();
 
             // Make the ApiKey unique so it can be used as a single identifier for a project
             builder.Entity<DocumentationProject>()

@@ -47,7 +47,7 @@ namespace Dangl.WebDocumentation.Services
             {
                 return null;
             }
-            var versionId = await _context.DocumentationProjectVersionss
+            var versionId = await _context.DocumentationProjectVersions
                 .Where(v => v.ProjectName == projectName && v.Version == version)
                 .Select(v => new { v.FileId })
                 .FirstOrDefaultAsync();
@@ -96,7 +96,7 @@ namespace Dangl.WebDocumentation.Services
                         ProjectName = projectName,
                         Version = version
                     };
-                    _context.DocumentationProjectVersionss.Add(newVersion);
+                    _context.DocumentationProjectVersions.Add(newVersion);
                     await _context.SaveChangesAsync();
 
                     await SavedZipFileContentsToBlobStorage(projectId, newVersion.FileId, zipArchiveStream, _fileManager);
@@ -174,7 +174,7 @@ namespace Dangl.WebDocumentation.Services
 
         public async Task<bool> DeleteProjectVersionPackageAsync(Guid projectId, string version)
         {
-            var projectVersion = await _context.DocumentationProjectVersionss
+            var projectVersion = await _context.DocumentationProjectVersions
                 .FirstOrDefaultAsync(v => v.Version == version && v.Project.Id == projectId);
             if (projectVersion == null)
             {
@@ -195,7 +195,7 @@ namespace Dangl.WebDocumentation.Services
                         {
                             await _fileManager.DeleteFileAsync(AppConstants.PROJECTS_CONTAINER, filePath);
                         }
-                        _context.DocumentationProjectVersionss.Remove(projectVersion);
+                        _context.DocumentationProjectVersions.Remove(projectVersion);
                         await _context.SaveChangesAsync();
                         return true;
                     }

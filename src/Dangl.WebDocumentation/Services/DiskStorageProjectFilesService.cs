@@ -43,7 +43,7 @@ namespace Dangl.WebDocumentation.Services
             {
                 return null;
             }
-            var versionPackageId = await _context.DocumentationProjectVersionss
+            var versionPackageId = await _context.DocumentationProjectVersions
                 .Where(v => v.ProjectName == projectName && v.Version == version)
                 .Select(v => new { v.FileId })
                 .FirstOrDefaultAsync();
@@ -112,7 +112,7 @@ namespace Dangl.WebDocumentation.Services
                         ProjectName = projectName,
                         Version = version
                     };
-                    _context.DocumentationProjectVersionss.Add(newVersion);
+                    _context.DocumentationProjectVersions.Add(newVersion);
                     await _context.SaveChangesAsync();
                     var packagePath = GetPackagePath(projectId, newVersion.FileId);
 
@@ -138,7 +138,7 @@ namespace Dangl.WebDocumentation.Services
 
         public async Task<bool> DeleteProjectVersionPackageAsync(Guid projectId, string version)
         {
-            var projectVersion = await _context.DocumentationProjectVersionss
+            var projectVersion = await _context.DocumentationProjectVersions
                 .FirstOrDefaultAsync(v => v.Version == version && v.Project.Id == projectId);
             if (projectVersion == null)
             {
@@ -153,7 +153,7 @@ namespace Dangl.WebDocumentation.Services
             {
                 return false;
             }
-            _context.DocumentationProjectVersionss.Remove(projectVersion);
+            _context.DocumentationProjectVersions.Remove(projectVersion);
             await _context.SaveChangesAsync();
             return true;
         }

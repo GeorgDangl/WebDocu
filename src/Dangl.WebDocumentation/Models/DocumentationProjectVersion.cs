@@ -18,6 +18,8 @@ namespace Dangl.WebDocumentation.Models
             builder.Entity<DocumentationProjectVersion>()
                 .HasKey(v => new {v.ProjectName, v.Version});
 
+            // Makes the Name of the project unique so it can be used as a single identifier for a project
+            // ( -> Urls may contain the project name instead of the Guid)
             builder.Entity<DocumentationProjectVersion>()
                 .HasOne(v => v.Project)
                 .WithMany()
