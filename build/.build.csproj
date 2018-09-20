@@ -9,7 +9,7 @@
     <NoWarn>CS0649;CS0169</NoWarn>
     
     <!-- NUKE CONFIGURATION -->
-    <NukeVersion>0.7.0</NukeVersion>
+    <NukeVersion>0.8.0</NukeVersion>
     <NukeCodeGeneration>False</NukeCodeGeneration>
   </PropertyGroup>
 
@@ -19,8 +19,9 @@
     <PackageReference Include="Nuke.Azure.KeyVault" Version="0.4.2" />
     <PackageReference Include="Nuke.WebDeploy" Version="1.2.1" />
     <PackageReference Include="Dangl.Nuke.CoberturaConverter" Version="1.2.0" />
-    <PackageReference Include="JetBrains.dotCover.CommandLineTools" Version="2018.2.1">
-      <ExcludeAssets>all</ExcludeAssets>
+    <PackageReference Include="JetBrains.dotCover.CommandLineTools" Version="2018.2.3">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
     <PackageReference Include="ReportGenerator" Version="3.1.2" />
     <PackageReference Include="docfx.console" Version="2.39.0">
