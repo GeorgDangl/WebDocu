@@ -21,7 +21,7 @@
     <PackageReference Include="Dangl.Nuke.CoberturaConverter" Version="1.2.0" />
     <PackageReference Include="JetBrains.dotCover.CommandLineTools" Version="2018.2.3">
       <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+      <ExcludeAssets>all</ExcludeAssets>
     </PackageReference>
     <PackageReference Include="ReportGenerator" Version="3.1.2" />
     <PackageReference Include="docfx.console" Version="2.39.0">
