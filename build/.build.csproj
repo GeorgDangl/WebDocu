@@ -9,7 +9,7 @@
     <NoWarn>CS0649;CS0169</NoWarn>
     
     <!-- NUKE CONFIGURATION -->
-    <NukeVersion>0.8.0</NukeVersion>
+    <NukeVersion>0.11.1</NukeVersion>
     <NukeCodeGeneration>False</NukeCodeGeneration>
   </PropertyGroup>
 
@@ -23,11 +23,11 @@
       <PrivateAssets>all</PrivateAssets>
       <ExcludeAssets>all</ExcludeAssets>
     </PackageReference>
-    <PackageReference Include="ReportGenerator" Version="3.1.2" />
-    <PackageReference Include="docfx.console" Version="2.39.0">
+    <PackageReference Include="ReportGenerator" Version="4.0.1" />
+    <PackageReference Include="docfx.console" Version="2.40.0">
       <ExcludeAssets>build</ExcludeAssets>
       <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; native; contentfiles; analyzers</IncludeAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
     <PackageReference Include="WebConfigTransformRunner" Version="1.0.0.1">
       <PrivateAssets>All</PrivateAssets>

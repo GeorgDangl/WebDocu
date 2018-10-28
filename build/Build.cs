@@ -16,6 +16,8 @@ using static Nuke.Common.Tools.ReportGenerator.ReportGeneratorTasks;
 using static Nuke.Common.Tools.WebConfigTransformRunner.WebConfigTransformRunnerTasks;
 using static Nuke.WebDeploy.WebDeployTasks;
 using Nuke.Azure.KeyVault;
+using Nuke.Common.ProjectModel;
+using Nuke.Common.Tooling;
 
 class Build : NukeBuild
 {
@@ -38,6 +40,13 @@ class Build : NukeBuild
     [Parameter] readonly string WebDeployPublishUrlSecretName;
     [Parameter] readonly string WebDeploySiteNameSecretName;
 
+    string Configuration { get; } = IsLocalBuild ? "Debug" : "Release";
+
+    [Solution("Dangl.WebDocumentation.sln")] readonly Solution Solution;
+    AbsolutePath SolutionDirectory => Solution.Directory;
+    AbsolutePath OutputDirectory => SolutionDirectory / "output";
+    AbsolutePath SourceDirectory => SolutionDirectory / "src";
+
     Target Clean => _ => _
             .Executes(() =>
             {
@@ -49,14 +58,16 @@ class Build : NukeBuild
             .DependsOn(Clean)
             .Executes(() =>
             {
-                DotNetRestore(s => DefaultDotNetRestore);
+                DotNetRestore();
             });
 
     Target Compile => _ => _
             .DependsOn(Restore)
             .Executes(() =>
             {
-                DotNetBuild(s => DefaultDotNetBuild);
+                DotNetBuild(x => x
+                    .SetConfiguration(Configuration)
+                    .EnableNoRestore());
             });
 
     Target Coverage => _ => _
@@ -67,7 +78,7 @@ class Build : NukeBuild
             var testProjectDirectory = SourceDirectory / "Dangl.WebDocumentation.Tests";
 
             DotCoverAnalyse(x => x
-                .SetTargetExecutable(GetToolPath())
+                .SetTargetExecutable(ToolPathResolver.GetPathExecutable("dotnet"))
                 .SetTargetWorkingDirectory(testProjectDirectory)
                 .SetTargetArguments($"test --no-build --test-adapter-path:. \"--logger:xunit;LogFilePath={OutputDirectory / "testresults.xml"}\"")
                 .SetFilters("+:Dangl.WebDocumentation")
