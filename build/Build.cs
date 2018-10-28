@@ -40,7 +40,7 @@ class Build : NukeBuild
     [Parameter] readonly string WebDeployPublishUrlSecretName;
     [Parameter] readonly string WebDeploySiteNameSecretName;
 
-    string Configuration { get; } = IsLocalBuild ? "Debug" : "Release";
+    [Parameter] readonly string Configuration = IsLocalBuild ? "Debug" : "Release";
 
     [Solution("Dangl.WebDocumentation.sln")] readonly Solution Solution;
     AbsolutePath SolutionDirectory => Solution.Directory;
