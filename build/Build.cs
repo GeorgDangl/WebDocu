@@ -50,7 +50,7 @@ class Build : NukeBuild
     Target Clean => _ => _
             .Executes(() =>
             {
-                DeleteDirectories(GlobDirectories(SolutionDirectory, "**/bin", "**/obj"));
+                DeleteDirectories(GlobDirectories(SourceDirectory, "**/bin", "**/obj"));
                 EnsureCleanDirectory(OutputDirectory);
             });
 
