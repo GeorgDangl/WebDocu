@@ -24,7 +24,7 @@
       <ExcludeAssets>all</ExcludeAssets>
     </PackageReference>
     <PackageReference Include="ReportGenerator" Version="4.0.1" />
-    <PackageReference Include="docfx.console" Version="2.40.0">
+    <PackageReference Include="docfx.console" Version="2.40.1">
       <ExcludeAssets>build</ExcludeAssets>
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
