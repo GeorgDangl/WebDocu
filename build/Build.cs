@@ -21,6 +21,11 @@ using Nuke.Common.Tooling;
 using System;
 using static Nuke.Common.IO.TextTasks;
 using Nuke.Common.Tools.GitVersion;
+using Microsoft.Azure.Management.Fluent;
+using Microsoft.Azure.Management.ResourceManager.Fluent;
+using static Nuke.Common.IO.HttpTasks;
+using Newtonsoft.Json.Linq;
+using System.Linq;
 
 class Build : NukeBuild
 {
@@ -40,10 +45,17 @@ class Build : NukeBuild
 
     [GitVersion] readonly GitVersion GitVersion;
 
+    [Parameter] readonly string PublishEnvironmentName;
     [Parameter] readonly string WebDeployUsernameSecretName;
     [Parameter] readonly string WebDeployPasswordSecretName;
     [Parameter] readonly string WebDeployPublishUrlSecretName;
     [Parameter] readonly string WebDeploySiteNameSecretName;
+
+    [KeyVaultSecret("DanglDocu-AzureServicePrincipalClientId")] string AzureServicePrincipalClientId;
+    [KeyVaultSecret("DanglDocu-AzureServicePrincipalClientSecret")] string AzureServicePrincipalClientSecret;
+    [KeyVaultSecret("DanglDocu-AzureServicePrincipalTenantId")] string AzureServicePrincipalTenantId;
+    [KeyVaultSecret("DanglDocu-AzureAppServiceStagingSlotName")] string AzureAppServiceStagingSlotName;
+    [KeyVaultSecret("DanglDocu-AzureAppServiceName")] string AzureAppServiceName;
 
     [Parameter] readonly string Configuration = IsLocalBuild ? "Debug" : "Release";
 
@@ -145,10 +157,8 @@ namespace Dangl.WebDocumentation.Services
                     .SetOutput(OutputDirectory)
                     .SetConfiguration(Configuration));
 
-            var publishEnvironmentName = "Production";
-
             WebConfigTransformRunner(p => p.SetWebConfigFilename(OutputDirectory / "web.config")
-                .SetTransformFilename(OutputDirectory / $"web.{publishEnvironmentName}.config")
+                .SetTransformFilename(OutputDirectory / $"web.{PublishEnvironmentName}.config")
                 .SetOutputFilename(OutputDirectory / "web.config"));
 
             foreach (var configFileToDelete in GlobFiles(OutputDirectory, "web.*.config"))
@@ -158,7 +168,7 @@ namespace Dangl.WebDocumentation.Services
 
             foreach (var configFileToDelete in GlobFiles(OutputDirectory, "appsettings.*.json"))
             {
-                if (!configFileToDelete.EndsWithOrdinalIgnoreCase($"{publishEnvironmentName}.json"))
+                if (!configFileToDelete.EndsWithOrdinalIgnoreCase($"{PublishEnvironmentName}.json"))
                 {
                     File.Delete(configFileToDelete);
                 }
@@ -186,5 +196,45 @@ namespace Dangl.WebDocumentation.Services
                 .SetSiteName(webDeploySiteName)
                 .SetEnableDoNotDeleteRule(false)
                 .SetWrapAppOffline(true));
+        });
+
+    Target SwapStagingAndProductionSlotsInAzure => _ => _
+        .Requires(() => AzureServicePrincipalClientId)
+        .Requires(() => AzureServicePrincipalClientSecret)
+        .Requires(() => AzureServicePrincipalTenantId)
+        .Requires(() => AzureAppServiceStagingSlotName)
+        .Requires(() => AzureAppServiceName)
+        .Executes(async () =>
+        {
+            if (PublishEnvironmentName == "Production")
+            {
+                Logger.Log("Deployed to production, initiating slot swap with staging");
+
+                var azureCredentials = SdkContext.AzureCredentialsFactory.FromServicePrincipal(AzureServicePrincipalClientId,
+                    AzureServicePrincipalClientSecret,
+                    AzureServicePrincipalTenantId,
+                    AzureEnvironment.AzureGlobalCloud);
+                IAzure azure = Azure.Configure()
+                    .WithLogLevel(Microsoft.Azure.Management.ResourceManager.Fluent.Core.HttpLoggingDelegatingHandler.Level.Basic)
+                    .Authenticate(azureCredentials)
+                    .WithDefaultSubscription();
+                Logger.Log("Getting information about the web app");
+                var webApp = (await azure.AppServices.WebApps
+                    .ListAsync())
+                    .First(app => app.Name == AzureAppServiceName);
+                Logger.Log("Getting information about the staging slot");
+                var slot = (await webApp.DeploymentSlots.ListAsync())
+                    .First(s => s.Name == AzureAppServiceStagingSlotName);
+
+                var statusUrl = $"https://{slot.DefaultHostName}/api/status";
+                if (!(bool)JObject.Parse(await HttpDownloadStringAsync(statusUrl))["isHealthy"])
+                {
+                    ControlFlow.Fail("The web app in the staging slot does not report a healthy status");
+                }
+
+                Logger.Log("Starting swap");
+                // "production" is the default name for the main slot
+                await slot.SwapAsync("production");
+            }
         });
 }

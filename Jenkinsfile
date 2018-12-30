@@ -73,6 +73,7 @@ pipeline {
             }
             steps {
                 script {
+                    env.PublishEnvironmentName = 'Production'
                     env.WebDeployUsernameSecretName = 'DanglDocu-Prod-WebDeployUsername'
                     env.WebDeployPasswordSecretName = 'DanglDocu-Prod-WebDeployPassword'
                     env.WebDeployPublishUrlSecretName = 'DanglDocu-Prod-WebDeployUrl'
