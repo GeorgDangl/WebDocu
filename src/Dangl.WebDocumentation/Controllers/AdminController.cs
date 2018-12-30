@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.IO.Compression;
-using System.Linq;
-using System.Threading.Tasks;
-using Dangl.WebDocumentation.Models;
+﻿using Dangl.WebDocumentation.Models;
 using Dangl.WebDocumentation.Services;
 using Dangl.WebDocumentation.ViewModels.Admin;
 using Microsoft.AspNetCore.Authorization;
@@ -12,6 +6,11 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Dangl.WebDocumentation.Controllers
 {
@@ -142,7 +141,7 @@ namespace Dangl.WebDocumentation.Controllers
             var usersToAdd = selectedUsersIds.Where(userId => !knownUsersInProject.Contains(userId));
             foreach (var newUserId in usersToAdd)
             {
-                _context.UserProjects.Add(new UserProjectAccess {UserId = newUserId, ProjectId = databaseProject.Id});
+                _context.UserProjects.Add(new UserProjectAccess { UserId = newUserId, ProjectId = databaseProject.Id });
             }
             // Remove users that no longer have access
             var usersToRemove = _context.UserProjects.Where(assignment => assignment.ProjectId == databaseProject.Id).Where(assignment => !selectedUsersIds.Contains(assignment.UserId));
@@ -161,7 +160,7 @@ namespace Dangl.WebDocumentation.Controllers
         public IActionResult UploadProject(Guid projectId)
         {
             ViewData["Section"] = "Admin";
-            var project = _context.DocumentationProjects.FirstOrDefault(p=> p.Id == projectId);
+            var project = _context.DocumentationProjects.FirstOrDefault(p => p.Id == projectId);
             if (project == null)
             {
                 return NotFound();
@@ -248,7 +247,7 @@ namespace Dangl.WebDocumentation.Controllers
                 ProjectName = projectName,
                 VersionsToDelete = new List<string>()
             };
-            return View(nameof(DeleteBetaVersions),model);
+            return View(nameof(DeleteBetaVersions), model);
         }
 
         [HttpPost]
@@ -337,7 +336,7 @@ namespace Dangl.WebDocumentation.Controllers
             ViewData["Section"] = "Admin";
             var adminRoleId = _context.Roles.FirstOrDefault(role => role.Name == "Admin").Id;
             var model = new ManageUsersViewModel();
-            model.Users = _context.Users.Select(user => new UserAdminRoleViewModel { Name = user.Email, IsAdmin = user.Roles.Any(role => role.RoleId == adminRoleId)});
+            model.Users = _context.Users.Select(user => new UserAdminRoleViewModel { Name = user.Email, IsAdmin = user.Roles.Any(role => role.RoleId == adminRoleId) });
             return View(model);
         }
 
@@ -353,11 +352,11 @@ namespace Dangl.WebDocumentation.Controllers
 
             // Remove users that are no longer admin
             var oldAdminsToDelete = (from user in _context.Users
-                join userRole in _context.UserRoles on user.Id equals userRole.UserId
-                join role in _context.Roles on userRole.RoleId equals role.Id
-                where role.Name == adminRole.Name
-                      && !adminUsers.Contains(user.Email)
-                select new {User = user, UserRole = userRole, Role = role}).ToList();
+                                     join userRole in _context.UserRoles on user.Id equals userRole.UserId
+                                     join role in _context.Roles on userRole.RoleId equals role.Id
+                                     where role.Name == adminRole.Name
+                                           && !adminUsers.Contains(user.Email)
+                                     select new { User = user, UserRole = userRole, Role = role }).ToList();
             foreach (var user in oldAdminsToDelete)
             {
                 await _userManager.RemoveFromRoleAsync(user.User, adminRole.Name);
@@ -365,9 +364,9 @@ namespace Dangl.WebDocumentation.Controllers
 
             // Add new admin users
             var newAdminsToAdd = (from user in _context.Users
-                where _context.UserRoles.Count(userRole => userRole.UserId == user.Id && userRole.RoleId == adminRole.Id) == 0 // As of 04.01.2016, the EF7 RC1 does translate an errorenous SQL when using .Any() in a sub query here, need to fall back to "Count() == 0"
-                      && adminUsers.Contains(user.Email)
-                select user).ToList();
+                                  where _context.UserRoles.Count(userRole => userRole.UserId == user.Id && userRole.RoleId == adminRole.Id) == 0 // As of 04.01.2016, the EF7 RC1 does translate an errorenous SQL when using .Any() in a sub query here, need to fall back to "Count() == 0"
+                                        && adminUsers.Contains(user.Email)
+                                  select user).ToList();
             foreach (var user in newAdminsToAdd)
             {
                 await _userManager.AddToRoleAsync(user, adminRole.Name);
@@ -375,7 +374,7 @@ namespace Dangl.WebDocumentation.Controllers
 
             ViewBag.SuccessMessage = "Updated users.";
             var model = new ManageUsersViewModel();
-            model.Users = _context.Users.Select(websiteUser => new UserAdminRoleViewModel { Name = websiteUser.Email, IsAdmin = websiteUser.Roles.Any(role => role.RoleId == adminRole.Id)});
+            model.Users = _context.Users.Select(websiteUser => new UserAdminRoleViewModel { Name = websiteUser.Email, IsAdmin = websiteUser.Roles.Any(role => role.RoleId == adminRole.Id) });
             return View(model);
         }
     }
