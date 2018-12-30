@@ -196,7 +196,8 @@ namespace Dangl.WebDocumentation.Services
                 .SetSiteName(webDeploySiteName)
                 .SetEnableDoNotDeleteRule(false)
                 .SetWrapAppOffline(true));
-        });
+        })
+        .Executes(SwapStagingAndProductionSlotsInAzure);
 
     Target SwapStagingAndProductionSlotsInAzure => _ => _
         .Requires(() => AzureServicePrincipalClientId)
