@@ -18,5 +18,7 @@
 
         public EmailSettings EmailSettings { get; set; }
         public string FullTitle => SiteTitlePrefix + SiteTitlePostfix;
+
+        public string BaseUrl { get; set; }
     }
 }

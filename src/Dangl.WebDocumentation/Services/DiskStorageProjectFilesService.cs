@@ -5,7 +5,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Dangl.WebDocumentation.Dtos;
 using Dangl.WebDocumentation.Models;
-using Microsoft.AspNetCore.Hosting.Internal;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,12 +15,15 @@ namespace Dangl.WebDocumentation.Services
         private readonly ApplicationDbContext _context;
         private readonly AspNetCore.FileHandling.IFileManager _fileManager;
         private static readonly FileExtensionContentTypeProvider _fileExtensionContentTypeProvider = new FileExtensionContentTypeProvider();
+        private readonly IProjectUploadNotificationsService _projectUploadNotificationsService;
 
         public DiskStorageProjectFilesService(ApplicationDbContext context,
-            Dangl.AspNetCore.FileHandling.IFileManager fileManager)
+            Dangl.AspNetCore.FileHandling.IFileManager fileManager,
+            IProjectUploadNotificationsService projectUploadNotificationsService)
         {
             _context = context;
             _fileManager = fileManager;
+            _projectUploadNotificationsService = projectUploadNotificationsService;
         }
 
         public Task<string> GetEntryFilePathForProject(string projectName)
@@ -120,6 +122,7 @@ namespace Dangl.WebDocumentation.Services
                     if (repoResult.IsSuccess)
                     {
                         transaction.Commit();
+                        await _projectUploadNotificationsService.ScheduleProjectUploadNotifications(projectName, version);
                         return true;
                     }
                     return false;

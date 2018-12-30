@@ -3,6 +3,7 @@
     public class EmailSettings
     {
         public string FromAddress { get; set; }
+        public string FromName { get; set; }
         public string ServerAddress { get; set; }
         public int ServerPort { get; set; }
         public string Username { get; set; }

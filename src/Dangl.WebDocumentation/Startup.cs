@@ -62,6 +62,7 @@ namespace Dangl.WebDocumentation
             services.AddTransient<IEmailSender, EmailSender>();
             services.AddTransient<IProjectVersionsService, ProjectVersionsService>();
             services.AddTransient<IProjectsService, ProjectsService>();
+            services.AddTransient<IProjectUploadNotificationsService, ProjectUploadNotificationsService>();
 
             var projectsRootFolder = Configuration["ProjectsRootFolder"];
             if (!string.IsNullOrWhiteSpace(projectsRootFolder))

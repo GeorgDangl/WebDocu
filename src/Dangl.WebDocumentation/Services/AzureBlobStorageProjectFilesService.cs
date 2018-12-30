@@ -20,12 +20,15 @@ namespace Dangl.WebDocumentation.Services
         private readonly ApplicationDbContext _context;
         private readonly AspNetCore.FileHandling.IFileManager _fileManager;
         private static readonly FileExtensionContentTypeProvider _fileExtensionContentTypeProvider = new FileExtensionContentTypeProvider();
+        private readonly IProjectUploadNotificationsService _projectUploadNotificationsService;
 
         public AzureBlobStorageProjectFilesService(ApplicationDbContext context,
-            Dangl.AspNetCore.FileHandling.IFileManager fileManager)
+            Dangl.AspNetCore.FileHandling.IFileManager fileManager,
+            IProjectUploadNotificationsService projectUploadNotificationsService)
         {
             _context = context;
             _fileManager = fileManager;
+            _projectUploadNotificationsService = projectUploadNotificationsService;
         }
 
         public Task<string> GetEntryFilePathForProject(string projectName)
@@ -102,6 +105,7 @@ namespace Dangl.WebDocumentation.Services
                     await SavedZipFileContentsToBlobStorage(projectId, newVersion.FileId, zipArchiveStream, _fileManager);
 
                     transaction.Commit();
+                    await _projectUploadNotificationsService.ScheduleProjectUploadNotifications(projectName, version);
                     return true;
                 }
             }
