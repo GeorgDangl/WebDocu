@@ -1,13 +1,8 @@
-﻿using System.IO;
-using System.IO.Compression;
-using System.Linq;
-using System.Threading.Tasks;
-using Dangl.WebDocumentation.Models;
-using Dangl.WebDocumentation.Services;
+﻿using Dangl.WebDocumentation.Services;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
 
 namespace Dangl.WebDocumentation.Controllers.API
 {
@@ -23,7 +18,6 @@ namespace Dangl.WebDocumentation.Controllers.API
             _projectsService = projectsService;
             _projectFilesService = projectFilesService;
         }
-
 
         /// <summary>
         ///     Provides an Api to upload projects.

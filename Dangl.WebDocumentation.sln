@@ -9,6 +9,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{F5E4D742-3F8
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{012DA659-FDC5-40FD-B401-43E029BB20C2}"
 	ProjectSection(SolutionItems) = preProject
+		GitVersion.yml = GitVersion.yml
 		License.md = License.md
 		Readme.md = Readme.md
 	EndProjectSection
@@ -19,7 +20,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dangl.WebDocumentation.Test
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "utils", "utils", "{F6288DCD-20BC-4D55-890B-FFBDC18EADCD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dangl.WebDocumentation.AzureMigration", "utils\Dangl.WebDocumentation.AzureMigration\Dangl.WebDocumentation.AzureMigration.csproj", "{8F23FBC6-E9E7-4545-B830-AABE411EA009}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dangl.WebDocumentation.AzureMigration", "utils\Dangl.WebDocumentation.AzureMigration\Dangl.WebDocumentation.AzureMigration.csproj", "{8F23FBC6-E9E7-4545-B830-AABE411EA009}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
