@@ -1,11 +1,9 @@
-﻿using System;
-using System.Linq;
-using System.IO;
-using System.Threading.Tasks;
-using Dangl.WebDocumentation.Dtos;
-using Dangl.WebDocumentation.Models;
-using Microsoft.AspNetCore.StaticFiles;
+﻿using Dangl.WebDocumentation.Models;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Dangl.WebDocumentation.Services
 {
@@ -22,9 +20,9 @@ namespace Dangl.WebDocumentation.Services
         {
             // Find only public projects or projects where the user has access to (if logged in)
             var projectIsPublicOrUserHasAccess = (from dbProject in _context.DocumentationProjects
-                where dbProject.Name.ToUpper() == projectName.ToUpper()
-                      && (dbProject.IsPublic || (!string.IsNullOrWhiteSpace(userId) && _context.UserProjects.Any(projectAccess => projectAccess.UserId == userId && projectAccess.ProjectId == dbProject.Id)))
-                select dbProject).AnyAsync();
+                                                  where dbProject.Name.ToUpper() == projectName.ToUpper()
+                                                        && (dbProject.IsPublic || (!string.IsNullOrWhiteSpace(userId) && _context.UserProjects.Any(projectAccess => projectAccess.UserId == userId && projectAccess.ProjectId == dbProject.Id)))
+                                                  select dbProject).AnyAsync();
             return projectIsPublicOrUserHasAccess;
         }
 
@@ -43,6 +41,28 @@ namespace Dangl.WebDocumentation.Services
                 .Where(p => p.Name == projectName)
                 .Select(p => p.Id)
                 .FirstOrDefaultAsync();
+        }
+
+        public async Task<List<DocumentationProject>> GetAllProjectsForUser(string userId)
+        {
+            // Get a list of all projects that the user has access to
+            var accessibleProjects = await _context
+                .DocumentationProjects
+                .AsNoTracking()
+                .Where(project => project.IsPublic)
+                .ToListAsync(); // Show all public projects
+
+            if (!string.IsNullOrWhiteSpace(userId))
+            {
+                var projectsWithUserAccess = await _context
+                    .UserProjects
+                    .AsNoTracking()
+                    .Where(assignment => assignment.UserId == userId).Select(assignment => assignment.Project)
+                    .ToListAsync();
+                accessibleProjects = accessibleProjects.Union(projectsWithUserAccess).ToList();
+            }
+
+            return accessibleProjects.OrderBy(project => project.Name).ToList();
         }
     }
 }
