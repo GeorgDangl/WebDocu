@@ -18,5 +18,7 @@
         public const string PROJECT_NOTIFICATIONS_CLAIM_STABLE = "receive-stable-notifications";
 
         public const string PROJECT_NOTIFICATIONS_CLAIM_BETA = "receive-beta-notifications";
+
+        public const string HANGFIRE_DASHBOARD_LINK = "/Admin/HangfireDashboard";
     }
 }

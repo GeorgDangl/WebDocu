@@ -12,6 +12,7 @@ using Dangl.AspNetCore.FileHandling.Azure;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.AspNetCore.DataProtection;
 using System.Collections.Generic;
+using Hangfire;
 
 namespace Dangl.WebDocumentation
 {
@@ -39,6 +40,7 @@ namespace Dangl.WebDocumentation
 
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(Configuration["Data:DefaultConnection:ConnectionString"]));
+            services.AddHangfire(x => x.UseSqlServerStorage(Configuration["Data:DefaultConnection:ConnectionString"]));
 
             services.AddIdentity<ApplicationUser, IdentityRole>(identityOptions =>
                 {
@@ -119,6 +121,12 @@ namespace Dangl.WebDocumentation
             app.UseStaticFiles();
 
             app.UseAuthentication();
+
+            app.UseHangfireServer();
+            app.UseHangfireDashboard(AppConstants.HANGFIRE_DASHBOARD_LINK, new DashboardOptions()
+            {
+                Authorization = new[] { new HangfireAdminRoleAuthorizationFilter() }
+            });
 
             // To configure external authentication please see http://go.microsoft.com/fwlink/?LinkID=532715
 
