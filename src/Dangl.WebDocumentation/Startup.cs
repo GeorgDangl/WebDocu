@@ -11,6 +11,7 @@ using Dangl.AspNetCore.FileHandling;
 using Dangl.AspNetCore.FileHandling.Azure;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.AspNetCore.DataProtection;
+using System.Collections.Generic;
 
 namespace Dangl.WebDocumentation
 {
@@ -108,6 +109,12 @@ namespace Dangl.WebDocumentation
             }
 
             app.UseHttpsRedirection();
+
+            app.Use(async (context, next) =>
+            {
+                context?.Response.Headers.TryAdd("X-DANGL-DOCU-VERSION", VersionsService.Version);
+                await next();
+            });
 
             app.UseStaticFiles();
 
