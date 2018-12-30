@@ -29,6 +29,15 @@
                     </a>
                 </li>
                 @{
+                    if (User.Identity.IsAuthenticated)
+                    {
+                        <li class="nav-item @((string)ViewData["Section"] == "Notifications" ? "active" : "")">
+                            <a class="nav-link" asp-controller="Notifications" asp-action="Index" style="position:relative;">
+                                Notifications
+                                <div></div>
+                            </a>
+                        </li>
+                    }
                     if (User.IsInRole("Admin"))
                     {
                         <li class="nav-item @((string)ViewData["Section"] == "Admin" ? "active" : "")">

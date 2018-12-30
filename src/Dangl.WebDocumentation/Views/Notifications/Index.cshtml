@@ -1,0 +1,94 @@
+﻿@using Dangl.WebDocumentation.ViewModels.Notifications
+@model Dangl.WebDocumentation.ViewModels.Notifications.IndexViewModel
+
+<h1>Notifications</h1>
+<p>
+    All projects maintained by Dangl<strong>IT</strong> have their documentations and
+    other additional information published on Dangl<strong>Docu</strong>. You can configure
+    email notifications to receive updates about new releases.
+</p>
+<p>
+    We recommend to only subscribe to <i>stable</i> releases, since most projects are configured
+    to produce beta releases for every single code commit.
+</p>
+@{
+    if (!Model.Projects.Any())
+    {
+        <h3>No projects available.</h3>
+        if (User.Identity.IsAuthenticated)
+        {
+            <p>You are logged in but have no access to any projects. <a href="https://www.dangl-it.com/contact/" target="_blank">Please contact our staff to get access.</a></p>
+        }
+    }
+    else
+    {
+        <h2>Projects</h2>
+        <p>You have access to the following projects:</p>
+
+        foreach (var project in Model.Projects)
+        {
+            <hr />
+            <h4>@project.Name</h4>
+
+            bool receivesAll = false;
+            bool receivesStable = false;
+            bool receivesNone = false;
+
+            if (User.HasClaim(c => c.Type == AppConstants.PROJECT_NOTIFICATIONS_CLAIM_BETA
+                && c.Value == project.Name))
+            {
+                <p> You receive notifications for <strong> stable </strong> and <strong> beta </strong> releases.</p>
+                receivesAll = true;
+            }
+            else if (User.HasClaim(c => c.Type == AppConstants.PROJECT_NOTIFICATIONS_CLAIM_STABLE
+            && c.Value == project.Name))
+            {
+                <p>You receive notifications for <strong>stable</strong> releases.</p>
+                receivesStable = true;
+            }
+            else
+            {
+                <p>You receive no notifications.</p>
+                receivesNone = true;
+            }
+
+            <form asp-controller="Notifications"
+                  asp-action="SetNotifications"
+                  asp-route-projectName="@project.Name"
+                  asp-route-notificationLevel="@NotificationLevel.None"
+                  method="post"
+                  style="display:inline;"
+                  role="form">
+                <button class="btn btn-default" type="submit" @(receivesNone ? "disabled" : "")>
+                    Disable Notifications
+                </button>
+            </form>
+            <form asp-controller="Notifications"
+                  asp-action="SetNotifications"
+                  asp-route-projectName="@project.Name"
+                  asp-route-notificationLevel="@NotificationLevel.Stable"
+                  method="post"
+                  style="display:inline;"
+                  role="form">
+                <button class="btn btn-default" type="submit" @(receivesStable ? "disabled" : "")>
+                    Subscribe to Stable
+                </button>
+            </form>
+            <form asp-controller="Notifications"
+                  asp-action="SetNotifications"
+                  asp-route-projectName="@project.Name"
+                  asp-route-notificationLevel="@NotificationLevel.All"
+                  method="post"
+                  style="display:inline;"
+                  role="form">
+                <button class="btn btn-default" type="submit" @(receivesAll ? "disabled" : "")>
+                    Subscribe to All
+                </button>
+            </form>
+
+        }
+        <hr />
+        <p>Do you have any questions? <a href="https://www.dangl-it.com/contact/" target="_blank">Please contact our staff to get access to non-public projects.</a></p>
+
+    }
+}
