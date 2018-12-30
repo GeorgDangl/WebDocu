@@ -49,7 +49,7 @@ namespace Dangl.WebDocumentation
                 .AddDefaultTokenProviders();
 
             services.AddMvc()
-                .SetCompatibilityVersion(Microsoft.AspNetCore.Mvc.CompatibilityVersion.Version_2_1);
+                .SetCompatibilityVersion(Microsoft.AspNetCore.Mvc.CompatibilityVersion.Latest);
 
             services.Configure<AppSettings>(Configuration);
             services.Configure<EmailSettings>(Configuration.GetSection(nameof(AppSettings.EmailSettings)));

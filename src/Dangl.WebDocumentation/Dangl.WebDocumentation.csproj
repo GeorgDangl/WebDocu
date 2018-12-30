@@ -2,7 +2,8 @@
 
   <PropertyGroup>
     <Authors>Georg Dangl</Authors>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <AspNetCoreHostingModel>InProcess</AspNetCoreHostingModel>
     <PreserveCompilationContext>true</PreserveCompilationContext>
     <AssemblyName>Dangl.WebDocumentation</AssemblyName>
     <OutputType>Exe</OutputType>
@@ -27,8 +28,8 @@
 
   <ItemGroup>
     <PackageReference Include="Dangl.AspNetCore.FileHandling.Azure" Version="0.1.7" />
-    <PackageReference Include="Microsoft.AspNetCore.App" Version="2.1.5" />
-    <PackageReference Include="Mailkit" Version="2.0.7" />
+    <PackageReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Mailkit" Version="2.1.2" />
     <PackageReference Include="WebConfigTransformRunner" Version="1.0.0.1">
       <PrivateAssets>All</PrivateAssets>
     </PackageReference>
