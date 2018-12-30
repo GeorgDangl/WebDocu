@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace Dangl.WebDocumentation
 {
@@ -43,6 +44,7 @@ namespace Dangl.WebDocumentation
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
+                .ConfigureLogging(c => c.AddAzureWebAppDiagnostics())
                 .UseStartup<Startup>();
     }
 }
