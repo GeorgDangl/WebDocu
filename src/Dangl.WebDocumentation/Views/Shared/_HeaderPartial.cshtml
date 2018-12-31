@@ -38,7 +38,7 @@
                             </a>
                         </li>
                     }
-                    if (User.IsInRole("Admin"))
+                    if (User.IsInRole(AppConstants.ADMIN_ROLE_NAME))
                     {
                         <li class="nav-item @((string)ViewData["Section"] == "Admin" ? "active" : "")">
                         <a class="nav-link" asp-controller="Admin" asp-action="Index" style="position:relative;">

@@ -116,7 +116,7 @@ namespace Dangl.WebDocumentation.Tests.Controllers
                 Assert.Equal(1, Context.Users.Count());
 
                 var createdUser = Context.Users.FirstOrDefault();
-                var adminRole = Context.Roles.FirstOrDefault(role => role.Name == "Admin");
+                var adminRole = Context.Roles.FirstOrDefault(role => role.Name == AppConstants.ADMIN_ROLE_NAME);
 
                 // Ensure role is present
                 Assert.NotNull(adminRole);
@@ -148,7 +148,7 @@ namespace Dangl.WebDocumentation.Tests.Controllers
                 Assert.Equal(2, Context.Users.Count());
 
                 var createdUser = Context.Users.FirstOrDefault();
-                var adminRole = Context.Roles.FirstOrDefault(role => role.Name == "Admin");
+                var adminRole = Context.Roles.FirstOrDefault(role => role.Name == AppConstants.ADMIN_ROLE_NAME);
 
                 // Ensure role is present
                 Assert.NotNull(adminRole);

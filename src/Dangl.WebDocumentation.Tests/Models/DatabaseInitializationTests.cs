@@ -49,7 +49,7 @@ namespace Dangl.WebDocumentation.Tests.Models
         [Fact]
         public void DatabaseHasAdminRole()
         {
-            Assert.True(Context.Roles.Any(role => role.Name == "Admin"));
+            Assert.True(Context.Roles.Any(role => role.Name == AppConstants.ADMIN_ROLE_NAME));
         }
 
         [Fact]

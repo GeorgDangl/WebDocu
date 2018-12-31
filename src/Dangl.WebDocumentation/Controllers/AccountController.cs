@@ -201,7 +201,7 @@ namespace Dangl.WebDocumentation.Controllers
                 // Add user to admin role if it's the first registered user
                 if (Context.Users.Count() == 1)
                 {
-                    await _userManager.AddToRoleAsync(user, "Admin");
+                    await _userManager.AddToRoleAsync(user, AppConstants.ADMIN_ROLE_NAME);
                 }
             }
             return result;

@@ -15,6 +15,8 @@
         /// </summary>
         public const string DATA_PROTECTION_KEYS_CONTAINER = "data-protection-container";
 
+        public const string ADMIN_ROLE_NAME = "Admin";
+
         public const string PROJECT_NOTIFICATIONS_CLAIM_STABLE = "receive-stable-notifications";
 
         public const string PROJECT_NOTIFICATIONS_CLAIM_BETA = "receive-beta-notifications";

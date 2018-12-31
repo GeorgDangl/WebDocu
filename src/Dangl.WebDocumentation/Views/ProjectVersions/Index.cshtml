@@ -1,7 +1,7 @@
 ﻿@model Dangl.WebDocumentation.ViewModels.ProjectVersions.IndexViewModel
 @{
     ViewData["Title"] = Model.ProjectName + " Versions";
-    var isAdmin = User.IsInRole("Admin");
+    var isAdmin = User.IsInRole(AppConstants.ADMIN_ROLE_NAME);
 }
 
 <h2>@ViewData["Title"]</h2>

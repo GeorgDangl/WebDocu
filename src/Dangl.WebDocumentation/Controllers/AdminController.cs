@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace Dangl.WebDocumentation.Controllers
 {
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = AppConstants.ADMIN_ROLE_NAME)]
     public class AdminController : Controller
     {
         private readonly IProjectFilesService _projectFilesService;
@@ -334,7 +334,7 @@ namespace Dangl.WebDocumentation.Controllers
         public IActionResult ManageUsers()
         {
             ViewData["Section"] = "Admin";
-            var adminRoleId = _context.Roles.FirstOrDefault(role => role.Name == "Admin").Id;
+            var adminRoleId = _context.Roles.FirstOrDefault(role => role.Name == AppConstants.ADMIN_ROLE_NAME).Id;
             var model = new ManageUsersViewModel();
             model.Users = _context.Users.Select(user => new UserAdminRoleViewModel { Name = user.Email, IsAdmin = user.Roles.Any(role => role.RoleId == adminRoleId) });
             return View(model);
@@ -344,7 +344,7 @@ namespace Dangl.WebDocumentation.Controllers
         public async Task<IActionResult> ManageUsers(IEnumerable<string> adminUsers)
         {
             ViewData["Section"] = "Admin";
-            var adminRole = _context.Roles.FirstOrDefault(role => role.Name == "Admin");
+            var adminRole = _context.Roles.FirstOrDefault(role => role.Name == AppConstants.ADMIN_ROLE_NAME);
             if (adminRole == null)
             {
                 throw new InvalidDataException("Admin role not found");

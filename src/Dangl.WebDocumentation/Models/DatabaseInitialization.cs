@@ -13,15 +13,15 @@ namespace Dangl.WebDocumentation.Models
         private static void SetUpRoles(ApplicationDbContext context)
         {
             // Add Admin role if not present
-            if (context.Roles.All(role => role.Name != "Admin"))
+            if (context.Roles.All(role => role.Name != AppConstants.ADMIN_ROLE_NAME))
             {
-                context.Roles.Add(new IdentityRole {Name = "Admin", NormalizedName = "ADMIN"});
+                context.Roles.Add(new IdentityRole { Name = AppConstants.ADMIN_ROLE_NAME, NormalizedName = AppConstants.ADMIN_ROLE_NAME.ToUpperInvariant() });
                 context.SaveChanges();
             }
-            else if (context.Roles.Any(role => role.Name == "Admin" && role.NormalizedName != "Admin"))
+            else if (context.Roles.Any(role => role.Name == AppConstants.ADMIN_ROLE_NAME && role.NormalizedName != AppConstants.ADMIN_ROLE_NAME))
             {
-                var adminRole = context.Roles.FirstOrDefault(role => role.Name == "Admin");
-                adminRole.NormalizedName = "ADMIN";
+                var adminRole = context.Roles.FirstOrDefault(role => role.Name == AppConstants.ADMIN_ROLE_NAME);
+                adminRole.NormalizedName = AppConstants.ADMIN_ROLE_NAME.ToUpperInvariant();
                 context.SaveChanges();
             }
         }
