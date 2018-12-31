@@ -62,7 +62,20 @@ namespace Dangl.WebDocumentation.Services
                 accessibleProjects = accessibleProjects.Union(projectsWithUserAccess).ToList();
             }
 
-            return accessibleProjects.OrderBy(project => project.Name).ToList();
+            var distinctProjects = new List<DocumentationProject>();
+
+            foreach (var project in accessibleProjects)
+            {
+                if (distinctProjects.Any(p => p.Name == project.Name))
+                {
+                    continue;
+                }
+                distinctProjects.Add(project);
+            }
+
+            return distinctProjects
+                .OrderBy(project => project.Name)
+                .ToList();
         }
     }
 }
