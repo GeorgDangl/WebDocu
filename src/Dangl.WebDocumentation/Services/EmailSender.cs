@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using MailKit.Net.Smtp;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MimeKit;
 using MimeKit.Text;
@@ -10,10 +11,13 @@ namespace Dangl.WebDocumentation.Services
     public class EmailSender : IEmailSender
     {
         private readonly EmailSettings _emailSettings;
+        private readonly ILogger _logger;
 
-        public EmailSender(IOptions<EmailSettings> emailSettings)
+        public EmailSender(IOptions<EmailSettings> emailSettings,
+            ILoggerFactory loggerFactory)
         {
             _emailSettings = emailSettings.Value;
+            _logger = loggerFactory.CreateLogger<EmailSender>();
         }
 
         public Task<bool> SendForgotPasswordEmail(string userEmail, string passwordResetUrl)
@@ -32,6 +36,7 @@ namespace Dangl.WebDocumentation.Services
         {
             if (string.IsNullOrWhiteSpace(_emailSettings.FromAddress))
             {
+                _logger.Log(LogLevel.Error, "There is no FromAddress configured in the email settings, can not send email");
                 return false;
             }
 
@@ -67,8 +72,9 @@ namespace Dangl.WebDocumentation.Services
                     return true;
                 }
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                _logger.Log(LogLevel.Error, "Failed to send email, exception was:\r\n" + e.ToString());
                 return false;
             }
         }
