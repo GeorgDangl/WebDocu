@@ -10,36 +10,38 @@
         <section>
             <form asp-controller="Admin" asp-action="EditProject" method="post" class="form-horizontal" role="form">
                 <div asp-validation-summary="All" class="text-danger"></div>
-                <div class="form-group">
+                <div class="form-group row">
                     <label asp-for="ProjectName" class="col-md-2 control-label"></label>
                     <div class="col-md-10">
                         <input asp-for="ProjectName" class="form-control"/>
                         <span asp-validation-for="ProjectName" class="text-danger"></span>
                     </div>
                 </div>
-                <div class="form-group">
-                    <div class="col-md-offset-2 col-md-10">
+                <div class="form-group row">
+                    <label asp-for="IsPublic" class="col-md-2 control-label"></label>
+                    <div class="col-md-10">
                         <div class="checkbox">
-                            <input asp-for="IsPublic"/>
-                            <label asp-for="IsPublic"></label>
+                            <label asp-for="IsPublic">
+                                <input asp-for="IsPublic" />
+                            </label>
                         </div>
                     </div>
                 </div>
-                <div class="form-group">
+                <div class="form-group row">
                     <label asp-for="PathToIndexPage" class="col-md-2 control-label"></label>
                     <div class="col-md-10">
                         <input asp-for="PathToIndexPage" class="form-control"/>
                         <span asp-validation-for="PathToIndexPage" class="text-danger"></span>
                     </div>
                 </div>
-                <div class="form-group">
+                <div class="form-group row">
                     <label asp-for="ApiKey" class="col-md-2 control-label"></label>
                     <div class="col-md-10">
                         <input asp-for="ApiKey" class="form-control"/>
                         <span asp-validation-for="ApiKey" class="text-danger"></span>
                     </div>
                 </div>
-                <div class="form-group">
+                <div class="form-group row">
                     <label asp-for="AvailableUsers" class="col-md-4 control-label"></label>
                     <div class="col-md-offset-2 col-md-10">
                         @{
@@ -47,13 +49,12 @@
                             foreach (var user in users)
                             {
                                 <div class="checkbox">
-                                    <input type="checkbox" id="User_@user.Name" name="SelectedUsers" value="@user.Name" @{
-                                                                                                                            if (user.IsEnabled)
-                                                                                                                            {
-                                                                                                                                <text> checked</text>
+                                    <label for="User_@user.Name">
+                                        <input type="checkbox" id="User_@user.Name" name="SelectedUsers" value="@user.Name" @{ if (user.IsEnabled) { <text> checked</text>
                                                                                                                             }
-                                                                                                                        }/>
-                                    <label for="User_@user.Name">@user.Name</label>
+                                                                                                                        } />
+                                        @user.Name
+                                    </label>
                                 </div>
                                 <br/>
                             }
@@ -62,7 +63,7 @@
                 </div>
                 <div class="form-group">
                     <div class="col-md-offset-2 col-md-10">
-                        <button type="submit" class="btn btn-default">Save Changes</button>
+                        <button type="submit" class="btn btn-raised btn-primary">Save Changes</button>
                     </div>
                 </div>
             </form>

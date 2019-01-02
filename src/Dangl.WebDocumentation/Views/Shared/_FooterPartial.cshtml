@@ -1,0 +1,25 @@
+﻿@using Microsoft.Extensions.Options
+@inject IOptions<AppSettings> AppSettings
+
+<footer class="ms-footer">
+    <div class="container">
+        <p class="d-block d-sm-none">
+            <div class="row d-block d-sm-none">
+                <div class="col-md-6 d-block d-sm-none">
+                    <span class="ms-logo">GD</span> @AppSettings.Value.SiteTitlePrefix<strong>@AppSettings.Value.SiteTitlePostfix</strong> &copy; 2015 - @DateTime.Now.Year: <a href="https://www.dangl-it.com">Dangl<b>IT</b> GmbH</a>
+                </div>
+                <div class="col-md-6 d-block d-sm-none">
+                    <a asp-controller="Home" asp-action="Privacy">
+                        Legal Notice &amp; Privacy
+                    </a>
+                </div>
+            </div>
+        </p>
+        <p class="d-none d-sm-block">
+            <span class="ms-logo">GD</span> @AppSettings.Value.SiteTitlePrefix<strong>@AppSettings.Value.SiteTitlePostfix</strong>
+            &copy; 2015 - @DateTime.Now.Year: <a href="https://www.dangl-it.com">Dangl<b>IT</b> GmbH</a> - <a asp-controller="Home" asp-action="Privacy">
+                Legal Notice &amp; Privacy
+            </a>
+        </p>
+    </div>
+</footer>

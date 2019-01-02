@@ -34,6 +34,8 @@ namespace Dangl.WebDocumentation.Controllers
 
         public IActionResult Privacy()
         {
+            ViewData["Section"] = "Privacy";
+
             return View();
         }
 

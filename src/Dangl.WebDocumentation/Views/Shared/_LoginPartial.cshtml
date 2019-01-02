@@ -11,14 +11,16 @@
                 <a class="nav-link" asp-controller="Manage" asp-action="Index" title="Manage">Hello @UserManager.GetUserName(User)!</a>
             </li>
             <li>
-                <button style="border:0;" type="submit" class="btn btn-link navbar-btn nav-link">Logout</button>
+                <a class="nav-link" href="javascript:{}" onclick="document.getElementById('logoutForm').submit()">
+                    Logout
+                </a>
             </li>
         </ul>
     </form>
 }
 else
 {
-    <ul class="nav navbar-nav navbar-right">
+    <ul class="nav navbar-nav navbar-right ms-navbar-right">
         @{
             if (AppSettings.Value.AllowUserRegistration)
             {

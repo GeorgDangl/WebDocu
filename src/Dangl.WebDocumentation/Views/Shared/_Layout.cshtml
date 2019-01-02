@@ -17,70 +17,40 @@
             <title>@ViewData["Title"] - @AppSettings.Value.FullTitle</title>
         }
     }
-    <environment names="Development">
-        <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
-        <link rel="stylesheet" href="~/css/site.css" />
-        <link rel="stylesheet" href="~/css/logo.css" />
-        <link rel="stylesheet" href="~/css/subnav.css" />
-    </environment>
-    <environment names="Staging,Production">
-        <link rel="stylesheet" href="https://ajax.aspnetcdn.com/ajax/bootstrap/4.0.0/css/bootstrap.min.css"
-              asp-fallback-href="~/lib/bootstrap/dist/css/bootstrap.min.css"
-              asp-fallback-test-class="sr-only" asp-fallback-test-property="position" asp-fallback-test-value="absolute" />
-        <link rel="stylesheet" href="~/css/site.min.css" asp-append-version="true" />
-    </environment>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700|Indie+Flower:400|">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" asp-append-version="true" href="~/css/plugins.min.css" />
+    <link rel="stylesheet" asp-append-version="true" href="~/css/style.cyan-600.min.css" />
+    <link rel="stylesheet" asp-append-version="true" href="~/css/custom-styles.css" />
+    <link rel="stylesheet" asp-append-version="true" href="~/css/custom-menu.css" />
 </head>
 <body>
-<div>
-    @await Html.PartialAsync("_HeaderPartial")
-</div>
-
-@{
-    if (ViewBag.SuccessMessage != null)
-    {
-        <div class="alert alert-success">
-            <strong>Success!</strong> @ViewBag.SuccessMessage
+    <div class="ms-site-container">
+        @await Html.PartialAsync("_HeaderPartial")
+        @{
+            if (ViewBag.SuccessMessage != null)
+            {
+                <div class="alert alert-success alert-dismissible" role="alert" style="margin-top:-40px;">
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <i class="zmdi zmdi-close"></i>
+                    </button>
+                    <strong>
+                        <i class="zmdi zmdi-check"></i>
+                        Success!
+                    </strong>
+                    @ViewBag.SuccessMessage
+                </div>
+            }
+        }
+        <div class="container body-content" style="flex: 1 0 auto;">
+            @RenderBody()
         </div>
-    }
-}
 
-<div class="container body-content" style="flex: 1 0 auto;">
-    @RenderBody()
-</div>
-
-<footer class="gd-footer">
-    <div class="container">
-        <p>
-            <span class="gd-logo">GD</span>
-            <a href="https://www.dangl-it.com" target="_blank">&copy; 2015 - @DateTime.Now.Year: Dangl<b>IT</b> GmbH</a> &ndash;
-            <a href="https://github.com/GeorgDangl/WebDocu" target="_blank">
-                @AppSettings.Value.SiteTitlePrefix<strong>@AppSettings.Value.SiteTitlePostfix</strong>
-            </a> &ndash;
-            <a asp-controller="Home" asp-action="Privacy">
-                Legal Notice &amp; Privacy
-            </a>
-        </p>
+        @await Html.PartialAsync("_FooterPartial")
     </div>
-</footer>
-
-<environment names="Development">
-    <script src="~/lib/jquery/dist/jquery.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
-</environment>
-<environment names="Staging,Production">
-    <script src="https://ajax.aspnetcdn.com/ajax/jquery/jquery-3.3.1.min.js"
-            asp-fallback-src="~/lib/jquery/dist/jquery.min.js"
-            asp-fallback-test="window.jQuery">
-        </script>
-    <script src="https://ajax.aspnetcdn.com/ajax/bootstrap/4.0.0/bootstrap.min.js"
-            asp-fallback-src="~/lib/bootstrap/dist/js/bootstrap.min.js"
-            asp-fallback-test="window.jQuery && window.jQuery.fn && window.jQuery.fn.modal">
-        </script>
-    <script src="~/js/site.min.js" asp-append-version="true"></script>
-</environment>
-
-@RenderSection("scripts", required: false)
+    @await Html.PartialAsync("_SideMenuPartial");
+    <script src="~/js/plugins.min.js" asp-append-version="true"></script>
+    <script src="~/js/app.min.js" asp-append-version="true"></script>
+    @RenderSection("scripts", required: false)
 </body>
 </html>

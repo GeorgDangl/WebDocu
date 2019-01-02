@@ -38,11 +38,4 @@
     </PackageReference>
   </ItemGroup>
 
-  <Target Name="PrepublishScript" BeforeTargets="PrepareForPublish">
-    <Exec Command="npm install" />
-    <Exec Command="gulp clean" />
-    <Exec Command="gulp min" />
-    <Exec Command="gulp copy:lib" />
-  </Target>
-
 </Project>

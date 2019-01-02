@@ -1,57 +1,22 @@
 ﻿@using Microsoft.Extensions.Options
 @inject IOptions<AppSettings> AppSettings
 
-<header>
-    <div class="navbar navbar-inverse navbar-fixed-top mat-toolbar ms-header ms-header-primary">
-        <div class="container">
-            <a asp-controller="Home" asp-action="Index" class="navbar-brand">
-                <span class="gd-logo gd-logo-white">GD</span>
-                <h1 style="display:inline;font-weight:300;vertical-align:bottom;">
-                    @AppSettings.Value.SiteTitlePrefix<strong style="vertical-align:bottom;font-weight:500;">@AppSettings.Value.SiteTitlePostfix</strong>
+<header class="ms-header ms-header-primary">
+    <div class="container container-full">
+        <div class="ms-title">
+            <a href="/">
+                <span class="ms-logo">GD</span>
+                <h1>
+                    @AppSettings.Value.SiteTitlePrefix<span>@AppSettings.Value.SiteTitlePostfix</span>
                 </h1>
+            </a>
+        </div>
+        <div class="header-right">
+            <a href="javascript:void(0)" class="btn-ms-menu btn-circle btn-circle-primary ms-toggle-left">
+                <i class="zmdi zmdi-menu"></i>
             </a>
         </div>
     </div>
 </header>
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark subnav">
-    <div class="container">
 
-        <a class="navbar-brand" href="/"></a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-            <ul class="navbar-nav mr-auto">
-                <li class="nav-item @((string)ViewData["Section"] == "Home" ? "active" : "")">
-                    <a class="nav-link" href="/">
-                        Projects
-                        <div></div>
-                    </a>
-                </li>
-                @{
-                    if (User.Identity.IsAuthenticated)
-                    {
-                        <li class="nav-item @((string)ViewData["Section"] == "Notifications" ? "active" : "")">
-                            <a class="nav-link" asp-controller="Notifications" asp-action="Index" style="position:relative;">
-                                Notifications
-                                <div></div>
-                            </a>
-                        </li>
-                    }
-                    if (User.IsInRole(AppConstants.ADMIN_ROLE_NAME))
-                    {
-                        <li class="nav-item @((string)ViewData["Section"] == "Admin" ? "active" : "")">
-                        <a class="nav-link" asp-controller="Admin" asp-action="Index" style="position:relative;">
-                            Admin
-                            <div></div>
-                        </a>
-                        </li>
-                    }
-                }
-            </ul>
-            <div>
-                @await Html.PartialAsync("_LoginPartial")
-            </div>
-        </div>
-    </div>
-</nav>
+@await Html.PartialAsync("_MenuPartial")

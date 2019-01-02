@@ -1,0 +1,82 @@
+﻿@using Microsoft.Extensions.Options
+@inject IOptions<AppSettings> AppSettings
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+
+<div class="ms-slidebar sb-slidebar sb-left sb-style-overlay" id="ms-slidebar">
+    <div class="sb-slidebar-container">
+        <header class="ms-slidebar-header">
+            <div class="ms-slidebar-title">
+                <div class="ms-slidebar-t">
+                    <span class="ms-logo ms-logo-sm">GD</span>
+                    <h3>
+                        @AppSettings.Value.SiteTitlePrefix
+                        <span>@AppSettings.Value.SiteTitlePostfix</span>
+                    </h3>
+                </div>
+            </div>
+        </header>
+        <ul class="ms-slidebar-menu" id="slidebar-menu" role="tablist" aria-multiselectable="true">
+
+            <li>
+                <a class="link" href="/">
+                    <i class="zmdi zmdi-home"></i> Projects
+                </a>
+            </li>
+            @{
+                if (User.Identity.IsAuthenticated)
+                {
+                <li>
+                    <a class="link" asp-controller="Notifications" asp-action="Index">
+                        <i class="zmdi zmdi-star"></i> Notifications
+                    </a>
+                </li>
+                }
+                if (User.IsInRole(AppConstants.ADMIN_ROLE_NAME))
+                {
+                <li>
+                    <a class="link" asp-controller="Admin" asp-action="Index">
+                        <i class="zmdi zmdi-accounts"></i> Admin
+                    </a>
+                </li>
+                }
+            }
+
+            @if (SignInManager.IsSignedIn(User))
+{
+            <li>
+                <a class="link" asp-controller="Manage" asp-action="Index" title="Manage">
+                    <i class="zmdi zmdi-accounts"></i> Hello @UserManager.GetUserName(User)!
+                </a>
+            </li>
+            <li>
+                <a class="link" href="javascript:{}" onclick="document.getElementById('logoutForm').submit()">
+                    <i class="zmdi zmdi-power"></i> Logout
+                </a>
+            </li>
+}
+else
+{
+            if (AppSettings.Value.AllowUserRegistration)
+            {
+            <li>
+                <a class="link" asp-controller="Account" asp-action="Register">
+                    <i class="zmdi zmdi-accounts"></i> Register
+                </a>
+            </li>
+            }
+            <li>
+                <a class="link" asp-controller="Account" asp-action="Login">
+                    <i class="zmdi zmdi-accounts"></i> Login
+                </a>
+            </li>
+}
+
+            <li>
+                <a class="link" asp-controller="Home" asp-action="Privacy">
+                    <i class="zmdi zmdi-case"></i> Legal Notice &amp; Privacy
+                </a>
+            </li>
+        </ul>
+    </div>
+</div>

@@ -8,20 +8,22 @@
         <section>
             <form asp-controller="Admin" asp-action="UploadProject" method="post" class="form-horizontal" role="form" enctype="multipart/form-data">
                 <div asp-validation-summary="All" class="text-danger"></div>
-                <div class="form-group">
+                <div class="form-group row">
+                    <label for="projectPackage" class="col-md-2">Package</label>
                     <div class="col-md-10 col-md-offset-2">
-                        <input type="file" name="projectPackage" />
+                        <input type="text" readonly="" class="form-control" placeholder="Package File" />
+                        <input type="file" name="projectPackage" id="projectPackage" />
                     </div>
                 </div>
-                <div class="form-group">
+                <div class="form-group row">
                     <label class="col-md-2">Version</label>
                     <div class="col-md-10">
-                        <input type="text" class="form-control" name="version"/>
+                        <input type="text" class="form-control" name="version" placeholder="Version"/>
                     </div>
                 </div>
-                <div class="form-group">
+                <div class="form-group row">
                     <div class="col-md-offset-2 col-md-10">
-                        <button type="submit" onclick="$(this).addClass('disabled').html('<span class=\'glyphicon glyphicon-refresh glyphicon-spin\'></span> Submitting...');" class="btn btn-default">Upload</button>
+                        <button type="submit" onclick="$(this).addClass('disabled').html('<span class=\'glyphicon glyphicon-refresh glyphicon-spin\'></span> Submitting...');" class="btn btn-raised btn-primary">Upload</button>
                     </div>
                 </div>
             </form>
