@@ -8,11 +8,13 @@
     <form asp-controller="Account" asp-action="LogOff" method="post" id="logoutForm" class="navbar-right">
         <ul class="nav navbar-nav navbar-right">
             <li>
-                <a class="nav-link" asp-controller="Manage" asp-action="Index" title="Manage">Hello @UserManager.GetUserName(User)!</a>
+                <a class="nav-link" asp-controller="Manage" asp-action="Index" title="Manage">
+                    @UserManager.GetUserName(User)
+                </a>
             </li>
             <li>
-                <a class="nav-link" href="javascript:{}" onclick="document.getElementById('logoutForm').submit()">
-                    Logout
+                <a class="nav-link ml-2" href="javascript:{}" onclick="document.getElementById('logoutForm').submit()">
+                    <i class="zmdi zmdi-power"></i> Logout
                 </a>
             </li>
         </ul>
