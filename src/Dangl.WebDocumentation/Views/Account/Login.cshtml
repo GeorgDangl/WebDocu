@@ -4,60 +4,55 @@
 @inject SignInManager<ApplicationUser> SignInManager
 
 <h2>Login</h2>
-<div class="row">
-    <div class="col-md-8">
-        <section>
-            <form asp-controller="Account" asp-action="Login" asp-route-returnurl="@ViewData["ReturnUrl"]" method="post" class="form-horizontal" role="form">
-                <h4>Login to @AppSettings.Value.SiteTitlePrefix<strong>@AppSettings.Value.SiteTitlePostfix</strong></h4>
-                <hr />
-                <div asp-validation-summary="All" class="text-danger"></div>
-                <div class="form-group row">
-                    <label asp-for="Email" class="col-md-2 control-label"></label>
-                    <div class="col-md-10">
-                        <input asp-for="Email" class="form-control" placeholder="Email" />
-                        <span asp-validation-for="Email" class="text-danger"></span>
-                    </div>
-                </div>
-                <div class="form-group row">
-                    <label asp-for="Password" class="col-md-2 control-label"></label>
-                    <div class="col-md-10">
-                        <input asp-for="Password" class="form-control" placeholder="Password" />
-                        <span asp-validation-for="Password" class="text-danger"></span>
-                    </div>
-                </div>
-                <div class="form-group row">
-                    <div class="col-md-offset-2 col-md-10">
-                        <div class="checkbox">
-                            <label asp-for="RememberMe">
-                                <input asp-for="RememberMe" />
-                                Remember me?
-                            </label>
-                        </div>
-                    </div>
-                </div>
-                <div class="form-group row">
-                    <div class="col-md-offset-2 col-md-10">
-                        <button type="submit" class="btn btn-raised btn-primary">&nbsp;Login&nbsp;</button>
-                    </div>
-                </div>
-                @{
-                    if (AppSettings.Value.AllowUserRegistration)
-                    {
-                        <hr />
-                        <div class="col-md-offset-2 col-md-10">
-                            <p>
-                                <a asp-action="Register">Register as a new user?</a>
-                            </p>
-                            <p>
-                                <a asp-action="ForgotPassword">Forgot password?</a>
-                            </p>
-                        </div>
-                    }
-                }
-            </form>
-        </section>
+<form asp-controller="Account" asp-action="Login" asp-route-returnurl="@ViewData["ReturnUrl"]" method="post" class="form-horizontal" role="form">
+    <h4>Login to @AppSettings.Value.SiteTitlePrefix<strong>@AppSettings.Value.SiteTitlePostfix</strong></h4>
+    <hr />
+    <div asp-validation-summary="All" class="text-danger"></div>
+    <div class="form-group row">
+        <label asp-for="Email" class="col-md-2 control-label"></label>
+        <div class="col-md-10">
+            <input asp-for="Email" class="form-control" placeholder="Email" />
+            <span asp-validation-for="Email" class="text-danger"></span>
+        </div>
     </div>
-</div>
+    <div class="form-group row">
+        <label asp-for="Password" class="col-md-2 control-label"></label>
+        <div class="col-md-10">
+            <input asp-for="Password" class="form-control" placeholder="Password" />
+            <span asp-validation-for="Password" class="text-danger"></span>
+        </div>
+    </div>
+    <div class="form-group row">
+        <label class="col-md-2 control-label"></label>
+        <div class="col-md-10">
+            <div class="checkbox">
+                <label asp-for="RememberMe">
+                    <input asp-for="RememberMe" />
+                    Remember me?
+                </label>
+            </div>
+        </div>
+    </div>
+    <div class="form-group row">
+        <div class="col-md-offset-2 col-md-10">
+            <button type="submit" class="btn btn-raised btn-primary">&nbsp;Login&nbsp;</button>
+        </div>
+    </div>
+    @{
+        if (AppSettings.Value.AllowUserRegistration)
+        {
+            <hr />
+            <div class="col-md-offset-2 col-md-10">
+                <p>
+                    <a asp-action="Register">Register as a new user?</a>
+                </p>
+                <p>
+                    <a asp-action="ForgotPassword">Forgot password?</a>
+                </p>
+            </div>
+        }
+    }
+</form>
 
 @section Scripts {
     @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }

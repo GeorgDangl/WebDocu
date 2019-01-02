@@ -42,21 +42,21 @@
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label asp-for="AvailableUsers" class="col-md-4 control-label"></label>
-                    <div class="col-md-offset-2 col-md-10">
+                    <label asp-for="AvailableUsers" class="col-md-2 control-label"></label>
+                    <div class="col-md-10">
                         @{
-                            var users = Model.UsersWithAccess.Select(entry => new {Name = entry, IsEnabled = true}).Union(Model.AvailableUsers.Select(entry => new {Name = entry, IsEnabled = false})).OrderBy(entry => entry.Name).ToList();
+                            var users = Model.UsersWithAccess.Select(entry => new { Name = entry, IsEnabled = true }).Union(Model.AvailableUsers.Select(entry => new { Name = entry, IsEnabled = false })).OrderBy(entry => entry.Name).ToList();
                             foreach (var user in users)
                             {
-                                <div class="checkbox">
+                                <br />
+
                                     <label for="User_@user.Name">
                                         <input type="checkbox" id="User_@user.Name" name="SelectedUsers" value="@user.Name" @{ if (user.IsEnabled) { <text> checked</text>
                                                                                                                             }
                                                                                                                         } />
                                         @user.Name
                                     </label>
-                                </div>
-                                <br/>
+                                <br />
                             }
                         }
                     </div>
