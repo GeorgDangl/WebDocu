@@ -15,42 +15,50 @@
         <section>
             <form asp-controller="Admin" asp-action="CreateProject" method="post" class="form-horizontal" role="form">
                 <div asp-validation-summary="All" class="text-danger"></div>
-                <div class="form-group">
+                <div class="form-group row">
                     <label asp-for="ProjectName" class="col-md-2 control-label"></label>
                     <div class="col-md-10">
-                        <input asp-for="ProjectName" class="form-control"/>
+                        <input asp-for="ProjectName" class="form-control" placeholder="Name"/>
                         <span asp-validation-for="ProjectName" class="text-danger"></span>
                     </div>
                 </div>
-                <div class="form-group">
+                <div class="form-group row">
                     <label asp-for="IsPublic" class="col-md-2 control-label"></label>
                     <div class="col-md-10">
-                        <input asp-for="IsPublic"/>
+                        <div class="checkbox">
+                            <label>
+                                <input asp-for="IsPublic" />
+                                Public Access
+                            </label>
+                        </div>
                     </div>
                 </div>
-                <div class="form-group">
+                <div class="form-group row">
                     <label asp-for="PathToIndexPage" class="col-md-2 control-label"></label>
                     <div class="col-md-10">
-                        <input asp-for="PathToIndexPage" class="form-control"/>
+                        <input asp-for="PathToIndexPage" class="form-control" placeholder="Path to Index" />
                         <span asp-validation-for="PathToIndexPage" class="text-danger"></span>
                     </div>
                 </div>
-                <div class="form-group">
+                <div class="form-group row">
                     <label asp-for="AvailableUsers" class="col-md-2 control-label"></label>
                     <div class="col-md-10">
                         @{
-                            foreach (var availableUser in Model.AvailableUsers)
+                            if (Model.AvailableUsers != null)
                             {
-                                <input type="checkbox" id="User_@availableUser" name="SelectedUsers" value="@availableUser"/>
-                                <label for="User_@availableUser">@availableUser</label>
-                                <br/>
+                                foreach (var availableUser in Model.AvailableUsers)
+                                {
+                                    <input type="checkbox" id="User_@availableUser" name="SelectedUsers" value="@availableUser"/>
+                                    <label for="User_@availableUser">@availableUser</label>
+                                    <br/>
+                                }
                             }
                         }
                     </div>
                 </div>
-                <div class="form-group">
+                <div class="form-group row">
                     <div class="col-md-offset-2 col-md-10">
-                        <button type="submit" class="btn btn-default">Create Project</button>
+                        <button type="submit" class="btn btn-raised btn-primary">Create Project</button>
                     </div>
                 </div>
             </form>
