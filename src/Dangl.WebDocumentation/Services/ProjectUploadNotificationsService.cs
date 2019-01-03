@@ -79,7 +79,7 @@ namespace Dangl.WebDocumentation.Services
 <table border=""0"" cellspacing=""0"" cellpadding=""0"" width=""600"" class=""content-table"" align=""center"" style=""min-width: 320px;"">
 <tbody>
 <tr>
-<td align=""center"" valign=""top"" style=""padding: 16px 16px 16px 16px;""><span style=""color: #fff; font-family: 'Roboto', Helvetica, Arial, sans-serif; text-decoration: none; font-size: 2.5em;"">Dangl<strong>IT</strong> Release Notification</span></td>
+<td align=""center"" valign=""top"" style=""padding: 16px 16px 16px 16px;""><span style=""color: #fff; font-family: 'Roboto', Helvetica, Arial, sans-serif; text-decoration: none; font-size: 2.5em;"">Dangl<strong>IT</strong> - Release Notification</span></td>
 </tr>
 </tbody>
 </table>
