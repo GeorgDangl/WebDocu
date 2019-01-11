@@ -247,4 +247,4 @@ _references.js
 src/Dangl.WebDocumentation/wwwroot/lib/
 output/
 
-src/Dangl\.WebDocumentation\.Tests/Properties/launchSettings\.json
+test/Dangl\.WebDocumentation\.Tests/Properties/launchSettings\.json

@@ -16,7 +16,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Dangl.WebDocumentation\Dangl.WebDocumentation.csproj" />
+    <ProjectReference Include="..\..\src\Dangl.WebDocumentation\Dangl.WebDocumentation.csproj" />
   </ItemGroup>
 
   <ItemGroup>

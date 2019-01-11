@@ -16,11 +16,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dangl.WebDocumentation", "src\Dangl.WebDocumentation\Dangl.WebDocumentation.csproj", "{C64017EC-953E-4E6C-B5DF-21654B9F6760}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dangl.WebDocumentation.Tests", "src\Dangl.WebDocumentation.Tests\Dangl.WebDocumentation.Tests.csproj", "{2AF9048D-8B53-4DE7-A2F8-6A4A7151C414}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dangl.WebDocumentation.Tests", "test\Dangl.WebDocumentation.Tests\Dangl.WebDocumentation.Tests.csproj", "{2AF9048D-8B53-4DE7-A2F8-6A4A7151C414}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "utils", "utils", "{F6288DCD-20BC-4D55-890B-FFBDC18EADCD}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dangl.WebDocumentation.AzureMigration", "utils\Dangl.WebDocumentation.AzureMigration\Dangl.WebDocumentation.AzureMigration.csproj", "{8F23FBC6-E9E7-4545-B830-AABE411EA009}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{E8023D90-229C-4650-948B-4422AF000E8B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -48,7 +50,7 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{C64017EC-953E-4E6C-B5DF-21654B9F6760} = {F5E4D742-3F81-4437-88E7-05DDF84EE012}
-		{2AF9048D-8B53-4DE7-A2F8-6A4A7151C414} = {F5E4D742-3F81-4437-88E7-05DDF84EE012}
+		{2AF9048D-8B53-4DE7-A2F8-6A4A7151C414} = {E8023D90-229C-4650-948B-4422AF000E8B}
 		{8F23FBC6-E9E7-4545-B830-AABE411EA009} = {F6288DCD-20BC-4D55-890B-FFBDC18EADCD}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
