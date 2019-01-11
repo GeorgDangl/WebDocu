@@ -10,14 +10,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Dangl.WebDocumentation.Services
 {
-    public class DiskStorageProjectFilesService : IProjectFilesService
+    public class ProjectFilesService : IProjectFilesService
     {
         private readonly ApplicationDbContext _context;
         private readonly AspNetCore.FileHandling.IFileManager _fileManager;
         private static readonly FileExtensionContentTypeProvider _fileExtensionContentTypeProvider = new FileExtensionContentTypeProvider();
         private readonly IProjectUploadNotificationsService _projectUploadNotificationsService;
 
-        public DiskStorageProjectFilesService(ApplicationDbContext context,
+        public ProjectFilesService(ApplicationDbContext context,
             Dangl.AspNetCore.FileHandling.IFileManager fileManager,
             IProjectUploadNotificationsService projectUploadNotificationsService)
         {

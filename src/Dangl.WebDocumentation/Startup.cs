@@ -78,7 +78,7 @@ namespace Dangl.WebDocumentation
                     ConfigureAzureStorageDataProtectionIfRequired(services, azureBlobStorageConnectionString);
                 }
             }
-            services.AddTransient<IProjectFilesService, DiskStorageProjectFilesService>();
+            services.AddTransient<IProjectFilesService, ProjectFilesService>();
         }
 
         private static void ConfigureAzureStorageDataProtectionIfRequired(IServiceCollection services, string azureBlobStorageConnectionString)
