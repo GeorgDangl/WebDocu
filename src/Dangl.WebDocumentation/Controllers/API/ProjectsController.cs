@@ -7,12 +7,12 @@ using System.Threading.Tasks;
 namespace Dangl.WebDocumentation.Controllers.API
 {
     [AllowAnonymous]
-    public class ApiProjectsController : Controller
+    public class ProjectsController : Controller
     {
         private readonly IProjectsService _projectsService;
         private readonly IProjectFilesService _projectFilesService;
 
-        public ApiProjectsController(IProjectsService projectsService,
+        public ProjectsController(IProjectsService projectsService,
             IProjectFilesService projectFilesService)
         {
             _projectsService = projectsService;
