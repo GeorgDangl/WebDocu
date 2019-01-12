@@ -51,6 +51,7 @@ Project file urls have the following format:
     for prerelease version. For example, `1.0.0-beta1` is requested but not present, if `1.0.0` is present, it gets redirected to it. This keeps old urls
     from becoming unavailable
   * If `PathToFile` is pointing to a non-existing file, a redirect to the entry point is returned
+  * Project assets can either be access via `/ProjectAssets/{projectName}/{version}` or `/ProjectAssets/{projectName}/latest`
 
 ## Response Caching
 

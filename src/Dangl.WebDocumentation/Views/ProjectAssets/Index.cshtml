@@ -2,9 +2,15 @@
 @{
     ViewData["Title"] = Model.ProjectName + " Assets";
     var isAdmin = User.IsInRole(AppConstants.ADMIN_ROLE_NAME);
+    var hasAssets = Model.Files.Any();
 }
 
 <h2>@ViewData["Title"] for Version @Model.ProjectVersion</h2>
+
+@if(!hasAssets)
+{
+    <p>There are no downloads available for this version</p>
+}
 
 <table class="table">
     <tbody>

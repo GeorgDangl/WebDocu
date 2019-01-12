@@ -47,6 +47,13 @@ namespace Dangl.WebDocumentation.Controllers
                 return NotFound();
             }
 
+            var requestsLatestVersion = string.Equals(version, "latest", StringComparison.CurrentCultureIgnoreCase);
+            if (requestsLatestVersion)
+            {
+                var availableVersions = await _projectVersionsService.GetProjectVersionsAsync(projectName);
+                version = availableVersions.Select(av => av.version).FirstOrDefault();
+            }
+
             var assets = await _projectVersionAssetFilesService.GetAssetsForProjectVersionAsync(projectName, version);
             var projectId = await _projectsService.GetIdForProjectByNameAsync(projectName);
 
