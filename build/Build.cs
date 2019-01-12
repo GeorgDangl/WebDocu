@@ -121,7 +121,7 @@ namespace Dangl.WebDocumentation.Services
         .Requires(() => Configuration.EqualsOrdinalIgnoreCase("Debug")) // Required for coverage data gathering
         .Executes(() =>
         {
-            var testProjectDirectory = SourceDirectory / "Dangl.WebDocumentation.Tests";
+            var testProjectDirectory = SolutionDirectory / "test" / "Dangl.WebDocumentation.Tests";
 
             DotCoverAnalyse(x => x
                 .SetTargetExecutable(ToolPathResolver.GetPathExecutable("dotnet"))
