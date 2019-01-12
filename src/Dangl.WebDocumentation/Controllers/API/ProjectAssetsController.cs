@@ -22,13 +22,13 @@ namespace Dangl.WebDocumentation.Controllers.API
         /// <summary>
         ///     Provides an Api to upload asset files for a speicific project and version.
         ///     Exemplary cURL usage:
-        ///     curl -F "ApiKey=123" -F "Version=1.0.0" -F "AssetFile=@\"C:\Path\to\file.zip\"" http://localhost:10013/API/ProjectsAssets/Upload
+        ///     curl -F "ApiKey=123" -F "Version=1.0.0" -F "AssetFile=@\"C:\Path\to\file.zip\"" http://localhost:10013/API/ProjectAssets/Upload
         /// </summary>
         /// <param name="apiKey">The ApiKey to authorize a project upload.</param>
         /// <param name="projectPackage">The project content as zip file.</param>
         /// <returns></returns>
         [HttpPost]
-        [Route("API/ProjectsAssets/Upload")]
+        [Route("API/ProjectAssets/Upload")]
         public async Task<IActionResult> Upload(string apiKey, string version, IFormFile assetFile)
         {
             if (assetFile == null)
