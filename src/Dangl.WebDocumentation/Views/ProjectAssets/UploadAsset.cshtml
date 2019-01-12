@@ -1,0 +1,42 @@
+﻿@model Dangl.WebDocumentation.ViewModels.ProjectAssets.UploadAssetViewModel
+
+<p>
+    <a asp-controller="ProjectVersions" asp-action="Index" asp-route-projectName="@Model.ProjectName">Back to Overview</a>
+</p>
+
+<h3>Upload an asset file to project @Model.ProjectName, version @Model.ProjectVersion</h3>
+<div class="row">
+    <div class="col-md-8">
+        <section>
+            <form asp-controller="ProjectAssets" asp-action="UploadAsset" method="post" class="form-horizontal" role="form" enctype="multipart/form-data">
+                <div asp-validation-summary="All" class="text-danger"></div>
+                <input type="text" hidden class="form-control" name="projectName" value="@Model.ProjectName" />
+                <input type="text" hidden class="form-control" name="version" value="@Model.ProjectVersion" />
+                <div class="form-group row">
+                    <label for="projectPackage" class="col-md-2">Asset File</label>
+                    <div class="col-md-10 col-md-offset-2">
+                        <input type="text" readonly="" class="form-control" placeholder="Asset File" />
+                        <input type="file" name="assetFile" id="assetFile" />
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-md-offset-2 col-md-10">
+                        <button type="submit" onclick="$(this).addClass('disabled').html('<span class=\'glyphicon glyphicon-refresh glyphicon-spin\'></span> Submitting...');" class="btn btn-raised btn-primary">Upload</button>
+                    </div>
+                </div>
+            </form>
+        </section>
+    </div>
+</div>
+
+<h4>Upload via the API</h4>
+<p>You can also use the API to upload a project asset file, for that you need the API key of the project (get or change it on the Project Edit page) and then perform a web request to upload the file.</p>
+<p>Example with cURL:</p>
+<code>curl -F "ApiKey=@ViewBag.ApiKey" -F "Version=@Model.ProjectVersion" -F "AssetFile=@@\"C:\Path\To\Package.zip\"" @Url.Action("Upload", "ApiProjects", null, Context.Request.Scheme)</code>
+<p>
+    <b>Where</b><br />
+    <code>ApiKey</code><span>The API key configured for your project</span><br />
+    <code>Version</code><span>The version of the project on which the asset should be uploaded to</span><br />
+    <code>AssetFile</code><span>The path to the file you want to upload</span><br />
+    <code>@Url.Action("Upload", "ProjectAssets", null, Context.Request.Scheme)</code><span>The resource endpoint for Api uploads</span>
+</p>

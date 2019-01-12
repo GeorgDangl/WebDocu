@@ -10,7 +10,7 @@ namespace Dangl.WebDocumentation.Services
         /// </summary>
         /// <param name="projectName"></param>
         /// <returns></returns>
-        Task<List<string>> GetProjectVersionsAsync(string projectName);
+        Task<List<(string version, bool hasAssets)>> GetProjectVersionsAsync(string projectName);
 
         /// <summary>
         /// This is supposed to return all versions that are not stable and that do have an earlier and a later

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,6 +13,8 @@ namespace Dangl.WebDocumentation.Models
         [MaxLength(40)]
         public string Version { get; set; }
         public Guid FileId { get; set; } = Guid.NewGuid();
+
+        public IList<ProjectVersionAssetFile> AssetFiles { get; set; }
 
         public static void OnModelCreating(ModelBuilder builder)
         {

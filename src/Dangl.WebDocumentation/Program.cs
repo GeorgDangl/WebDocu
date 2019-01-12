@@ -31,6 +31,7 @@ namespace Dangl.WebDocumentation
                     if (scope.ServiceProvider.GetRequiredService<IFileManager>() is AzureBlobFileManager azureBlobHandler)
                     {
                         await azureBlobHandler.EnsureContainerCreated(AppConstants.PROJECTS_CONTAINER);
+                        await azureBlobHandler.EnsureContainerCreated(AppConstants.PROJECT_ASSETS_CONTAINER);
                     }
                 }
             }

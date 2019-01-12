@@ -1,10 +1,10 @@
-﻿using System.Threading.Tasks;
-using Dangl.WebDocumentation.Models;
+﻿using Dangl.WebDocumentation.Models;
 using Dangl.WebDocumentation.Services;
 using Dangl.WebDocumentation.ViewModels.ProjectVersions;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Dangl.WebDocumentation.Controllers
 {
@@ -27,7 +27,6 @@ namespace Dangl.WebDocumentation.Controllers
             _projectFilesService = projectFilesService;
         }
 
-
         [HttpGet]
         public async Task<IActionResult> Index(string projectName)
         {
@@ -44,7 +43,13 @@ namespace Dangl.WebDocumentation.Controllers
                 ProjectId = await _projectsService.GetIdForProjectByNameAsync(projectName),
                 PathToIndex = entryFilePath,
                 ProjectName = projectName,
-                Versions = await _projectVersionsService.GetProjectVersionsAsync(projectName)
+                Versions = (await _projectVersionsService.GetProjectVersionsAsync(projectName))
+                    .Select(v => new ProjectVersionViewModel
+                    {
+                        Version = v.version,
+                        HasAssetFiles = v.hasAssets
+                    })
+                    .ToList()
             };
             return View(model);
         }

@@ -23,12 +23,14 @@ namespace Dangl.WebDocumentation.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IProjectVersionsService _projectVersionsService;
         private readonly IProjectsService _projectsService;
+        private readonly IProjectVersionAssetFilesService _projectVersionAssetFilesService;
 
         public AdminController(ApplicationDbContext context,
             IHostingEnvironment hostingEnvironment,
             UserManager<ApplicationUser> userManager,
             IProjectFilesService projectFilesService,
             IProjectVersionsService projectVersionsService,
+            IProjectVersionAssetFilesService projectVersionAssetFilesService,
             IProjectsService projectsService)
         {
             _projectFilesService = projectFilesService;
@@ -37,6 +39,7 @@ namespace Dangl.WebDocumentation.Controllers
             _userManager = userManager;
             _projectVersionsService = projectVersionsService;
             _projectsService = projectsService;
+            _projectVersionAssetFilesService = projectVersionAssetFilesService;
         }
 
         public IActionResult Index()
@@ -329,6 +332,57 @@ namespace Dangl.WebDocumentation.Controllers
             }
             ViewBag.SuccessMessage = $"Deleted project version {documentationProject.Name}.";
             return RedirectToAction(nameof(Index));
+        }
+
+        [HttpGet]
+        [Route("DeleteProjectAsset/{projectId}/{version}/{fileId}/{assetFileName}")]
+        public IActionResult DeleteProjectAsset(Guid projectId, string version, Guid fileId, string assetFileName)
+        {
+            ViewData["Section"] = "Admin";
+            var project = _context.DocumentationProjects.FirstOrDefault(p => p.Id == projectId);
+            if (project == null)
+            {
+                return NotFound();
+            }
+
+            var model = new DeleteProjectAssetViewModel
+            {
+                ConfirmDelete = false,
+                ProjectId = projectId,
+                ProjectName = project.Name,
+                Version = version,
+                FileId = fileId,
+                FileName = assetFileName
+            };
+            return View(model);
+        }
+
+        [HttpPost]
+        [Route("DeleteProjectAsset/{projectId}/{version}/{fileId}/{assetFileName}")]
+        public async Task<IActionResult> DeleteProjectAsset(DeleteProjectAssetViewModel model)
+        {
+            ViewData["Section"] = "Admin";
+            if (!model.ConfirmDelete)
+            {
+                ModelState.AddModelError(nameof(model.ConfirmDelete), "Please confirm the deletion by checking the checkbox.");
+            }
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+            var documentationProject = _context.DocumentationProjects.FirstOrDefault(project => project.Id == model.ProjectId);
+            if (documentationProject == null)
+            {
+                return NotFound();
+            }
+            var deletionResult = await _projectVersionAssetFilesService.DeleteProjectAssetFileAsync(model.FileId);
+            if (!deletionResult)
+            {
+                ModelState.AddModelError("Error", "Could not delete project asset file.");
+                return View(model);
+            }
+            var successMessage = $"Deleted project asset file {model.FileName}.";
+            return RedirectToAction(nameof(Index), "ProjectAssets", new { projectName = model.ProjectName, version = model.Version, successMessage });
         }
 
         public IActionResult ManageUsers()

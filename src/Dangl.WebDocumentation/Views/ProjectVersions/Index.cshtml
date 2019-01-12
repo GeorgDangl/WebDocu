@@ -2,6 +2,7 @@
 @{
     ViewData["Title"] = Model.ProjectName + " Versions";
     var isAdmin = User.IsInRole(AppConstants.ADMIN_ROLE_NAME);
+    var hasAnyAssets = Model.Versions.Any(v => v.HasAssetFiles);
 }
 
 <h2>@ViewData["Title"]</h2>
@@ -12,27 +13,40 @@
 }
 else
 {
-    { 
         if (isAdmin)
         {
             <a asp-controller="Admin" asp-action="DeleteBetaVersions" asp-route-projectName="@Model.ProjectName">Delete All Preview Versions</a>
         }
-    }
 
     <table class="table">
         <tbody>
-        @{
-            foreach (var version in Model.Versions)
-            {
-                <tr>
-                    <td><a asp-controller="Projects" asp-action="GetFile" asp-route-projectName="@Model.ProjectName" asp-route-version="@version" asp-route-pathToFile="@Model.PathToIndex">Version @version</a></td>
-                    @if (isAdmin)
-                    {
-                        <td><a asp-controller="Admin" asp-action="DeleteProjectVersion" asp-route-projectId="@Model.ProjectId" asp-route-version="@version">Remove</a></td>
-                    }
-                </tr>
-            }
-        }
+                @foreach (var version in Model.Versions)
+                {
+                    <tr>
+                        <td>
+                            <a asp-controller="Projects" asp-action="GetFile" asp-route-projectName="@Model.ProjectName" asp-route-version="@version.Version" asp-route-pathToFile="@Model.PathToIndex">Version @version.Version</a>
+                        </td>
+                        @{if (hasAnyAssets)
+                            {
+                                <td>
+                                    @if (version.HasAssetFiles)
+                                    {
+                                        <a asp-controller="ProjectAssets" asp-action="Index" asp-route-projectName="@Model.ProjectName" asp-route-version="@version.Version">Downloads</a>
+                                    }
+                                </td>
+                            }
+                        }
+                        @if(isAdmin)
+                        {
+                            <td>
+                                <a asp-controller="ProjectAssets" asp-action="UploadAsset" asp-route-projectName="@Model.ProjectName" asp-route-version="@version.Version">Upload Asset</a>
+                            </td>
+                            <td>
+                                <a asp-controller="Admin" asp-action="DeleteProjectVersion" asp-route-projectId="@Model.ProjectId" asp-route-version="@version.Version">Remove</a>
+                            </td>
+                        }
+                    </tr>
+                }
         </tbody>
     </table>
 }

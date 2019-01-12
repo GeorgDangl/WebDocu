@@ -6,6 +6,7 @@
         /// The container name under which project files are saved
         /// </summary>
         public const string PROJECTS_CONTAINER = "projects";
+        public const string PROJECT_ASSETS_CONTAINER = "project-assets";
 
         /// <summary>
         /// The container name under which persistent data protection values are stored.

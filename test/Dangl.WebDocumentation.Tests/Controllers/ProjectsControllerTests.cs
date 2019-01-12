@@ -57,7 +57,7 @@ namespace Dangl.WebDocumentation.Tests.Controllers
             _projectsServiceMock.Setup(s => s.UserHasAccessToProject(It.IsAny<string>(), It.IsAny<string>()))
                 .Returns(Task.FromResult(true));
             _projectVersionsServiceMock.Setup(s => s.GetProjectVersionsAsync(It.IsAny<string>()))
-                .Returns(Task.FromResult(new List<string> {"v1.0.0", "v1.0.1"}));
+                .Returns(Task.FromResult(new List<(string, bool)> {("v1.0.0",false), ("v1.0.1", false)}));
 
             var controller = GetController();
             var result = await controller.GetFile("DemoProject", "v0.0.1", "index.html");
@@ -75,7 +75,7 @@ namespace Dangl.WebDocumentation.Tests.Controllers
             _projectsServiceMock.Setup(s => s.UserHasAccessToProject(It.IsAny<string>(), It.IsAny<string>()))
                 .Returns(Task.FromResult(true));
             _projectVersionsServiceMock.Setup(s => s.GetProjectVersionsAsync(It.IsAny<string>()))
-                .Returns(Task.FromResult(new List<string> { "v1.0.0", "v1.0.1" }));
+                .Returns(Task.FromResult(new List<(string, bool)> { ("v1.0.0", false), ("v1.0.1", false) }));
 
             var controller = GetController();
             var result = await controller.GetFile("DemoProject", "v1.0.2", "index.html");
@@ -88,7 +88,7 @@ namespace Dangl.WebDocumentation.Tests.Controllers
             _projectsServiceMock.Setup(s => s.UserHasAccessToProject(It.IsAny<string>(), It.IsAny<string>()))
                 .Returns(Task.FromResult(true));
             _projectVersionsServiceMock.Setup(s => s.GetProjectVersionsAsync(It.IsAny<string>()))
-                .Returns(Task.FromResult(new List<string> { "v1.0.0", "v1.0.1" }));
+                .Returns(Task.FromResult(new List<(string, bool)> { ("v1.0.0", false), ("v1.0.1", false) }));
             _projectFilesServiceMock.Setup(s => s.GetEntryFilePathForProject(It.IsAny<string>()))
                 .Returns(Task.FromResult("index.html"));
 

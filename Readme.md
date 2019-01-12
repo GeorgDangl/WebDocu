@@ -27,6 +27,12 @@ In the project edit section, the API key for a project is set, it is used for ht
 Example with cURL:  
 `curl -F "ApiKey=<YourApiKey>" -F "Version=<DocVersion>" -F "ProjectPackage=@\"<PathToZipPackage>\"" https://<YourDomain>/API/Projects/Upload`
 
+### Asset File Upload
+
+Similarily, you can use the web interface or the API to upload asset files. Asset files are simply downloads that can be attached to a specific project and version.
+
+`curl -F "ApiKey=<YourApiKey>" -F "Version=<DocVersion>" -F "AssetFile=@\"<PathToZipPackage>\"" https://<YourDomain>/API/ProjectAssets/Upload`
+
 ## Access a package
 
 Project names are required to be unique for pretty urls. Access is routed via `https://<YourDomain>/Projects/<ProjectName>/<Version>/<PathToIndex>`

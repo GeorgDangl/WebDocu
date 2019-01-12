@@ -1,0 +1,42 @@
+﻿@model Dangl.WebDocumentation.ViewModels.ProjectAssets.IndexViewModel
+@{
+    ViewData["Title"] = Model.ProjectName + " Assets";
+    var isAdmin = User.IsInRole(AppConstants.ADMIN_ROLE_NAME);
+}
+
+<h2>@ViewData["Title"] for Version @Model.ProjectVersion</h2>
+
+<table class="table">
+    <tbody>
+        @{
+            foreach (var file in Model.Files)
+            {
+                <tr>
+                    <td>
+                        <a asp-controller="ProjectAssets"
+                           asp-action="GetAssetFile"
+                           asp-route-projectName="@Model.ProjectName"
+                           asp-route-version="@Model.ProjectVersion"
+                           asp-route-assetFileName="@file.FileName"
+                           asp-route-fileId="@file.FileId">
+                            @file.FileName (@file.PrettyfiedFileSize)
+                        </a>
+                    </td>
+                    @if (isAdmin)
+                    {
+                        <td>
+                            <a asp-controller="Admin"
+                               asp-action="DeleteProjectAsset"
+                               asp-route-projectId="@Model.ProjectId"
+                               asp-route-version="@Model.ProjectVersion"
+                               asp-route-fileId="@file.FileId"
+                               asp-route-assetFileName="@file.FileName">
+                                Remove
+                            </a>
+                        </td>
+                    }
+                </tr>
+            }
+        }
+    </tbody>
+</table>

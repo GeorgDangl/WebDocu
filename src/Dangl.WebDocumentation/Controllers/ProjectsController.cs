@@ -59,15 +59,15 @@ namespace Dangl.WebDocumentation.Controllers
             var requestsLatestVersion = string.Equals(version, "latest", StringComparison.CurrentCultureIgnoreCase);
             if (requestsLatestVersion)
             {
-                version = availableVersions.FirstOrDefault();
+                version = availableVersions.Select(av => av.version).FirstOrDefault();
             }
             else
             {
-                if (!availableVersions.Contains(version))
+                if (!availableVersions.Any(av => av.version == version))
                 {
                     // This makes sure that deleted earlier versions, e.g. prerelease versions,
                     // do not return 404 after they're deleted but get redirect to the next available version
-                    var versionsOrderer = new SemanticVersionsOrderer(availableVersions);
+                    var versionsOrderer = new SemanticVersionsOrderer(availableVersions.Select(av => av.version).ToList());
                     var nextHigherVersion = versionsOrderer.GetNextHigherVersionOrNull(version);
                     if (nextHigherVersion == null)
                     {
