@@ -255,7 +255,7 @@ namespace Dangl.WebDocumentation.Controllers
 
         [HttpPost]
         [Route("DeleteProject/{projectId}")]
-        public IActionResult DeleteProject(Guid projectId, DeleteProjectViewModel model)
+        public async Task<IActionResult> DeleteProject(Guid projectId, DeleteProjectViewModel model)
         {
             ViewData["Section"] = "Admin";
             if (!model.ConfirmDelete)
@@ -271,15 +271,14 @@ namespace Dangl.WebDocumentation.Controllers
             {
                 return NotFound();
             }
-            if (documentationProject.FolderGuid != Guid.Empty)
+
+            var projectVersions = await _projectVersionsService.GetProjectVersionsAsync(documentationProject.Name);
+
+            foreach (var projectVersion in projectVersions)
             {
-                // Check if physical files present and if yes, delete them
-                var physicalDirectory = Path.Combine(_hostingEnvironment.WebRootPath, "App_Data/" + documentationProject.FolderGuid);
-                if (Directory.Exists(physicalDirectory))
-                {
-                    Directory.Delete(physicalDirectory, true);
-                }
+                await _projectFilesService.DeleteProjectVersionPackageAsync(documentationProject.Id, projectVersion.version);
             }
+
             _context.DocumentationProjects.Remove(documentationProject);
             _context.SaveChanges();
             ViewBag.SuccessMessage = $"Deleted project {documentationProject.Name}.";

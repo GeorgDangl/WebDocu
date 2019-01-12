@@ -10,8 +10,6 @@ using System.Threading.Tasks;
 
 namespace Dangl.WebDocumentation.Services
 {
-    // TODO DELETE ALL ASSETS WHEN DELETING PROJECT AND PROJECT VERSION
-
     public class ProjectVersionAssetFilesService : IProjectVersionAssetFilesService
     {
         private readonly ApplicationDbContext _context;

@@ -16,14 +16,17 @@ namespace Dangl.WebDocumentation.Services
         private readonly AspNetCore.FileHandling.IFileManager _fileManager;
         private static readonly FileExtensionContentTypeProvider _fileExtensionContentTypeProvider = new FileExtensionContentTypeProvider();
         private readonly IProjectUploadNotificationsService _projectUploadNotificationsService;
+        private readonly IProjectVersionAssetFilesService _projectVersionAssetFilesService;
 
         public ProjectFilesService(ApplicationDbContext context,
             Dangl.AspNetCore.FileHandling.IFileManager fileManager,
+            IProjectVersionAssetFilesService projectVersionAssetFilesService,
             IProjectUploadNotificationsService projectUploadNotificationsService)
         {
             _context = context;
             _fileManager = fileManager;
             _projectUploadNotificationsService = projectUploadNotificationsService;
+            _projectVersionAssetFilesService = projectVersionAssetFilesService;
         }
 
         public Task<string> GetEntryFilePathForProject(string projectName)
@@ -156,6 +159,17 @@ namespace Dangl.WebDocumentation.Services
             {
                 return false;
             }
+
+            var assetFiles = await _context.ProjectVersionAssetFiles
+                .Where(a => a.ProjectVersion.Project.Id == projectId)
+                .ToListAsync();
+
+            foreach (var assetFile in assetFiles)
+            {
+                await _fileManager.DeleteFileAsync(assetFile.FileId, AppConstants.PROJECT_ASSETS_CONTAINER, assetFile.FileName);
+                _context.ProjectVersionAssetFiles.Remove(assetFile);
+            }
+
             _context.DocumentationProjectVersions.Remove(projectVersion);
             await _context.SaveChangesAsync();
             return true;
