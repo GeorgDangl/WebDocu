@@ -255,6 +255,32 @@ namespace Dangl.WebDocumentation.Tests.Services
                 AssertOrdersCorrect(input, expectedOutput);
             }
 
+            [Fact]
+            public void OrdersCorrect_WithCommitCounter_01()
+            {
+                var input = new[]
+                {
+                    "2.1.0-beta0014",
+                    "2.0.1-beta0003",
+                    "1.8.11",
+                    "2.1.0-version21-0012",
+                    "2.0.0",
+                    "2.1.0-version21-0009",
+                    "2.0.1-beta0005",
+                };
+                var expectedOutput = new[]
+                {
+                    "2.1.0-beta0014",
+                    "2.1.0-version21-0012",
+                    "2.1.0-version21-0009",
+                    "2.0.1-beta0005",
+                    "2.0.1-beta0003",
+                    "2.0.0",
+                    "1.8.11"
+                };
+                AssertOrdersCorrect(input, expectedOutput);
+            }
+
             private void AssertOrdersCorrect(string[] input, string[] expected)
             {
                 var orderer = new SemanticVersionsOrderer(input.ToList());
