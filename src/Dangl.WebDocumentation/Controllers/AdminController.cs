@@ -24,6 +24,7 @@ namespace Dangl.WebDocumentation.Controllers
         private readonly IProjectVersionsService _projectVersionsService;
         private readonly IProjectsService _projectsService;
         private readonly IProjectVersionAssetFilesService _projectVersionAssetFilesService;
+        private readonly IEmailSender _emailSender;
 
         public AdminController(ApplicationDbContext context,
             IHostingEnvironment hostingEnvironment,
@@ -31,7 +32,8 @@ namespace Dangl.WebDocumentation.Controllers
             IProjectFilesService projectFilesService,
             IProjectVersionsService projectVersionsService,
             IProjectVersionAssetFilesService projectVersionAssetFilesService,
-            IProjectsService projectsService)
+            IProjectsService projectsService,
+            IEmailSender emailSender)
         {
             _projectFilesService = projectFilesService;
             _context = context;
@@ -40,11 +42,21 @@ namespace Dangl.WebDocumentation.Controllers
             _projectVersionsService = projectVersionsService;
             _projectsService = projectsService;
             _projectVersionAssetFilesService = projectVersionAssetFilesService;
+            _emailSender = emailSender;
         }
 
-        public IActionResult Index()
+        public IActionResult Index(string successMessage, string errorMessage)
         {
             ViewData["Section"] = "Admin";
+
+            if (!string.IsNullOrWhiteSpace(successMessage))
+            {
+                ViewBag.SuccessMessage = successMessage;
+            }
+            if (!string.IsNullOrWhiteSpace(errorMessage))
+            {
+                ViewBag.ErrorMessage = errorMessage;
+            }
             var model = new IndexViewModel();
             model.Projects = _context.DocumentationProjects.OrderBy(project => project.Name);
             return View(model);
@@ -56,6 +68,26 @@ namespace Dangl.WebDocumentation.Controllers
             var model = new CreateProjectViewModel();
             model.AvailableUsers = _context.Users.Select(appUser => appUser.UserName).OrderBy(username => username);
             return View(model);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SendTestEmail()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            var email = user.Email;
+            var emailSendResult = await _emailSender.SendMessage(email, "DanglDocu Test Email", $@"<h1>Email Test</h1>
+<p>This email was sent from DanglDocu at {DateTime.UtcNow:dd.MM.yyyy HH:mm} (UTC) to {email} by manual invocation from the owner of this user account.</p>");
+
+            if (emailSendResult)
+            {
+                var successMessage = "The test email was sent. Please check your inbox.";
+                return RedirectToAction(nameof(Index), new { successMessage });
+            }
+            else
+            {
+                var errorMessage = "The test email could not be sent. Please check the server side configuration.";
+                return RedirectToAction(nameof(Index), new { errorMessage });
+            }
         }
 
         [HttpPost]

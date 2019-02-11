@@ -56,3 +56,10 @@
 <p>
     <a href="@AppConstants.HANGFIRE_DASHBOARD_LINK">Go to Dashboard</a>
 </p>
+<h3>Send Test Email</h3>
+<p>
+    By clicking this button, a test email is sent to your account to verify this service can send emails.
+</p>
+<form asp-controller="Admin" asp-action="SendTestEmail" method="post">
+    <button class="btn btn-raised btn-primary">Send Test Email</button>
+</form>

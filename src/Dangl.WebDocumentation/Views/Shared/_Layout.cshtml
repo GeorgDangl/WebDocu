@@ -30,27 +30,40 @@
         @{
             if (ViewBag.SuccessMessage != null)
             {
-                <div class="alert alert-success alert-dismissible" role="alert" style="margin-top:-40px;">
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                        <i class="zmdi zmdi-close"></i>
-                    </button>
-                    <strong>
-                        <i class="zmdi zmdi-check"></i>
-                        Success!
-                    </strong>
-                    @ViewBag.SuccessMessage
-                </div>
-            }
+            <div class="alert alert-success alert-dismissible" role="alert" style="margin-top:-40px;">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <i class="zmdi zmdi-close"></i>
+                </button>
+                <strong>
+                    <i class="zmdi zmdi-check"></i>
+                    Success!
+                </strong>
+                @ViewBag.SuccessMessage
+            </div>
+        }
+        if (ViewBag.ErrorMessage != null)
+        {
+            <div class="alert alert-danger alert-dismissible" role="alert" style="margin-top:-40px;">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <i class="zmdi zmdi-close"></i>
+                </button>
+                <strong>
+                    <i class="zmdi zmdi-check"></i>
+                    Error!
+                </strong>
+                @ViewBag.ErrorMessage
+            </div>
+        }
         }
         <div class="container body-content" style="flex: 1 0 auto;">
             @RenderBody()
         </div>
 
         @await Html.PartialAsync("_FooterPartial")
-    </div>
-    @await Html.PartialAsync("_SideMenuPartial")
-    <script src="~/js/plugins.min.js" asp-append-version="true"></script>
-    <script src="~/js/app.min.js" asp-append-version="true"></script>
-    @RenderSection("scripts", required: false)
-</body>
+        </div>
+        @await Html.PartialAsync("_SideMenuPartial")
+        <script src="~/js/plugins.min.js" asp-append-version="true"></script>
+        <script src="~/js/app.min.js" asp-append-version="true"></script>
+        @RenderSection("scripts", required: false)
+    </body>
 </html>
