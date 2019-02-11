@@ -126,7 +126,7 @@ namespace Dangl.WebDocumentation.Tests.Controllers
 
             private AdminController Controller()
             {
-                return new AdminController(Context, null, null, null, null, null, null);
+                return new AdminController(Context, null, null, null, null, null, null, null);
             }
 
             /// <summary>
