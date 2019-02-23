@@ -161,7 +161,8 @@ namespace Dangl.WebDocumentation.Services
             }
 
             var assetFiles = await _context.ProjectVersionAssetFiles
-                .Where(a => a.ProjectVersion.Project.Id == projectId)
+                .Where(a => a.ProjectVersion.Version == projectVersion.Version
+                        && a.ProjectVersion.Project.Id == projectId)
                 .ToListAsync();
 
             foreach (var assetFile in assetFiles)
