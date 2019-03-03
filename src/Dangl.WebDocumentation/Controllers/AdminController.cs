@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -416,12 +417,15 @@ namespace Dangl.WebDocumentation.Controllers
             return RedirectToAction(nameof(Index), "ProjectAssets", new { projectName = model.ProjectName, version = model.Version, successMessage });
         }
 
-        public IActionResult ManageUsers()
+        public async Task<IActionResult> ManageUsers()
         {
             ViewData["Section"] = "Admin";
-            var adminRoleId = _context.Roles.FirstOrDefault(role => role.Name == AppConstants.ADMIN_ROLE_NAME).Id;
+            var adminRoleId = (await _context.Roles.FirstAsync(role => role.Name == AppConstants.ADMIN_ROLE_NAME)).Id;
             var model = new ManageUsersViewModel();
-            model.Users = _context.Users.Select(user => new UserAdminRoleViewModel { Name = user.Email, IsAdmin = user.Roles.Any(role => role.RoleId == adminRoleId) });
+            model.Users = await _context.Users
+                .Select(user => new UserAdminRoleViewModel { Name = user.Email, IsAdmin = user.Roles.Any(role => role.RoleId == adminRoleId) })
+                .OrderBy(user => user.Name)
+                .ToListAsync();
             return View(model);
         }
 
