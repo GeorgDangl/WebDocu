@@ -38,7 +38,8 @@ namespace Dangl.WebDocumentation.Tests.Services
             [InlineData("a.1.2", false)]
             [InlineData("1.1", false)]
             [InlineData("1.1.1.", false)]
-            [InlineData("1.1.1.0", false)]
+            [InlineData("1.1.1.0", true)]
+            [InlineData("5.0.15.24587", true)]
             [InlineData("1", false)]
             public void DetectPreviewVersion(string version, bool isExpectedPreview)
             {

@@ -51,7 +51,7 @@ namespace Dangl.WebDocumentation.Services
 
         public static bool IsStableVersion(string version)
         {
-            const string stableSemverRegex = @"^\d+\.\d+\.\d+$";
+            const string stableSemverRegex = @"^\d+\.\d+\.\d+(\.\d+)?$";
             return Regex.IsMatch(version ?? string.Empty, stableSemverRegex);
         }
     }
