@@ -29,6 +29,7 @@ namespace Dangl.WebDocumentation.Controllers.API
         /// <returns></returns>
         [HttpPost]
         [Route("API/ProjectAssets/Upload")]
+        [DisableRequestSizeLimit]
         public async Task<IActionResult> Upload(string apiKey, string version, IFormFile assetFile)
         {
             if (assetFile == null)

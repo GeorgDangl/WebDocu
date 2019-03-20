@@ -115,6 +115,7 @@ namespace Dangl.WebDocumentation.Controllers
 
         [Authorize(Roles = AppConstants.ADMIN_ROLE_NAME)]
         [HttpPost("Upload")]
+        [DisableRequestSizeLimit]
         public async Task<IActionResult> UploadAsset(string projectName, string version, IFormFile assetFile)
         {
             var uploadViewModel = new ViewModels.ProjectAssets.UploadAssetViewModel
