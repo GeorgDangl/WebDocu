@@ -13,14 +13,17 @@ namespace Dangl.WebDocumentation.Services
         private readonly ApplicationDbContext _context;
         private readonly IProjectsService _projectsService;
         private readonly AppSettings _appSettings;
+        private readonly IProjectChangelogService _projectChangelogService;
 
         public ProjectUploadNotificationsService(ApplicationDbContext context,
             IProjectsService projectsService,
+            IProjectChangelogService projectChangelogService,
             IOptions<AppSettings> options)
         {
             _context = context;
             _projectsService = projectsService;
             _appSettings = options.Value;
+            _projectChangelogService = projectChangelogService;
         }
 
         public async Task ScheduleProjectUploadNotifications(string projectName, string version)
@@ -47,12 +50,12 @@ namespace Dangl.WebDocumentation.Services
                     continue;
                 }
 
-                var emailData = GetEmailContent(projectName, version, _appSettings.BaseUrl);
+                var emailData = await GetEmailContent(projectName, version, _appSettings.BaseUrl);
                 BackgroundJob.Enqueue<IEmailSender>(emailSender => emailSender.SendMessage(user.Email, emailData.subject, emailData.body));
             }
         }
 
-        private static (string subject, string body) GetEmailContent(string projectName, string version, string danglDocuBaseUrl)
+        private async Task<(string subject, string body)> GetEmailContent(string projectName, string version, string danglDocuBaseUrl)
         {
             var isPrereleaseVersion = !SemanticVersionsOrderer.IsStableVersion(version);
 
@@ -60,8 +63,8 @@ namespace Dangl.WebDocumentation.Services
                 ? $"New Beta Release Available for {projectName}"
                 : $"New Release Available for {projectName}";
 
-
-            var emailBody = GetEmailBody(isPrereleaseVersion, projectName, version, danglDocuBaseUrl);
+            var htmlChangelog = await _projectChangelogService.GetChangelogInHtmlFormat(projectName, version);
+            var emailBody = GetEmailBody(isPrereleaseVersion, projectName, version, danglDocuBaseUrl, htmlChangelog);
 
             return (subject, emailBody);
         }
@@ -69,7 +72,8 @@ namespace Dangl.WebDocumentation.Services
         private static string GetEmailBody(bool isPrereleaseVersion,
             string projectName,
             string version,
-            string danglDocuBaseUrl)
+            string danglDocuBaseUrl,
+            string htmlChangelog)
         {
             return @"<div style=""display: none; font-size: 1px; color: #fefefe; line-height: 1px; font-family: 'Roboto', Helvetica, Arial, sans-serif; max-height: 0px; max-width: 0px; opacity: 0; overflow: hidden; mso-hide: all;"">Dangl<strong>IT</strong> Release Notification</div>
 <table border=""0"" cellspacing=""0"" cellpadding=""0"" width=""100%"">
@@ -116,8 +120,20 @@ namespace Dangl.WebDocumentation.Services
 <p>Do you want to stop receiving notifications from Dangl<strong>Docu</strong>? Go to " + danglDocuBaseUrl + @" and disable your notifications.</p>
 <p>You can reply to this email if you have any questions.</p>
 </td>
+</tr>" + (string.IsNullOrWhiteSpace(htmlChangelog)
+? string.Empty
+: (@"<tr>
+<td align=""center"" style=""padding: 0 0 16px 0; color: #424242; font-family: 'Roboto', Helvetica, Arial, sans-serif; font-size: 28px; font-weight: normal; line-height: 32px;"">
+<p><strong>Changelog:</strong></p>
+</td>
 </tr>
-</tbody>
+<tr>
+<td  style=""padding: 0 0 16px 0; color: #424242; font-family: 'Roboto', Helvetica, Arial, sans-serif; font-size: 16px; font-weight: normal; line-height: 28px;"">
+" + htmlChangelog + @"
+</td>
+</tr>"))
+
++ @"</tbody>
 </table>
 </td>
 </tr>

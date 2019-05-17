@@ -208,7 +208,7 @@ namespace Dangl.WebDocumentation.Controllers
 
         [HttpPost]
         [Route("UploadProject/{projectId}")]
-        public async Task<IActionResult> UploadProject(Guid projectId, string version, IFormFile projectPackage)
+        public async Task<IActionResult> UploadProject(Guid projectId, string version, string markdownChangelog, IFormFile projectPackage)
         {
             ViewData["Section"] = "Admin";
             if (projectPackage == null)
@@ -229,7 +229,7 @@ namespace Dangl.WebDocumentation.Controllers
             // Try to read as zip file
             using (var inputStream = projectPackage.OpenReadStream())
             {
-                var uploadResult = await _projectFilesService.UploadProjectPackageAsync(projectEntry.Name, version, inputStream);
+                var uploadResult = await _projectFilesService.UploadProjectPackageAsync(projectEntry.Name, version, markdownChangelog, inputStream);
                 if (!uploadResult)
                 {
                     ModelState.AddModelError(string.Empty, "Failed to update the project files");

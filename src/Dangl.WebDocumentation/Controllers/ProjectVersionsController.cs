@@ -47,7 +47,8 @@ namespace Dangl.WebDocumentation.Controllers
                     .Select(v => new ProjectVersionViewModel
                     {
                         Version = v.version,
-                        HasAssetFiles = v.hasAssets
+                        HasAssetFiles = v.hasAssets,
+                        HasChangelog = v.hasChangelog
                     })
                     .ToList()
             };

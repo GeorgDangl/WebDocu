@@ -18,7 +18,13 @@
                 <div class="form-group row">
                     <label class="col-md-2">Version</label>
                     <div class="col-md-10">
-                        <input type="text" class="form-control" name="version" placeholder="Version"/>
+                        <input type="text" class="form-control" name="version" placeholder="Version" />
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-md-2">Changelog (Markdown)</label>
+                    <div class="col-md-10">
+                        <textarea class="form-control" name="markdownChangelog"> </textarea>
                     </div>
                 </div>
                 <div class="form-group row">
@@ -33,10 +39,11 @@
 <h4>Upload via the API</h4>
 <p>You can also use the API to upload a project package, for that you need the API key of the project (get or change it on the Project Edit page) and then perform a web request to upload the file.</p>
 <p>Example with cURL:</p>
-<code>curl -F "ApiKey=@ViewBag.ApiKey" -F "ProjectPackage=@@\"C:\Path\To\Package.zip\"" @Url.Action("Upload", "ApiProjects", null, Context.Request.Scheme)</code>
+<code>curl -F "ApiKey=@ViewBag.ApiKey" -F "MarkdownChangelog=&lt;your changelog&gt;" -F "ProjectPackage=@@\"C:\Path\To\Package.zip\"" @Url.Action("Upload", "ApiProjects", null, Context.Request.Scheme)</code>
 <p>
-    <b>Where</b><br/>
+    <b>Where</b><br />
     <code>ApiKey</code><span>The API key configured for your project</span><br />
+    <code>MarkdownChangelog</code><span>Optional string for the changelog</span><br />
     <code>ProjectPackage</code><span>The path to the file you want to upload</span><br />
     <code>@Url.Action("Upload", "Projects", null, Context.Request.Scheme)</code><span>The resource endpoint for Api project uploads</span>
 </p>

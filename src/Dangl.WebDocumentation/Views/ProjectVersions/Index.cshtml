@@ -3,6 +3,7 @@
     ViewData["Title"] = Model.ProjectName + " Versions";
     var isAdmin = User.IsInRole(AppConstants.ADMIN_ROLE_NAME);
     var hasAnyAssets = Model.Versions.Any(v => v.HasAssetFiles);
+    var hasAnyChangelogs = Model.Versions.Any(v => v.HasChangelog);
 }
 
 <h2>@ViewData["Title"]</h2>
@@ -32,6 +33,16 @@ else
                                     @if (version.HasAssetFiles)
                                     {
                                         <a asp-controller="ProjectAssets" asp-action="Index" asp-route-projectName="@Model.ProjectName" asp-route-version="@version.Version">Downloads</a>
+                                    }
+                                </td>
+                            }
+                        }
+                        @{if (hasAnyChangelogs)
+                            {
+                                <td>
+                                    @if (version.HasChangelog)
+                                    {
+                                        <a asp-controller="ProjectChangelogs" asp-action="Index" asp-route-projectName="@Model.ProjectName" asp-route-version="@version.Version">Changelog</a>
                                     }
                                 </td>
                             }

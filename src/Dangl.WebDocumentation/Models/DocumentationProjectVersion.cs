@@ -16,6 +16,8 @@ namespace Dangl.WebDocumentation.Models
 
         public IList<ProjectVersionAssetFile> AssetFiles { get; set; }
 
+        public string MarkdownChangelog { get; set; }
+
         public static void OnModelCreating(ModelBuilder builder)
         {
             builder.Entity<DocumentationProjectVersion>()

@@ -27,6 +27,8 @@ In the project edit section, the API key for a project is set, it is used for ht
 Example with cURL:  
 `curl -F "ApiKey=<YourApiKey>" -F "Version=<DocVersion>" -F "ProjectPackage=@\"<PathToZipPackage>\"" https://<YourDomain>/API/Projects/Upload`
 
+You can optionally supply the string parameter `markdownChangelog` to include a changelog for the release.
+
 ### Asset File Upload
 
 Similarily, you can use the web interface or the API to upload asset files. Asset files are simply downloads that can be attached to a specific project and version.

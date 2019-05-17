@@ -1,0 +1,9 @@
+﻿@model Dangl.WebDocumentation.ViewModels.ProjectChangelogs.IndexViewModel
+@{
+    ViewData["Title"] = Model.ProjectName + " Changelog";
+}
+
+<h2>@ViewData["Title"] for Version @Model.ProjectVersion</h2>
+
+@* The Html is sanitized before it reaches this page, so it can be displayed directly *@
+@Html.Raw(Model.HtmlChangelog)

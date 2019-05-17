@@ -64,6 +64,7 @@ namespace Dangl.WebDocumentation
             services.AddTransient<IProjectsService, ProjectsService>();
             services.AddTransient<IProjectVersionAssetFilesService, ProjectVersionAssetFilesService>();
             services.AddTransient<IProjectUploadNotificationsService, ProjectUploadNotificationsService>();
+            services.AddTransient<IProjectChangelogService, ProjectChangelogService>();
 
             var projectsRootFolder = Configuration["ProjectsRootFolder"];
             if (!string.IsNullOrWhiteSpace(projectsRootFolder))

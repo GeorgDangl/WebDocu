@@ -29,7 +29,7 @@ namespace Dangl.WebDocumentation.Controllers.API
         /// <returns></returns>
         [HttpPost]
         [Route("API/Projects/Upload")]
-        public async Task<IActionResult> Upload(string apiKey, string version, IFormFile projectPackage)
+        public async Task<IActionResult> Upload(string apiKey, string version, string markdownChangelog, IFormFile projectPackage)
         {
             if (projectPackage == null)
             {
@@ -47,7 +47,7 @@ namespace Dangl.WebDocumentation.Controllers.API
             }
             using (var projectPackageStream = projectPackage.OpenReadStream())
             {
-                var packageUploadResult = await _projectFilesService.UploadProjectPackageAsync(projectName, version, projectPackageStream);
+                var packageUploadResult = await _projectFilesService.UploadProjectPackageAsync(projectName, version, markdownChangelog, projectPackageStream);
                 if (packageUploadResult)
                 {
                     return Ok();
