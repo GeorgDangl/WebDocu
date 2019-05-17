@@ -27,13 +27,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Hangfire" Version="1.6.22" />
-    <PackageReference Include="Humanizer.Core" Version="2.5.16" />
+    <PackageReference Include="Hangfire" Version="1.7.2" />
+    <PackageReference Include="Humanizer.Core" Version="2.6.2" />
     <PackageReference Include="Microsoft.AspNetCore.DataProtection.AzureStorage" Version="2.2.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging.AzureAppServices" Version="2.2.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.AzureAppServices" Version="2.2.5" />
     <PackageReference Include="Dangl.AspNetCore.FileHandling.Azure" Version="0.1.7" />
     <PackageReference Include="Microsoft.AspNetCore.App" />
-    <PackageReference Include="Mailkit" Version="2.1.2" />
+    <PackageReference Include="Mailkit" Version="2.1.5.1" />
     <PackageReference Include="WebConfigTransformRunner" Version="1.0.0.1">
       <PrivateAssets>All</PrivateAssets>
     </PackageReference>
