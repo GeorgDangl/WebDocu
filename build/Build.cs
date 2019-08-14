@@ -26,6 +26,7 @@ using Microsoft.Azure.Management.ResourceManager.Fluent;
 using static Nuke.Common.IO.HttpTasks;
 using Newtonsoft.Json.Linq;
 using System.Linq;
+using Nuke.Common.Utilities.Collections;
 
 class Build : NukeBuild
 {
@@ -67,7 +68,7 @@ class Build : NukeBuild
     Target Clean => _ => _
             .Executes(() =>
             {
-                DeleteDirectories(GlobDirectories(SourceDirectory, "**/bin", "**/obj"));
+                GlobDirectories(SourceDirectory, "**/bin", "**/obj").ForEach(DeleteDirectory);
                 EnsureCleanDirectory(OutputDirectory);
             });
 
@@ -119,7 +120,7 @@ namespace Dangl.WebDocumentation.Services
     Target Coverage => _ => _
         .DependsOn(Compile)
         .Requires(() => Configuration.EqualsOrdinalIgnoreCase("Debug")) // Required for coverage data gathering
-        .Executes(() =>
+        .Executes(async () =>
         {
             var testProjectDirectory = SolutionDirectory / "test" / "Dangl.WebDocumentation.Tests";
 
@@ -140,12 +141,10 @@ namespace Dangl.WebDocumentation.Services
             //// This is the report in Cobertura format that integrates so nice in Jenkins
             //// dashboard and allows to extract more metrics and set build health based
             //// on coverage readings
-            DotCoverToCobertura(s => s
+            await DotCoverToCobertura(s => s
                     .SetInputFile(OutputDirectory / "dotCover.xml")
                     .SetOutputFile(OutputDirectory / "cobertura.xml"))
-                .ConfigureAwait(false)
-                .GetAwaiter()
-                .GetResult();
+                .ConfigureAwait(false);
         });
 
     Target Publish => _ => _
@@ -209,7 +208,7 @@ namespace Dangl.WebDocumentation.Services
         {
             if (PublishEnvironmentName == "Production")
             {
-                Logger.Log("Deployed to production, initiating slot swap with staging");
+                Logger.Log(LogLevel.Normal, "Deployed to production, initiating slot swap with staging");
 
                 var azureCredentials = SdkContext.AzureCredentialsFactory.FromServicePrincipal(AzureServicePrincipalClientId,
                     AzureServicePrincipalClientSecret,
@@ -219,11 +218,11 @@ namespace Dangl.WebDocumentation.Services
                     .WithLogLevel(Microsoft.Azure.Management.ResourceManager.Fluent.Core.HttpLoggingDelegatingHandler.Level.Basic)
                     .Authenticate(azureCredentials)
                     .WithDefaultSubscription();
-                Logger.Log("Getting information about the web app");
+                Logger.Log(LogLevel.Normal, "Getting information about the web app");
                 var webApp = (await azure.AppServices.WebApps
                     .ListAsync())
                     .First(app => app.Name == AzureAppServiceName);
-                Logger.Log("Getting information about the staging slot");
+                Logger.Log(LogLevel.Normal, "Getting information about the staging slot");
                 var slot = (await webApp.DeploymentSlots.ListAsync())
                     .First(s => s.Name == AzureAppServiceStagingSlotName);
 
@@ -233,7 +232,7 @@ namespace Dangl.WebDocumentation.Services
                     ControlFlow.Fail("The web app in the staging slot does not report a healthy status");
                 }
 
-                Logger.Log("Starting swap");
+                Logger.Log(LogLevel.Normal, "Starting swap");
                 // "production" is the default name for the main slot
                 await slot.SwapAsync("production");
             }
