@@ -18,6 +18,8 @@ namespace Dangl.WebDocumentation.Models
 
         public string MarkdownChangelog { get; set; }
 
+        public DateTimeOffset CreatedAtUtc { get; set; } = DateTimeOffset.UtcNow;
+
         public static void OnModelCreating(ModelBuilder builder)
         {
             builder.Entity<DocumentationProjectVersion>()
