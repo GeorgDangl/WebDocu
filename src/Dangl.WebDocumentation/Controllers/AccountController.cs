@@ -133,12 +133,22 @@ namespace Dangl.WebDocumentation.Controllers
                 if (user == null)
                 {
                     ModelState.AddModelError(string.Empty, "There is no user with this email registered");
+                    _logger.LogInformation("Tried to request a forgot password email but there was is user registered with this email.");
                 }
                 else
                 {
+
                     var resetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
                     var resetUrl = Url.Action(nameof(ResetPassword), "Account", new {emailAddress = model.Email, resetToken}, Request.Scheme);
-                    await _emailSender.SendForgotPasswordEmail(model.Email, resetUrl);
+                    var forgotPasswordEmailResult = await _emailSender.SendForgotPasswordEmail(model.Email, resetUrl);
+                    if (forgotPasswordEmailResult)
+                    {
+                        _logger.LogInformation("Sent forgot password email to user with id: " + user.Id);
+                    }
+                    else
+                    {
+                        _logger.LogError("Failed to send forgot password email to user with id: " + user.Id);
+                    }
                     return View("PasswordResetRequested");
                 }
             }
