@@ -39,7 +39,11 @@ namespace Dangl.WebDocumentation
             // Add framework services.
 
             services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlServer(Configuration["Data:DefaultConnection:ConnectionString"]));
+                options.UseSqlServer(Configuration["Data:DefaultConnection:ConnectionString"],
+                    // The production instance is on a super small Azure SQL db that has an outtage for half a minute every one or two months,
+                    // which produces the following entry in the logs:
+                    // An exception has been raised that is likely due to a transient failure. Consider enabling transient error resiliency by adding 'EnableRetryOnFailure()'
+                    options => options.EnableRetryOnFailure()));
             services.AddHangfire(x => x.UseSqlServerStorage(Configuration["Data:DefaultConnection:ConnectionString"]));
 
             services.AddIdentity<ApplicationUser, IdentityRole>(identityOptions =>
