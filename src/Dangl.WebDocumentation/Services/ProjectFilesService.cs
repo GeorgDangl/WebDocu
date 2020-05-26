@@ -110,27 +110,33 @@ namespace Dangl.WebDocumentation.Services
             // Try to read as zip file
             try
             {
-                using (var transaction = await _context.Database.BeginTransactionAsync())
+                var transactionResult = false;
+                var executionStrategy = _context.Database.CreateExecutionStrategy();
+                await executionStrategy.ExecuteAsync(async () =>
                 {
-                    var newVersion = new DocumentationProjectVersion
+                    using (var transaction = await _context.Database.BeginTransactionAsync())
                     {
-                        ProjectName = projectName,
-                        Version = version,
-                        MarkdownChangelog = markdownChangelog
-                    };
-                    _context.DocumentationProjectVersions.Add(newVersion);
-                    await _context.SaveChangesAsync();
-                    var packagePath = GetPackagePath(projectId, newVersion.FileId);
+                        var newVersion = new DocumentationProjectVersion
+                        {
+                            ProjectName = projectName,
+                            Version = version,
+                            MarkdownChangelog = markdownChangelog
+                        };
+                        _context.DocumentationProjectVersions.Add(newVersion);
+                        await _context.SaveChangesAsync();
+                        var packagePath = GetPackagePath(projectId, newVersion.FileId);
 
-                    var repoResult = await _fileManager.SaveFileAsync(AppConstants.PROJECTS_CONTAINER, packagePath, zipArchiveStream);
-                    if (repoResult.IsSuccess)
-                    {
-                        transaction.Commit();
-                        await _projectUploadNotificationsService.ScheduleProjectUploadNotifications(projectName, version);
-                        return true;
+                        var repoResult = await _fileManager.SaveFileAsync(AppConstants.PROJECTS_CONTAINER, packagePath, zipArchiveStream);
+                        if (repoResult.IsSuccess)
+                        {
+                            transaction.Commit();
+                            await _projectUploadNotificationsService.ScheduleProjectUploadNotifications(projectName, version);
+                            transactionResult = true;
+                        }
                     }
-                    return false;
-                }
+                });
+
+                return transactionResult;
             }
             catch (InvalidDataException)
             {
