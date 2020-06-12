@@ -137,6 +137,7 @@ namespace Dangl.WebDocumentation.Services
 
             //// This is the report that's pretty and visualized in Jenkins
             ReportGenerator(c => c
+                .SetFramework("netcoreapp2.1")
                 .SetReports(OutputDirectory / "dotCover.xml")
                 .SetTargetDirectory(OutputDirectory / "CoverageReport"));
 
