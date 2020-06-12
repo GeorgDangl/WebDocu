@@ -46,7 +46,7 @@ class Build : NukeBuild
     [Parameter] string KeyVaultClientSecret;
     [KeyVault] KeyVault KeyVault;
 
-    [GitVersion] readonly GitVersion GitVersion;
+    [GitVersion(Framework = "netcoreapp3.1")] readonly GitVersion GitVersion;
 
     [Parameter] readonly string PublishEnvironmentName;
     [Parameter] readonly string WebDeployUsernameSecretName;
