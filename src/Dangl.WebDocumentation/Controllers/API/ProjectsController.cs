@@ -45,6 +45,12 @@ namespace Dangl.WebDocumentation.Controllers.API
             {
                 return NotFound();
             }
+
+            if (await _projectFilesService.PackageAlreadyExistsAsync(projectName, version))
+            {
+                return Conflict();
+            }
+
             using (var projectPackageStream = projectPackage.OpenReadStream())
             {
                 var packageUploadResult = await _projectFilesService.UploadProjectPackageAsync(projectName, version, markdownChangelog, projectPackageStream);

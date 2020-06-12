@@ -101,6 +101,11 @@ namespace Dangl.WebDocumentation.Services
             return "application/octet-stream";
         }
 
+        public Task<bool> PackageAlreadyExistsAsync(string projectName, string version)
+        {
+            return _context.DocumentationProjectVersions.AnyAsync(p => p.ProjectName == projectName && p.Version == version);
+        }
+
         public async Task<bool> UploadProjectPackageAsync(string projectName, string version, string markdownChangelog, Stream zipArchiveStream)
         {
             var projectId = await _context.DocumentationProjects
