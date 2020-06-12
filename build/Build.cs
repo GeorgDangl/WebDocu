@@ -15,7 +15,6 @@ using static Nuke.Common.Tools.DotNet.DotNetTasks;
 using static Nuke.Common.Tools.ReportGenerator.ReportGeneratorTasks;
 using static Nuke.Common.Tools.WebConfigTransformRunner.WebConfigTransformRunnerTasks;
 using static Nuke.WebDeploy.WebDeployTasks;
-using Nuke.Azure.KeyVault;
 using Nuke.Common.ProjectModel;
 using Nuke.Common.Tooling;
 using System;
@@ -27,6 +26,9 @@ using static Nuke.Common.IO.HttpTasks;
 using Newtonsoft.Json.Linq;
 using System.Linq;
 using Nuke.Common.Utilities.Collections;
+using Nuke.Common.Tools.AzureKeyVault.Attributes;
+using Nuke.Common.Tools.AzureKeyVault;
+using Nuke.Common.IO;
 
 class Build : NukeBuild
 {
