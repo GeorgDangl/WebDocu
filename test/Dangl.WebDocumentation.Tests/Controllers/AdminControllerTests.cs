@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Dangl.WebDocumentation.Controllers;
 using Dangl.WebDocumentation.Models;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Features.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -28,7 +27,6 @@ namespace Dangl.WebDocumentation.Tests.Controllers
             // Taken from https://github.com/aspnet/MusicStore/blob/dev/test/MusicStore.Test/ManageControllerTest.cs (and modified)
             // IHttpContextAccessor is required for SignInManager, and UserManager
             var context = new DefaultHttpContext();
-            context.Features.Set<IHttpAuthenticationFeature>(new HttpAuthenticationFeature {Handler = new TestAuthHandler()});
             services.AddSingleton<IHttpContextAccessor>(h => new HttpContextAccessor {HttpContext = context});
 
             var serviceProvider = services.BuildServiceProvider();
@@ -46,40 +44,6 @@ namespace Dangl.WebDocumentation.Tests.Controllers
         public void Dispose()
         {
             Context.Database.EnsureDeleted();
-        }
-
-        private class TestAuthHandler : IAuthenticationHandler
-        {
-            public Task AuthenticateAsync(AuthenticateContext context)
-            {
-                context.NotAuthenticated();
-                return Task.FromResult(0);
-            }
-
-            public Task ChallengeAsync(ChallengeContext context)
-            {
-                throw new NotImplementedException();
-            }
-
-            public void GetDescriptions(DescribeSchemesContext context)
-            {
-                throw new NotImplementedException();
-            }
-
-            public Task SignInAsync(SignInContext context)
-            {
-                throw new NotImplementedException();
-            }
-
-            public Task SignOutAsync(SignOutContext context)
-            {
-                throw new NotImplementedException();
-            }
-
-            public void Authenticate(AuthenticateContext context)
-            {
-                context.NotAuthenticated();
-            }
         }
     }
 

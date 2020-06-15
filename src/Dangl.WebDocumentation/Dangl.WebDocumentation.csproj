@@ -2,13 +2,12 @@
 
   <PropertyGroup>
     <Authors>Georg Dangl</Authors>
-    <TargetFramework>netcoreapp2.2</TargetFramework>
-    <AspNetCoreHostingModel>InProcess</AspNetCoreHostingModel>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <PreserveCompilationContext>true</PreserveCompilationContext>
     <AssemblyName>Dangl.WebDocumentation</AssemblyName>
-    <OutputType>Exe</OutputType>
     <PackageId>Dangl.WebDocumentation</PackageId>
     <UserSecretsId>aspnet5-Dangl.WebDocumentation-0c87600e-7481-4adb-82c4-92da09b0300c</UserSecretsId>
+    <IncludeOpenAPIAnalyzers>true</IncludeOpenAPIAnalyzers>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -32,9 +31,11 @@
     <PackageReference Include="Humanizer.Core" Version="2.6.2" />
     <PackageReference Include="Markdig" Version="0.17.1" />
     <PackageReference Include="Microsoft.AspNetCore.DataProtection.AzureStorage" Version="2.2.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="3.1.5" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="3.1.5" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="3.1.5" />
     <PackageReference Include="Microsoft.Extensions.Logging.AzureAppServices" Version="2.2.5" />
     <PackageReference Include="Dangl.AspNetCore.FileHandling.Azure" Version="0.2.0" />
-    <PackageReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Mailkit" Version="2.2.0" />
     <PackageReference Include="WebConfigTransformRunner" Version="1.0.0.1">
       <PrivateAssets>All</PrivateAssets>

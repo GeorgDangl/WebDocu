@@ -13,12 +13,13 @@ using Microsoft.WindowsAzure.Storage;
 using Microsoft.AspNetCore.DataProtection;
 using System.Collections.Generic;
 using Hangfire;
+using Microsoft.Extensions.Hosting;
 
 namespace Dangl.WebDocumentation
 {
     public class Startup
     {
-        public Startup(IHostingEnvironment env)
+        public Startup(IWebHostEnvironment env)
         {
             var builder = new ConfigurationBuilder()
                 .SetBasePath(env.ContentRootPath)
@@ -57,8 +58,9 @@ namespace Dangl.WebDocumentation
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders();
 
-            services.AddMvc()
-                .SetCompatibilityVersion(Microsoft.AspNetCore.Mvc.CompatibilityVersion.Latest);
+            services.AddMvc();
+            services.AddControllers()
+                    .SetCompatibilityVersion(Microsoft.AspNetCore.Mvc.CompatibilityVersion.Latest);
 
             services.Configure<AppSettings>(Configuration);
             services.Configure<EmailSettings>(Configuration.GetSection(nameof(AppSettings.EmailSettings)));
@@ -103,7 +105,7 @@ namespace Dangl.WebDocumentation
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
         {
             if (env.IsDevelopment())
             {
@@ -137,7 +139,16 @@ namespace Dangl.WebDocumentation
 
             // To configure external authentication please see http://go.microsoft.com/fwlink/?LinkID=532715
 
-            app.UseMvc(routes => { routes.MapRoute("default", "{controller=Home}/{action=Index}/{id?}"); });
+            app.UseRouting();
+            app.UseAuthorization();
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+                endpoints.MapDefaultControllerRoute();
+
+            });
+
+            // app.UseMvc(routes => { routes.MapRoute("default", "{controller=Home}/{action=Index}/{id?}"); });
         }
     }
 }
