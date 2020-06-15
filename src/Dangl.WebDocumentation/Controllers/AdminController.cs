@@ -20,7 +20,6 @@ namespace Dangl.WebDocumentation.Controllers
     {
         private readonly IProjectFilesService _projectFilesService;
         private readonly ApplicationDbContext _context;
-        private readonly IHostingEnvironment _hostingEnvironment;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IProjectVersionsService _projectVersionsService;
         private readonly IProjectsService _projectsService;
@@ -28,7 +27,6 @@ namespace Dangl.WebDocumentation.Controllers
         private readonly IEmailSender _emailSender;
 
         public AdminController(ApplicationDbContext context,
-            IHostingEnvironment hostingEnvironment,
             UserManager<ApplicationUser> userManager,
             IProjectFilesService projectFilesService,
             IProjectVersionsService projectVersionsService,
@@ -38,7 +36,6 @@ namespace Dangl.WebDocumentation.Controllers
         {
             _projectFilesService = projectFilesService;
             _context = context;
-            _hostingEnvironment = hostingEnvironment;
             _userManager = userManager;
             _projectVersionsService = projectVersionsService;
             _projectsService = projectsService;
