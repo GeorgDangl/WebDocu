@@ -12,6 +12,7 @@ namespace Dangl.WebDocumentation.Models
         public DbSet<ProjectVersionAssetFile> ProjectVersionAssetFiles { get; set; }
 
         public DbSet<UserProjectAccess> UserProjects { get; set; }
+        public DbSet<UserProjectNotification> UserProjectNotifications { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
