@@ -4,28 +4,22 @@
     <a asp-action="Index">Back to overview</a>
 </p>
 
-<h3>Admin Users</h3>
+<h3>Users</h3>
+<p>A checked box means the user is in the <strong>Admin</strong> role.</p>
 
 <div class="row">
     <div class="col-md-8">
         <section>
-            <form asp-controller="Admin" asp-action="ManageUsers" method="post" class="form-horizontal" role="form">
-                <div asp-validation-summary="All" class="text-danger"></div>
+                <div class="text-danger"></div>
                 @{
                     foreach (var user in Model.Users)
                     {
                         <div class="form-group">
-                            <input id="@user.Name" value="@user.Name" name="AdminUsers" type="checkbox" @{if(user.IsAdmin) {<text>checked</text>}}/>
+                            <input id="@user.Name" value="@user.Name" name="AdminUsers" disabled type="checkbox" @{if(user.IsAdmin) {<text>checked</text>}}/>
                             <label for="@user.Name">@user.Name</label>
                         </div>
                     }
                 }
-                <div class="form-group">
-                    <div class="col-md-12">
-                        <button type="submit" class="btn btn-raised btn-primary">Save Changes</button>
-                    </div>
-                </div>
-            </form>
         </section>
     </div>
 </div>
