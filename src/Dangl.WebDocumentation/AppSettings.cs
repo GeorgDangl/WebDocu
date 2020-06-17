@@ -4,7 +4,6 @@
     {
         public string SiteTitlePrefix { get; set; }
         public string SiteTitlePostfix { get; set; }
-        public bool AllowUserRegistration { get; set; }
 
         /// <summary>
         /// Use this to configure physical disk storage
