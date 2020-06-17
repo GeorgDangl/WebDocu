@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace Dangl.WebDocumentation.Models
@@ -25,9 +25,12 @@ namespace Dangl.WebDocumentation.Models
                 .HasIndex(entity => entity.ApiKey)
                 .IsUnique();
 
-            // Composite key for UserProject Access
+            // Composite key for UserProjectAccess
             builder.Entity<UserProjectAccess>()
-                .HasKey(entity => new {entity.ProjectId, entity.UserId});
+                .HasKey(entity => new { entity.ProjectId, entity.UserId });
+            // Composite key for UserProjectNotification
+            builder.Entity<UserProjectNotification>()
+                .HasKey(entity => new { entity.ProjectId, entity.UserId });
 
             builder.Entity<UserProjectAccess>()
                 .HasOne(entity => entity.Project)

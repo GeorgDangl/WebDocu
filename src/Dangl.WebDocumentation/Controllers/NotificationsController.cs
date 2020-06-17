@@ -1,11 +1,8 @@
-﻿using Dangl.WebDocumentation.Models;
-using Dangl.WebDocumentation.Services;
+﻿using Dangl.WebDocumentation.Services;
 using Dangl.WebDocumentation.ViewModels.Notifications;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using System.Linq;
-using System.Security.Claims;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Dangl.WebDocumentation.Controllers
@@ -13,30 +10,41 @@ namespace Dangl.WebDocumentation.Controllers
     [Authorize]
     public class NotificationsController : Controller
     {
-        private readonly UserManager<ApplicationUser> _userManager;
-        private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly IProjectsService _projectsService;
+        private readonly IDocuUserInfoService _docuUserInfoService;
+        private readonly IUserProjectNotificationsService _userProjectNotificationsService;
 
-        public NotificationsController(UserManager<ApplicationUser> userManager,
-            SignInManager<ApplicationUser> signInManager,
-            IProjectsService projectsService)
+        public NotificationsController(IProjectsService projectsService,
+            IDocuUserInfoService docuUserInfoService,
+            IUserProjectNotificationsService userProjectNotificationsService)
         {
-            _userManager = userManager;
-            _signInManager = signInManager;
             _projectsService = projectsService;
+            _docuUserInfoService = docuUserInfoService;
+            _userProjectNotificationsService = userProjectNotificationsService;
         }
 
-        public async Task<IActionResult> Index(string successMessage = null)
+        public async Task<IActionResult> Index(string successMessage = null, string errorMessage = null)
         {
             ViewData["Section"] = "Notifications";
 
             ViewBag.SuccessMessage = successMessage;
+            ViewBag.ErrorMessage = errorMessage;
 
-            var userId = _userManager.GetUserId(User);
+            var userId = await _docuUserInfoService.GetCurrentUserIdOrNullAsync();
             var accessibleProjects = await _projectsService.GetAllProjectsForUser(userId);
+            var notificationSettings = await _userProjectNotificationsService
+                .GetProjectNotificationsForUserAsync(userId.Value);
 
             var model = new IndexViewModel();
             model.Projects = accessibleProjects;
+            model.NotificationLevelsByProject = new Dictionary<System.Guid, NotificationLevel>();
+            foreach (var notificationSetting in notificationSettings)
+            {
+                var notificationLevel = notificationSetting.receiveBetaNotifications
+                    ? NotificationLevel.All
+                    : NotificationLevel.Stable;
+                model.NotificationLevelsByProject.Add(notificationSetting.projectId, notificationLevel);
+            }
             return View(model);
         }
 
@@ -45,7 +53,7 @@ namespace Dangl.WebDocumentation.Controllers
         {
             ViewData["Section"] = "Notifications";
 
-            var userId = _userManager.GetUserId(User);
+            var userId = await _docuUserInfoService.GetCurrentUserIdOrNullAsync();
 
             if (!await _projectsService.UserHasAccessToProject(projectName, userId))
             {
@@ -54,35 +62,35 @@ namespace Dangl.WebDocumentation.Controllers
                 return Unauthorized();
             }
 
-            var user = await _userManager.GetUserAsync(User);
-            var userClaims = await _userManager.GetClaimsAsync(user);
-
-            var claimsToRemove = userClaims.Where(c => (c.Type == AppConstants.PROJECT_NOTIFICATIONS_CLAIM_BETA
-                    || c.Type == AppConstants.PROJECT_NOTIFICATIONS_CLAIM_STABLE)
-                    && c.Value == projectName);
-
-            foreach (var claimToRemove in claimsToRemove)
+            if (userId == null)
             {
-                await _userManager.RemoveClaimAsync(user, claimToRemove);
+                return BadRequest();
             }
 
-            switch (notificationLevel)
-            {
-                case NotificationLevel.Stable:
-                    await _userManager.AddClaimAsync(user, new Claim(AppConstants.PROJECT_NOTIFICATIONS_CLAIM_STABLE, projectName));
-                    break;
+            var projectId = await _projectsService.GetIdForProjectByNameAsync(projectName);
 
-                case NotificationLevel.All:
-                    await _userManager.AddClaimAsync(user, new Claim(AppConstants.PROJECT_NOTIFICATIONS_CLAIM_STABLE, projectName));
-                    await _userManager.AddClaimAsync(user, new Claim(AppConstants.PROJECT_NOTIFICATIONS_CLAIM_BETA, projectName));
-                    break;
+            var shouldRemove = notificationLevel == NotificationLevel.None;
+            var result = false;
+            if (shouldRemove)
+            {
+                result = await _userProjectNotificationsService.RemoveNotificationsForUserAndProjectAsync(projectId, userId.Value);
+            }
+            else
+            {
+                var shouldIncludeBeta = notificationLevel == NotificationLevel.All;
+                result = await _userProjectNotificationsService.EnableNotificationsForUserAndProjectAsync(projectId, userId.Value, shouldIncludeBeta);
             }
 
-            await _signInManager.RefreshSignInAsync(user);
-
-            var successMessage = $"Notification settings updated!";
-
-            return RedirectToAction(nameof(Index), new { successMessage });
+            if (result)
+            {
+                var successMessage = "Notification settings updated!";
+                return RedirectToAction(nameof(Index), new { successMessage });
+            }
+            else
+            {
+                var errorMessage = "Could not update the notifications.";
+                return RedirectToAction(nameof(Index), new { errorMessage });
+            }
         }
     }
 }
