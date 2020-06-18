@@ -17,7 +17,7 @@ namespace Dangl.WebDocumentation.Tests.Controllers
             services.AddEntityFrameworkInMemoryDatabase()
                 .AddDbContext<ApplicationDbContext>(o => o.UseInMemoryDatabase(Guid.NewGuid().ToString()));
 
-            services.AddIdentity<ApplicationUser, IdentityRole>()
+            services.AddIdentity<ApplicationUser, IdentityRole<Guid>>()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
 
             services.AddLogging();
