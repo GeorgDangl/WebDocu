@@ -47,7 +47,19 @@ namespace Dangl.WebDocumentation.Controllers
             var hasProjectAccess = await _projectsService.UserHasAccessToProject(projectName, userId);
             if (!hasProjectAccess)
             {
-                // HttpNotFound for either the project not existing or the user not having access
+                var projectVersionExists = await _projectVersionsService.ProjectVersionExistsAsync(projectName, version);
+                if (projectVersionExists)
+                {
+                    if (User.Identity.IsAuthenticated)
+                    {
+                        return Forbid();
+                    }
+                    else
+                    {
+                        return Unauthorized();
+                    }
+                }
+
                 return NotFound();
             }
 

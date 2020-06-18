@@ -46,5 +46,12 @@ namespace Dangl.WebDocumentation.Services
                 .ToList();
             return previewVersions;
         }
+
+        public Task<bool> ProjectVersionExistsAsync(string projectName, string version)
+        {
+            return _context
+                .DocumentationProjectVersions
+                .AnyAsync(pv => pv.ProjectName == projectName && pv.Version == version);
+        }
     }
 }

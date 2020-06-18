@@ -1,4 +1,4 @@
-using Dangl.WebDocumentation.Models;
+﻿using Dangl.WebDocumentation.Models;
 using Dangl.WebDocumentation.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -139,6 +139,9 @@ namespace Dangl.WebDocumentation
 
             app.UseRouting();
             app.UseAuthorization();
+
+            app.UseChallengeOnUnauthorizedResponse();
+
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();

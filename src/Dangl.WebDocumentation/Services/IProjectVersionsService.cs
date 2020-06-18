@@ -19,5 +19,7 @@ namespace Dangl.WebDocumentation.Services
         /// <param name="projectName"></param>
         /// <returns></returns>
         Task<List<string>> GetAllPreviewVersionsExceptFirstAndLastAsync(string projectName);
+
+        Task<bool> ProjectVersionExistsAsync(string projectName, string version);
     }
 }
