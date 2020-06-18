@@ -1,4 +1,4 @@
-﻿using Dangl.WebDocumentation.Models;
+using Dangl.WebDocumentation.Models;
 using Dangl.WebDocumentation.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -145,8 +145,6 @@ namespace Dangl.WebDocumentation
                 endpoints.MapDefaultControllerRoute();
 
             });
-
-            // app.UseMvc(routes => { routes.MapRoute("default", "{controller=Home}/{action=Index}/{id?}"); });
         }
     }
 }
