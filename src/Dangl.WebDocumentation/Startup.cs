@@ -17,6 +17,7 @@ using Microsoft.Extensions.Hosting;
 using System;
 using Dangl.Identity.Client.Mvc;
 using Dangl.Identity.Client.Mvc.Configuration;
+using Dangl.WebDocumentation.Middleware;
 
 namespace Dangl.WebDocumentation
 {
