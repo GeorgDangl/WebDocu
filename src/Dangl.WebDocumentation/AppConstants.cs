@@ -1,4 +1,4 @@
-namespace Dangl.WebDocumentation
+﻿namespace Dangl.WebDocumentation
 {
     public static class AppConstants
     {
@@ -16,7 +16,9 @@ namespace Dangl.WebDocumentation
         /// </summary>
         public const string DATA_PROTECTION_KEYS_CONTAINER = "data-protection-container";
 
-        public const string ADMIN_ROLE_NAME = "Admin";
+        public const string ADMIN_ROLE_NAME = "Administrator";
+
+        public const string PROJECT_ACCESS_CLAIM_NAME = "docu_project_access";
 
         public const string HANGFIRE_DASHBOARD_LINK = "/Admin/HangfireDashboard";
     }

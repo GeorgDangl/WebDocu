@@ -1,4 +1,5 @@
-﻿using Dangl.WebDocumentation.Models;
+﻿using Dangl.Identity.Client.Mvc.Services;
+using Dangl.WebDocumentation.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -10,18 +11,28 @@ namespace Dangl.WebDocumentation.Services
     public class ProjectsService : IProjectsService
     {
         private readonly ApplicationDbContext _context;
+        private readonly IUserInfoService _userInfoService;
 
-        public ProjectsService(ApplicationDbContext context)
+        public ProjectsService(ApplicationDbContext context,
+            IUserInfoService userInfoService)
         {
             _context = context;
+            _userInfoService = userInfoService;
         }
 
-        public Task<bool> UserHasAccessToProject(string projectName, string userId = null)
+        public async Task<bool> UserHasAccessToProject(string projectName, Guid? userId = null)
         {
+            var userClaims = await _userInfoService.GetUserClaimsAsync();
+            if (userClaims.Any(c => c.Type == AppConstants.PROJECT_ACCESS_CLAIM_NAME
+                && c.Value == projectName))
+            {
+                return true;
+            }
+
             // Find only public projects or projects where the user has access to (if logged in)
-            var projectIsPublicOrUserHasAccess = (from dbProject in _context.DocumentationProjects
+            var projectIsPublicOrUserHasAccess = await (from dbProject in _context.DocumentationProjects
                                                   where dbProject.Name.ToUpper() == projectName.ToUpper()
-                                                        && (dbProject.IsPublic || (!string.IsNullOrWhiteSpace(userId) && _context.UserProjects.Any(projectAccess => projectAccess.UserId == userId && projectAccess.ProjectId == dbProject.Id)))
+                                                        && (dbProject.IsPublic || (userId != null && _context.UserProjects.Any(projectAccess => projectAccess.UserId == userId && projectAccess.ProjectId == dbProject.Id)))
                                                   select dbProject).AnyAsync();
             return projectIsPublicOrUserHasAccess;
         }
@@ -43,7 +54,7 @@ namespace Dangl.WebDocumentation.Services
                 .FirstOrDefaultAsync();
         }
 
-        public async Task<List<DocumentationProject>> GetAllProjectsForUser(string userId)
+        public async Task<List<DocumentationProject>> GetAllProjectsForUser(Guid? userId)
         {
             // Get a list of all projects that the user has access to
             var accessibleProjects = await _context
@@ -52,7 +63,7 @@ namespace Dangl.WebDocumentation.Services
                 .Where(project => project.IsPublic)
                 .ToListAsync(); // Show all public projects
 
-            if (!string.IsNullOrWhiteSpace(userId))
+            if (userId != null)
             {
                 var projectsWithUserAccess = await _context
                     .UserProjects
@@ -60,6 +71,20 @@ namespace Dangl.WebDocumentation.Services
                     .Where(assignment => assignment.UserId == userId).Select(assignment => assignment.Project)
                     .ToListAsync();
                 accessibleProjects = accessibleProjects.Union(projectsWithUserAccess).ToList();
+
+                var projectAccessUserClaims = (await _userInfoService
+                    .GetUserClaimsAsync())
+                    .Where(c => c.Type == AppConstants.PROJECT_ACCESS_CLAIM_NAME)
+                    .Select(c => c.Value);
+                if(projectAccessUserClaims.Any())
+                {
+                    var projectsFromUserClaims = await _context
+                        .DocumentationProjects
+                        .AsNoTracking()
+                        .Where(p => projectAccessUserClaims.Contains(p.Name))
+                        .ToListAsync();
+                    accessibleProjects = accessibleProjects.Union(projectsFromUserClaims).ToList();
+                }
             }
 
             var distinctProjects = new List<DocumentationProject>();

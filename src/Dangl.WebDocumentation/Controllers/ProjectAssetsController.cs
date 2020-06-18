@@ -18,18 +18,21 @@ namespace Dangl.WebDocumentation.Controllers
         private readonly IProjectsService _projectsService;
         private readonly IProjectFilesService _projectFilesService;
         private readonly IProjectVersionAssetFilesService _projectVersionAssetFilesService;
+        private readonly IDocuUserInfoService _docuUserInfoService;
 
         public ProjectAssetsController(UserManager<ApplicationUser> userManager,
             IProjectVersionsService projectVersionsService,
             IProjectsService projectsService,
             IProjectFilesService projectFilesService,
-            IProjectVersionAssetFilesService projectVersionAssetFilesService)
+            IProjectVersionAssetFilesService projectVersionAssetFilesService,
+            IDocuUserInfoService docuUserInfoService)
         {
             _userManager = userManager;
             _projectVersionsService = projectVersionsService;
             _projectsService = projectsService;
             _projectFilesService = projectFilesService;
             _projectVersionAssetFilesService = projectVersionAssetFilesService;
+            _docuUserInfoService = docuUserInfoService;
         }
 
         [HttpGet]
@@ -40,7 +43,8 @@ namespace Dangl.WebDocumentation.Controllers
             {
                 ViewBag.SuccessMessage = successMessage;
             }
-            var userId = _userManager.GetUserId(User);
+
+            var userId = await _docuUserInfoService.GetCurrentUserIdOrNullAsync();
             var hasProjectAccess = await _projectsService.UserHasAccessToProject(projectName, userId);
             if (!hasProjectAccess)
             {
@@ -76,7 +80,7 @@ namespace Dangl.WebDocumentation.Controllers
         [HttpGet("{assetFileName}")]
         public async Task<IActionResult> GetAssetFile(string projectName, string version, string assetFileName, Guid fileId)
         {
-            var userId = _userManager.GetUserId(User);
+            var userId = await _docuUserInfoService.GetCurrentUserIdOrNullAsync();
             var hasProjectAccess = await _projectsService.UserHasAccessToProject(projectName, userId);
             if (!hasProjectAccess)
             {

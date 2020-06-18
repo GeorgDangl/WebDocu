@@ -19,5 +19,15 @@
         public string FullTitle => SiteTitlePrefix + SiteTitlePostfix;
 
         public string BaseUrl { get; set; }
+
+        public string DanglIdentityBaseUrl { get; set; }
+
+        public string DanglIconsBaseUrl { get; set; }
+
+        public string DanglIdentityClientId { get; set; }
+
+        public string DanglIdentityClientSecret { get; set; }
+
+        public string DanglIdentityRequiredScope { get; set; }
     }
 }

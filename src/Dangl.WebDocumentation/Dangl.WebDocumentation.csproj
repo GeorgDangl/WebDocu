@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <Authors>Georg Dangl</Authors>
@@ -26,6 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Dangl.Identity.Client.Mvc" Version="3.2.0" />
     <PackageReference Include="Hangfire" Version="1.7.6" />
     <PackageReference Include="HtmlSanitizer" Version="4.0.217" />
     <PackageReference Include="Humanizer.Core" Version="2.6.2" />

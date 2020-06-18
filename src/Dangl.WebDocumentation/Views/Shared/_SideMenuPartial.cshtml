@@ -57,16 +57,8 @@
 }
 else
 {
-            if (AppSettings.Value.AllowUserRegistration)
-            {
             <li>
-                <a class="link" asp-controller="Account" asp-action="Register">
-                    <i class="zmdi zmdi-accounts"></i> Register
-                </a>
-            </li>
-            }
-            <li>
-                <a class="link" asp-controller="Account" asp-action="Login">
+                <a class="link" asp-controller="Account" asp-action="Login / Register">
                     <i class="zmdi zmdi-accounts"></i> Login
                 </a>
             </li>
