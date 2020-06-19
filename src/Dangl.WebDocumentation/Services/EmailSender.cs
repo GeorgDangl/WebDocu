@@ -29,7 +29,7 @@ namespace Dangl.WebDocumentation.Services
             }
 
             var message = new MimeMessage();
-            message.To.Add(new MailboxAddress(emailTo));
+            message.To.Add(MailboxAddress.Parse(emailTo));
             message.Subject = subject;
             message.Body = new TextPart(TextFormat.Html)
             {
@@ -38,7 +38,7 @@ namespace Dangl.WebDocumentation.Services
 
             if (string.IsNullOrWhiteSpace(_emailSettings.FromName))
             {
-                message.From.Add(new MailboxAddress(_emailSettings.FromAddress));
+                message.From.Add(MailboxAddress.Parse(_emailSettings.FromAddress));
             }
             else
             {
