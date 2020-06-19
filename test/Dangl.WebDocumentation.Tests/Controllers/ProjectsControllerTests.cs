@@ -18,7 +18,6 @@ namespace Dangl.WebDocumentation.Tests.Controllers
             UserManager = fixture.UserManager;
             fixture.Context.Database.EnsureDeleted();
             fixture.Context.Database.EnsureCreated();
-            DatabaseInitialization.Initialize(fixture.Context);
         }
 
         private UserManager<ApplicationUser> UserManager { get; }

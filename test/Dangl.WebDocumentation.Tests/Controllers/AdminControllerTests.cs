@@ -33,7 +33,6 @@ namespace Dangl.WebDocumentation.Tests.Controllers
 
             Context = serviceProvider.GetService<ApplicationDbContext>();
             Context.Database.EnsureCreated();
-            DatabaseInitialization.Initialize(Context);
 
             UserManager = serviceProvider.GetService<UserManager<ApplicationUser>>();
         }
@@ -82,7 +81,6 @@ namespace Dangl.WebDocumentation.Tests.Controllers
                 UserManager = fixture.UserManager;
                 Context.Database.EnsureDeleted();
                 Context.Database.EnsureCreated();
-                DatabaseInitialization.Initialize(Context);
             }
 
             private ApplicationDbContext Context { get; }

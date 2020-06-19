@@ -19,7 +19,6 @@ namespace Dangl.WebDocumentation.Tests.Models
 
             Context = serviceProvider.GetService<ApplicationDbContext>();
             Context.Database.EnsureCreated();
-            DatabaseInitialization.Initialize(Context);
         }
 
         public ApplicationDbContext Context { get; }
@@ -47,9 +46,9 @@ namespace Dangl.WebDocumentation.Tests.Models
         }
 
         [Fact]
-        public void DatabaseHasAdminRole()
+        public void DatabaseHasNoRoles()
         {
-            Assert.True(Context.Roles.Any(role => role.Name == AppConstants.ADMIN_ROLE_NAME));
+            Assert.Empty(Context.Roles);
         }
 
         [Fact]

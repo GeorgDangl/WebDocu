@@ -31,7 +31,6 @@ namespace Dangl.WebDocumentation.Tests.Controllers
 
             Context = serviceProvider.GetService<ApplicationDbContext>();
             Context.Database.EnsureCreated();
-            DatabaseInitialization.Initialize(Context);
 
             UserManager = serviceProvider.GetService<UserManager<ApplicationUser>>();
 
