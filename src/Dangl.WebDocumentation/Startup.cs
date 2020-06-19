@@ -9,7 +9,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
 using Dangl.AspNetCore.FileHandling;
 using Dangl.AspNetCore.FileHandling.Azure;
-using Microsoft.WindowsAzure.Storage;
 using Microsoft.AspNetCore.DataProtection;
 using System.Collections.Generic;
 using Hangfire;
@@ -18,6 +17,8 @@ using System;
 using Dangl.Identity.Client.Mvc;
 using Dangl.Identity.Client.Mvc.Configuration;
 using Dangl.WebDocumentation.Middleware;
+using Microsoft.Azure.Storage;
+using Microsoft.Azure.Storage.Blob;
 
 namespace Dangl.WebDocumentation
 {
