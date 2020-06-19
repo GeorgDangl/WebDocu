@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <Authors>Georg Dangl</Authors>
@@ -27,11 +27,11 @@
 
   <ItemGroup>
     <PackageReference Include="Dangl.Identity.Client.Mvc" Version="3.2.0" />
-    <PackageReference Include="Hangfire" Version="1.7.6" />
-    <PackageReference Include="HtmlSanitizer" Version="4.0.217" />
-    <PackageReference Include="Humanizer.Core" Version="2.6.2" />
-    <PackageReference Include="Markdig" Version="0.17.1" />
-    <PackageReference Include="Microsoft.AspNetCore.DataProtection.AzureStorage" Version="2.2.0" />
+    <PackageReference Include="Hangfire" Version="1.7.11" />
+    <PackageReference Include="HtmlSanitizer" Version="5.0.331" />
+    <PackageReference Include="Humanizer.Core" Version="2.8.26" />
+    <PackageReference Include="Markdig" Version="0.20.0" />
+    <PackageReference Include="Microsoft.AspNetCore.DataProtection.AzureStorage" Version="3.1.5" />
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="3.1.5" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="3.1.5" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="3.1.5">
