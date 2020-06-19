@@ -79,26 +79,6 @@ namespace Dangl.WebDocumentation.Controllers
             return View(model);
         }
 
-        /// <summary>
-        /// This method takes care that the first user to be created in the database is granted Admin rights.
-        /// </summary>
-        /// <param name="user"></param>
-        /// <param name="model"></param>
-        /// <returns></returns>
-        public async Task<IdentityResult> CreateNewUser(ApplicationUser user, RegisterViewModel model)
-        {
-            var result = await _userManager.CreateAsync(user, model.Password);
-            if (result.Succeeded)
-            {
-                // Add user to admin role if it's the first registered user
-                if (Context.Users.Count() == 1)
-                {
-                    await _userManager.AddToRoleAsync(user, AppConstants.ADMIN_ROLE_NAME);
-                }
-            }
-            return result;
-        }
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> LogOff()
@@ -109,14 +89,6 @@ namespace Dangl.WebDocumentation.Controllers
         }
 
         #region Helpers
-
-        private void AddErrors(IdentityResult result)
-        {
-            foreach (var error in result.Errors)
-            {
-                ModelState.AddModelError(string.Empty, error.Description);
-            }
-        }
 
         private IActionResult RedirectToLocal(string returnUrl)
         {
