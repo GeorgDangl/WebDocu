@@ -7,6 +7,7 @@ namespace Dangl.WebDocumentation.Services
 {
     public interface IProjectsService
     {
+        Task<bool> ProjectExistsAsync(string projectName);
         Task<bool> UserHasAccessToProject(string projectName, Guid? userId = null);
 
         Task<string> GetProjectNameForApiKey(string apiKey);

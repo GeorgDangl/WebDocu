@@ -38,6 +38,19 @@ namespace Dangl.WebDocumentation.Controllers
             var hasProjectAccess = await _projectsService.UserHasAccessToProject(projectName, userId);
             if (!hasProjectAccess)
             {
+                var projectExists = await _projectsService.ProjectExistsAsync(projectName);
+                if (projectExists)
+                {
+                    if (User.Identity.IsAuthenticated)
+                    {
+                        return Forbid();
+                    }
+                    else
+                    {
+                        return Unauthorized();
+                    }
+                }
+
                 return NotFound();
             }
             var entryFilePath = await _projectFilesService.GetEntryFilePathForProject(projectName);

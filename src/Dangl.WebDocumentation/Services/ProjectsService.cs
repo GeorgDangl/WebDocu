@@ -102,5 +102,10 @@ namespace Dangl.WebDocumentation.Services
                 .OrderBy(project => project.Name)
                 .ToList();
         }
+
+        public Task<bool> ProjectExistsAsync(string projectName)
+        {
+            return _context.DocumentationProjects.AnyAsync(p => p.Name == projectName);
+        }
     }
 }
