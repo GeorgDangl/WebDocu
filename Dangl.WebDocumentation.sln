@@ -25,6 +25,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dangl.WebDocumentation.Azur
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{E8023D90-229C-4650-948B-4422AF000E8B}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dangl.WebDocumentation.IdentityMigration", "utils\Dangl.WebDocumentation.IdentityMigration\Dangl.WebDocumentation.IdentityMigration.csproj", "{8C221CCD-2002-4C12-B901-864815C1243E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +47,10 @@ Global
 		{8F23FBC6-E9E7-4545-B830-AABE411EA009}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8F23FBC6-E9E7-4545-B830-AABE411EA009}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8F23FBC6-E9E7-4545-B830-AABE411EA009}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8C221CCD-2002-4C12-B901-864815C1243E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8C221CCD-2002-4C12-B901-864815C1243E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8C221CCD-2002-4C12-B901-864815C1243E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8C221CCD-2002-4C12-B901-864815C1243E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -53,6 +59,7 @@ Global
 		{C64017EC-953E-4E6C-B5DF-21654B9F6760} = {F5E4D742-3F81-4437-88E7-05DDF84EE012}
 		{2AF9048D-8B53-4DE7-A2F8-6A4A7151C414} = {E8023D90-229C-4650-948B-4422AF000E8B}
 		{8F23FBC6-E9E7-4545-B830-AABE411EA009} = {F6288DCD-20BC-4D55-890B-FFBDC18EADCD}
+		{8C221CCD-2002-4C12-B901-864815C1243E} = {F6288DCD-20BC-4D55-890B-FFBDC18EADCD}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {1642C10B-8198-427C-92FE-799CDA633B7A}
