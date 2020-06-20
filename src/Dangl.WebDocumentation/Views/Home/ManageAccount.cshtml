@@ -1,0 +1,7 @@
+﻿@using Microsoft.Extensions.Options
+@inject IOptions<AppSettings> AppSettings
+
+<h1>Manage Account</h1>
+
+<p>You user account is managed on Dangl<strong>.Identity.</strong>. <a href="@AppSettings.Value.DanglIdentityBaseUrl.TrimEnd('/')/account">You can edit your account details there.</a></p>
+

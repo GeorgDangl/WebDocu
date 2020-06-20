@@ -49,5 +49,10 @@ namespace Dangl.WebDocumentation.Controllers
         {
             return View();
         }
+
+        public IActionResult ManageAccount()
+        {
+            return View();
+        }
     }
 }

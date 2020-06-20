@@ -7,7 +7,7 @@
     <form asp-controller="Account" asp-action="LogOff" method="post" id="logoutForm" class="navbar-right">
         <ul class="nav navbar-nav navbar-right">
             <li>
-                <a class="nav-link" href="@AppSettings.Value.DanglIdentityBaseUrl.TrimEnd('/')/account">
+                <a class="nav-link" asp-controller="Home" asp-action="ManageAccount">
                     <img style="border-radius: 15px" src="@AppSettings.Value.DanglIconsBaseUrl.TrimEnd('/')/api/identicons/@(await UserInfoService.GetCurrentUserIdenticonIdAsync()).png?size=30&amp;useSingleColor=true&amp;useMaterialColors=true&amp;useExtendedBlockConfigurator=true">
                     @(await UserInfoService.GetCurrentUserNameAsync())
                 </a>
