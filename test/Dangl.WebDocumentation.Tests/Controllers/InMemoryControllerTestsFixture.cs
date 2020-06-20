@@ -17,7 +17,7 @@ namespace Dangl.WebDocumentation.Tests.Controllers
             services.AddEntityFrameworkInMemoryDatabase()
                 .AddDbContext<ApplicationDbContext>(o => o.UseInMemoryDatabase(Guid.NewGuid().ToString()));
 
-            services.AddIdentity<ApplicationUser, IdentityRole>()
+            services.AddIdentity<ApplicationUser, IdentityRole<Guid>>()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
 
             services.AddLogging();
@@ -31,7 +31,6 @@ namespace Dangl.WebDocumentation.Tests.Controllers
 
             Context = serviceProvider.GetService<ApplicationDbContext>();
             Context.Database.EnsureCreated();
-            DatabaseInitialization.Initialize(Context);
 
             UserManager = serviceProvider.GetService<UserManager<ApplicationUser>>();
 

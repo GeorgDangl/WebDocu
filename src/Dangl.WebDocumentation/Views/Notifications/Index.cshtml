@@ -34,21 +34,26 @@
             bool receivesStable = false;
             bool receivesNone = false;
 
-            if (User.HasClaim(c => c.Type == AppConstants.PROJECT_NOTIFICATIONS_CLAIM_BETA
-                && c.Value == project.Name))
+            if (Model.NotificationLevelsByProject.ContainsKey(project.Id))
             {
-                <p> You receive notifications for <strong> stable </strong> and <strong> beta </strong> releases.</p>
-                receivesAll = true;
-            }
-            else if (User.HasClaim(c => c.Type == AppConstants.PROJECT_NOTIFICATIONS_CLAIM_STABLE
-            && c.Value == project.Name))
-            {
-                <p>You receive notifications for <strong>stable</strong> releases.</p>
-                receivesStable = true;
+                if (Model.NotificationLevelsByProject[project.Id] == NotificationLevel.All)
+                {
+                    <p> You receive notifications for <strong> stable </strong> and <strong> beta </strong> releases.</p>
+                    receivesAll = true;
+                }
+                else if (Model.NotificationLevelsByProject[project.Id] == NotificationLevel.Stable)
+                {
+                    <p>You receive notifications for <strong>stable</strong> releases.</p>
+                    receivesStable = true;
+                }
+                else
+                {
+                    <p>You receive no notifications.</p>
+                    receivesNone = true;
+                }
             }
             else
             {
-                <p>You receive no notifications.</p>
                 receivesNone = true;
             }
 

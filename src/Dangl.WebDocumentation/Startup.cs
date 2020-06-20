@@ -9,11 +9,16 @@ using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
 using Dangl.AspNetCore.FileHandling;
 using Dangl.AspNetCore.FileHandling.Azure;
-using Microsoft.WindowsAzure.Storage;
 using Microsoft.AspNetCore.DataProtection;
 using System.Collections.Generic;
 using Hangfire;
 using Microsoft.Extensions.Hosting;
+using System;
+using Dangl.Identity.Client.Mvc;
+using Dangl.Identity.Client.Mvc.Configuration;
+using Dangl.WebDocumentation.Middleware;
+using Microsoft.Azure.Storage;
+using Microsoft.Azure.Storage.Blob;
 
 namespace Dangl.WebDocumentation
 {
@@ -34,33 +39,27 @@ namespace Dangl.WebDocumentation
 
         public IConfiguration Configuration { get; set; }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            // Add framework services.
-
             services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlServer(Configuration["Data:DefaultConnection:ConnectionString"],
+                options.UseSqlServer(Configuration["Data:DanglDocuSqlConnection:ConnectionString"],
                     // The production instance is on a super small Azure SQL db that has an outtage for half a minute every one or two months,
                     // which produces the following entry in the logs:
                     // An exception has been raised that is likely due to a transient failure. Consider enabling transient error resiliency by adding 'EnableRetryOnFailure()'
                     options => options.EnableRetryOnFailure()));
-            services.AddHangfire(x => x.UseSqlServerStorage(Configuration["Data:DefaultConnection:ConnectionString"]));
+            services.AddHangfire(x => x.UseSqlServerStorage(Configuration["Data:DanglDocuSqlConnection:ConnectionString"]));
 
-            services.AddIdentity<ApplicationUser, IdentityRole>(identityOptions =>
-                {
-                    identityOptions.Password.RequireDigit = false;
-                    identityOptions.Password.RequiredLength = 12;
-                    identityOptions.Password.RequireLowercase = false;
-                    identityOptions.Password.RequireNonAlphanumeric = false;
-                    identityOptions.Password.RequireUppercase = false;
-                })
-                .AddEntityFrameworkStores<ApplicationDbContext>()
-                .AddDefaultTokenProviders();
-
+            var appSettings = Configuration.Get<AppSettings>();
+            var danglIdentityServerConfig = new DanglIdentityServerConfiguration()
+                    .SetBaseUri(appSettings.DanglIdentityBaseUrl)
+                    .SetClientId(appSettings.DanglIdentityClientId)
+                    .SetClientSecret(appSettings.DanglIdentityClientSecret)
+                    .SetRequiredScope(appSettings.DanglIdentityRequiredScope)
+                    .SetUseDanglIdentityOpenIdCookieAuthentication(true)
+                    .SetDanglIdentityOpenIdCookieName("DanglDocuAuthentication")
+                    .SetUseMemoryCacheUserInfoUpdater(true);
+            services.AddControllersWithDanglIdentity<ApplicationDbContext, ApplicationUser, IdentityRole<Guid>>(danglIdentityServerConfig);
             services.AddMvc();
-            services.AddControllers()
-                    .SetCompatibilityVersion(Microsoft.AspNetCore.Mvc.CompatibilityVersion.Latest);
 
             services.Configure<AppSettings>(Configuration);
             services.Configure<EmailSettings>(Configuration.GetSection(nameof(AppSettings.EmailSettings)));
@@ -71,6 +70,8 @@ namespace Dangl.WebDocumentation
             services.AddTransient<IProjectVersionAssetFilesService, ProjectVersionAssetFilesService>();
             services.AddTransient<IProjectUploadNotificationsService, ProjectUploadNotificationsService>();
             services.AddTransient<IProjectChangelogService, ProjectChangelogService>();
+            services.AddTransient<IUserProjectNotificationsService, UserProjectNotificationsService>();
+            services.AddTransient<IDocuUserInfoService, DocuUserInfoService>();
 
             var projectsRootFolder = Configuration["ProjectsRootFolder"];
             if (!string.IsNullOrWhiteSpace(projectsRootFolder))
@@ -104,7 +105,6 @@ namespace Dangl.WebDocumentation
                 .PersistKeysToAzureBlobStorage(container, "dangl-docu-keys.xml");
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
         {
             if (env.IsDevelopment())
@@ -141,14 +141,15 @@ namespace Dangl.WebDocumentation
 
             app.UseRouting();
             app.UseAuthorization();
+
+            app.UseChallengeOnUnauthorizedResponse();
+
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
                 endpoints.MapDefaultControllerRoute();
 
             });
-
-            // app.UseMvc(routes => { routes.MapRoute("default", "{controller=Home}/{action=Index}/{id?}"); });
         }
     }
 }

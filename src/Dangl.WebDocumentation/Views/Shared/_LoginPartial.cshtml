@@ -1,15 +1,15 @@
 ﻿@using Microsoft.Extensions.Options
 @inject IOptions<AppSettings> AppSettings
-@inject SignInManager<ApplicationUser> SignInManager
-@inject UserManager<ApplicationUser> UserManager
+@inject Dangl.Identity.Client.Mvc.Services.IUserInfoService UserInfoService
 
-@if (SignInManager.IsSignedIn(User))
+@if (User.Identity.IsAuthenticated)
 {
     <form asp-controller="Account" asp-action="LogOff" method="post" id="logoutForm" class="navbar-right">
         <ul class="nav navbar-nav navbar-right">
             <li>
-                <a class="nav-link" asp-controller="Manage" asp-action="Index" title="Manage">
-                    @UserManager.GetUserName(User)
+                <a class="nav-link" asp-controller="Home" asp-action="ManageAccount">
+                    <img style="border-radius: 15px" src="@AppSettings.Value.DanglIconsBaseUrl.TrimEnd('/')/api/identicons/@(await UserInfoService.GetCurrentUserIdenticonIdAsync()).png?size=30&amp;useSingleColor=true&amp;useMaterialColors=true&amp;useExtendedBlockConfigurator=true">
+                    @(await UserInfoService.GetCurrentUserNameAsync())
                 </a>
             </li>
             <li>
@@ -23,13 +23,8 @@
 else
 {
     <ul class="nav navbar-nav navbar-right ms-navbar-right">
-        @{
-            if (AppSettings.Value.AllowUserRegistration)
-            {
-                <li><a class="nav-link" asp-controller="Account" asp-action="Register">Register</a></li>
-            }}
         <li>
-            <a class="nav-link" asp-controller="Account" asp-action="Login">Login</a>
+            <a class="nav-link" asp-controller="Account" asp-action="Login">Login / Register</a>
         </li>
     </ul>
 }

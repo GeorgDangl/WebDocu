@@ -1,9 +1,10 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Dangl.WebDocumentation.Models
 {
-    public class UserProjectAccess
+    public class UserProjectNotification
     {
         public Guid UserId { get; set; }
 
@@ -14,5 +15,8 @@ namespace Dangl.WebDocumentation.Models
 
         [ForeignKey(nameof(ProjectId))]
         public virtual DocumentationProject Project { get; set; }
+
+        [Required]
+        public bool ReceiveBetaNotifications { get; set; }
     }
 }

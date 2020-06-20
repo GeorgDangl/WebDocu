@@ -72,7 +72,6 @@ namespace Dangl.WebDocumentation.Tests.Controllers
 
                 Context.Database.EnsureDeleted();
                 Context.Database.EnsureCreated();
-                DatabaseInitialization.Initialize(Context);
             }
 
             private ApplicationDbContext Context { get; }
@@ -94,67 +93,6 @@ namespace Dangl.WebDocumentation.Tests.Controllers
             {
                 var controller = Controller();
                 Assert.NotNull(controller);
-            }
-
-            [Fact]
-            public async Task FirstUserIsGrantedAdminRole()
-            {
-                Assert.Equal(0, Context.Users.Count());
-                var controller = Controller();
-                var model = new RegisterViewModel
-                {
-                    Email = "admin@example.com",
-                    Password = "Hello123!",
-                    ConfirmPassword = "Hello123!"
-                };
-
-                var user = new ApplicationUser {UserName = model.Email, Email = model.Email};
-                var result = await controller.CreateNewUser(user, model);
-
-                Assert.True(result.Succeeded);
-
-                Assert.Equal(1, Context.Users.Count());
-
-                var createdUser = Context.Users.FirstOrDefault();
-                var adminRole = Context.Roles.FirstOrDefault(role => role.Name == AppConstants.ADMIN_ROLE_NAME);
-
-                // Ensure role is present
-                Assert.NotNull(adminRole);
-
-                var userHasAdminRole = Context.UserRoles.Any(enrollment => enrollment.RoleId == adminRole.Id && enrollment.UserId == createdUser.Id);
-                Assert.True(userHasAdminRole);
-            }
-
-            [Fact]
-            public async Task SecondUserIsNotGrantedAdminRole()
-            {
-                Assert.Equal(0, Context.Users.Count());
-                Context.Users.Add(new ApplicationUser {UserName = "admin@example.com", SecurityStamp = Guid.NewGuid().ToString()});
-                Context.SaveChanges();
-                Assert.Equal(1, Context.Users.Count());
-                var controller = Controller();
-                var model = new RegisterViewModel
-                {
-                    Email = "nonadmin@example.com",
-                    Password = "Hello123!",
-                    ConfirmPassword = "Hello123!"
-                };
-
-                var user = new ApplicationUser {UserName = model.Email, Email = model.Email};
-                var result = await controller.CreateNewUser(user, model);
-
-                Assert.True(result.Succeeded);
-
-                Assert.Equal(2, Context.Users.Count());
-
-                var createdUser = Context.Users.FirstOrDefault();
-                var adminRole = Context.Roles.FirstOrDefault(role => role.Name == AppConstants.ADMIN_ROLE_NAME);
-
-                // Ensure role is present
-                Assert.NotNull(adminRole);
-
-                var userHasAdminRole = Context.UserRoles.Any(enrollment => enrollment.RoleId == adminRole.Id && enrollment.UserId == createdUser.Id);
-                Assert.False(userHasAdminRole);
             }
         }
     }

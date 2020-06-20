@@ -16,16 +16,19 @@ namespace Dangl.WebDocumentation.Controllers
         private readonly IProjectVersionsService _projectVersionsService;
         private readonly IProjectsService _projectsService;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IDocuUserInfoService _docuUserInfoService;
 
         public ProjectsController(UserManager<ApplicationUser> userManager,
             IProjectFilesService projectFilesService,
             IProjectVersionsService projectVersionsService,
-            IProjectsService projectsService)
+            IProjectsService projectsService,
+            IDocuUserInfoService docuUserInfoService)
         {
             _projectFilesService = projectFilesService;
             _projectVersionsService = projectVersionsService;
             _projectsService = projectsService;
             _userManager = userManager;
+            _docuUserInfoService = docuUserInfoService;
         }
 
         /// <summary>
@@ -40,11 +43,23 @@ namespace Dangl.WebDocumentation.Controllers
         public async Task<IActionResult> GetFile(string projectName, string version, string pathToFile)
         {
             ViewData["Section"] = "Home";
-            var userId = User == null ? null : _userManager.GetUserId(User);
+            var userId = await _docuUserInfoService.GetCurrentUserIdOrNullAsync();
             var hasProjectAccess = await _projectsService.UserHasAccessToProject(projectName, userId);
             if (!hasProjectAccess)
             {
-                // HttpNotFound for either the project not existing or the user not having access
+                var projectVersionExists = await _projectVersionsService.ProjectVersionExistsAsync(projectName, version);
+                if (projectVersionExists)
+                {
+                    if (User.Identity.IsAuthenticated)
+                    {
+                        return Forbid();
+                    }
+                    else
+                    {
+                        return Unauthorized();
+                    }
+                }
+
                 return NotFound();
             }
 

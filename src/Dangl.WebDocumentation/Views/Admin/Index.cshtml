@@ -35,23 +35,6 @@
 
 <h3>Users</h3>
 <a asp-action="ManageUsers">Manage users</a>
-<br />
-<br />
-<p>
-    User registration can be globally enabled or disabled in the appsettings.json configuration file. Current status is:
-    <b>
-        @{
-            if (AppSettings.Value.AllowUserRegistration)
-            {
-                <text>Enabled</text>
-            }
-            else
-            {
-                <text>Disabled</text>
-            }
-        }
-    </b>
-</p>
 <h3>Hangfire Dashboard</h3>
 <p>
     <a href="@AppConstants.HANGFIRE_DASHBOARD_LINK">Go to Dashboard</a>

@@ -4,7 +4,6 @@
     {
         public string SiteTitlePrefix { get; set; }
         public string SiteTitlePostfix { get; set; }
-        public bool AllowUserRegistration { get; set; }
 
         /// <summary>
         /// Use this to configure physical disk storage
@@ -20,5 +19,15 @@
         public string FullTitle => SiteTitlePrefix + SiteTitlePostfix;
 
         public string BaseUrl { get; set; }
+
+        public string DanglIdentityBaseUrl { get; set; }
+
+        public string DanglIconsBaseUrl { get; set; }
+
+        public string DanglIdentityClientId { get; set; }
+
+        public string DanglIdentityClientSecret { get; set; }
+
+        public string DanglIdentityRequiredScope { get; set; }
     }
 }

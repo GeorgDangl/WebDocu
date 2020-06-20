@@ -28,24 +28,30 @@ namespace Dangl.WebDocumentation.Services
 
         public async Task ScheduleProjectUploadNotifications(string projectName, string version)
         {
-            var requiredClaimType = SemanticVersionsOrderer.IsStableVersion(version)
-                ? AppConstants.PROJECT_NOTIFICATIONS_CLAIM_STABLE
-                : AppConstants.PROJECT_NOTIFICATIONS_CLAIM_BETA;
+            var isStableVersion = SemanticVersionsOrderer.IsStableVersion(version);
+            var projectId = await _projectsService.GetIdForProjectByNameAsync(projectName);
 
-            var usersWithEnabledNotifications = await (from userClaims in _context.UserClaims
-                      join users in _context.Users on userClaims.UserId equals users.Id
-                      where userClaims.ClaimType == requiredClaimType
-                        && userClaims.ClaimValue == projectName
-                      select new
-                      {
-                          users.Id,
-                          users.Email
-                      })
-                      .ToListAsync();
+            var usersWithEnabledNotifications = _context
+                .UserProjectNotifications
+                .Where(upn => upn.ProjectId == projectId);
 
-            foreach (var user in usersWithEnabledNotifications)
+            if (!isStableVersion)
             {
-                if (!await _projectsService.UserHasAccessToProject(projectName, user.Id))
+                usersWithEnabledNotifications = usersWithEnabledNotifications
+                    .Where(upn => upn.ReceiveBetaNotifications);
+            }
+
+            var userData = await usersWithEnabledNotifications
+                .Select(upn => new
+                {
+                    upn.UserId,
+                    upn.User.Email
+                })
+                .ToListAsync();
+
+            foreach (var user in userData)
+            {
+                if (!await _projectsService.UserHasAccessToProject(projectName, user.UserId))
                 {
                     continue;
                 }

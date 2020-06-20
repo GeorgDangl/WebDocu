@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Dangl.WebDocumentation.Controllers;
 using Dangl.WebDocumentation.Models;
@@ -17,7 +18,6 @@ namespace Dangl.WebDocumentation.Tests.Controllers
             UserManager = fixture.UserManager;
             fixture.Context.Database.EnsureDeleted();
             fixture.Context.Database.EnsureCreated();
-            DatabaseInitialization.Initialize(fixture.Context);
         }
 
         private UserManager<ApplicationUser> UserManager { get; }
@@ -25,18 +25,22 @@ namespace Dangl.WebDocumentation.Tests.Controllers
         private readonly Mock<IProjectsService> _projectsServiceMock = new Mock<IProjectsService>();
         private readonly Mock<IProjectFilesService> _projectFilesServiceMock = new Mock<IProjectFilesService>();
         private readonly Mock<IProjectVersionsService> _projectVersionsServiceMock = new Mock<IProjectVersionsService>();
+        private readonly Mock<IDocuUserInfoService> _docuUserInfoService = new Mock<IDocuUserInfoService>();
 
         private ProjectsController GetController()
         {
-            var controller = new ProjectsController(UserManager, _projectFilesServiceMock.Object, _projectVersionsServiceMock.Object, _projectsServiceMock.Object);
-            // controller.HttpContext.User = new System.Security.Claims.ClaimsPrincipal();
+            var controller = new ProjectsController(UserManager,
+                _projectFilesServiceMock.Object,
+                _projectVersionsServiceMock.Object,
+                _projectsServiceMock.Object,
+                _docuUserInfoService.Object);
             return controller;
         }
 
         [Fact]
         public async Task RedirectToEntryIfNoFilePathGiven()
         {
-            _projectsServiceMock.Setup(s => s.UserHasAccessToProject(It.IsAny<string>(), It.IsAny<string>()))
+            _projectsServiceMock.Setup(s => s.UserHasAccessToProject(It.IsAny<string>(), It.IsAny<Guid?>()))
                 .Returns(Task.FromResult(true));
             _projectFilesServiceMock.Setup(s => s.GetEntryFilePathForProject(It.IsAny<string>()))
                 .Returns(Task.FromResult("index.html"));
@@ -54,7 +58,7 @@ namespace Dangl.WebDocumentation.Tests.Controllers
         [Fact]
         public async Task RedirectToHigherVersionIfVersionNotPresent()
         {
-            _projectsServiceMock.Setup(s => s.UserHasAccessToProject(It.IsAny<string>(), It.IsAny<string>()))
+            _projectsServiceMock.Setup(s => s.UserHasAccessToProject(It.IsAny<string>(), It.IsAny<Guid?>()))
                 .Returns(Task.FromResult(true));
             _projectVersionsServiceMock.Setup(s => s.GetProjectVersionsAsync(It.IsAny<string>()))
                 .Returns(Task.FromResult(new List<(string, bool, bool)> {("v1.0.0",false, false), ("v1.0.1", false, false) }));
@@ -72,7 +76,7 @@ namespace Dangl.WebDocumentation.Tests.Controllers
         [Fact]
         public async Task ReturnNotFoundIfVersionNotPresentAndNoHigherVersion()
         {
-            _projectsServiceMock.Setup(s => s.UserHasAccessToProject(It.IsAny<string>(), It.IsAny<string>()))
+            _projectsServiceMock.Setup(s => s.UserHasAccessToProject(It.IsAny<string>(), It.IsAny<Guid?>()))
                 .Returns(Task.FromResult(true));
             _projectVersionsServiceMock.Setup(s => s.GetProjectVersionsAsync(It.IsAny<string>()))
                 .Returns(Task.FromResult(new List<(string, bool, bool)> { ("v1.0.0", false, false), ("v1.0.1", false, false) }));
@@ -85,7 +89,7 @@ namespace Dangl.WebDocumentation.Tests.Controllers
         [Fact]
         public async Task ReturnRedirectToIndexIfVersionCorrectButFileNotFound()
         {
-            _projectsServiceMock.Setup(s => s.UserHasAccessToProject(It.IsAny<string>(), It.IsAny<string>()))
+            _projectsServiceMock.Setup(s => s.UserHasAccessToProject(It.IsAny<string>(), It.IsAny<Guid?>()))
                 .Returns(Task.FromResult(true));
             _projectVersionsServiceMock.Setup(s => s.GetProjectVersionsAsync(It.IsAny<string>()))
                 .Returns(Task.FromResult(new List<(string, bool, bool)> { ("v1.0.0", false, false), ("v1.0.1", false, false) }));

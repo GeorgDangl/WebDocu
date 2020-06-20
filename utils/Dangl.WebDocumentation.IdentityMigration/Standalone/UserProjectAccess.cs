@@ -1,11 +1,11 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Dangl.WebDocumentation.Models
+namespace Dangl.WebDocumentation.IdentityMigration.Standalone
 {
     public class UserProjectAccess
     {
-        public Guid UserId { get; set; }
+        public string UserId { get; set; }
 
         [ForeignKey(nameof(UserId))]
         public virtual ApplicationUser User { get; set; }

@@ -15,26 +15,42 @@ namespace Dangl.WebDocumentation.Controllers
         private readonly IProjectVersionsService _projectVersionsService;
         private readonly IProjectsService _projectsService;
         private readonly IProjectFilesService _projectFilesService;
+        private readonly IDocuUserInfoService _docuUserInfoService;
 
         public ProjectVersionsController(UserManager<ApplicationUser> userManager,
             IProjectVersionsService projectVersionsService,
             IProjectsService projectsService,
-            IProjectFilesService projectFilesService)
+            IProjectFilesService projectFilesService,
+            IDocuUserInfoService docuUserInfoService)
         {
             _userManager = userManager;
             _projectVersionsService = projectVersionsService;
             _projectsService = projectsService;
             _projectFilesService = projectFilesService;
+            _docuUserInfoService = docuUserInfoService;
         }
 
         [HttpGet]
         public async Task<IActionResult> Index(string projectName)
         {
             ViewData["Section"] = "Home";
-            var userId = _userManager.GetUserId(User);
+            var userId = await _docuUserInfoService.GetCurrentUserIdOrNullAsync();
             var hasProjectAccess = await _projectsService.UserHasAccessToProject(projectName, userId);
             if (!hasProjectAccess)
             {
+                var projectExists = await _projectsService.ProjectExistsAsync(projectName);
+                if (projectExists)
+                {
+                    if (User.Identity.IsAuthenticated)
+                    {
+                        return Forbid();
+                    }
+                    else
+                    {
+                        return Unauthorized();
+                    }
+                }
+
                 return NotFound();
             }
             var entryFilePath = await _projectFilesService.GetEntryFilePathForProject(projectName);

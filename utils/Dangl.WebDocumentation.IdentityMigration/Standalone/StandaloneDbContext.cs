@@ -1,20 +1,17 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using System;
 
-namespace Dangl.WebDocumentation.Models
+namespace Dangl.WebDocumentation.IdentityMigration.Standalone
 {
-    public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>
+    public class StandaloneDbContext : IdentityDbContext<ApplicationUser>
     {
-        public ApplicationDbContext(DbContextOptions options) : base(options) { }
+        public StandaloneDbContext(DbContextOptions<StandaloneDbContext> options) : base(options) { }
 
         public DbSet<DocumentationProject> DocumentationProjects { get; set; }
         public DbSet<DocumentationProjectVersion> DocumentationProjectVersions { get; set; }
         public DbSet<ProjectVersionAssetFile> ProjectVersionAssetFiles { get; set; }
 
         public DbSet<UserProjectAccess> UserProjects { get; set; }
-        public DbSet<UserProjectNotification> UserProjectNotifications { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -28,12 +25,9 @@ namespace Dangl.WebDocumentation.Models
                 .HasIndex(entity => entity.ApiKey)
                 .IsUnique();
 
-            // Composite key for UserProjectAccess
+            // Composite key for UserProject Access
             builder.Entity<UserProjectAccess>()
-                .HasKey(entity => new { entity.ProjectId, entity.UserId });
-            // Composite key for UserProjectNotification
-            builder.Entity<UserProjectNotification>()
-                .HasKey(entity => new { entity.ProjectId, entity.UserId });
+                .HasKey(entity => new {entity.ProjectId, entity.UserId});
 
             builder.Entity<UserProjectAccess>()
                 .HasOne(entity => entity.Project)

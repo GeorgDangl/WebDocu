@@ -13,21 +13,24 @@ namespace Dangl.WebDocumentation.Controllers
         private readonly IProjectChangelogService _projectChangelogService;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IProjectsService _projectsService;
+        private readonly IDocuUserInfoService _docuUserInfoService;
 
         public ProjectChangelogsController(IProjectChangelogService projectChangelogService,
             UserManager<ApplicationUser> userManager,
-            IProjectsService projectsService)
+            IProjectsService projectsService,
+            IDocuUserInfoService docuUserInfoService)
         {
             _projectChangelogService = projectChangelogService;
             _userManager = userManager;
             _projectsService = projectsService;
+            _docuUserInfoService = docuUserInfoService;
         }
 
         [HttpGet]
         public async Task<IActionResult> Index(string projectName, string version)
         {
             ViewData["Section"] = "Home";
-            var userId = User == null ? null : _userManager.GetUserId(User);
+            var userId = await _docuUserInfoService.GetCurrentUserIdOrNullAsync();
             var hasProjectAccess = await _projectsService.UserHasAccessToProject(projectName, userId);
             if (!hasProjectAccess)
             {

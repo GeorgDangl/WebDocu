@@ -24,7 +24,6 @@ namespace Dangl.WebDocumentation
                     using (var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>())
                     {
                         dbContext.Database.Migrate();
-                        DatabaseInitialization.Initialize(dbContext);
                     }
 
                     // If using azure, containers must be intialized before they can be accessed
