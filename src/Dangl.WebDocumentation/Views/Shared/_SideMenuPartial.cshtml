@@ -1,7 +1,7 @@
 ﻿@using Microsoft.Extensions.Options
 @inject IOptions<AppSettings> AppSettings
-@inject SignInManager<ApplicationUser> SignInManager
 @inject UserManager<ApplicationUser> UserManager
+@inject Dangl.Identity.Client.Mvc.Services.IUserInfoService UserInfoService
 
 <div class="ms-slidebar sb-slidebar sb-left sb-style-overlay" id="ms-slidebar">
     <div class="sb-slidebar-container">
@@ -26,43 +26,44 @@
             @{
                 if (User.Identity.IsAuthenticated)
                 {
-                <li>
-                    <a class="link" asp-controller="Notifications" asp-action="Index">
-                        <i class="zmdi zmdi-star"></i> Notifications
-                    </a>
-                </li>
+                    <li>
+                        <a class="link" asp-controller="Notifications" asp-action="Index">
+                            <i class="zmdi zmdi-star"></i> Notifications
+                        </a>
+                    </li>
                 }
                 if (User.IsInRole(AppConstants.ADMIN_ROLE_NAME))
                 {
-                <li>
-                    <a class="link" asp-controller="Admin" asp-action="Index">
-                        <i class="zmdi zmdi-accounts"></i> Admin
-                    </a>
-                </li>
+                    <li>
+                        <a class="link" asp-controller="Admin" asp-action="Index">
+                            <i class="zmdi zmdi-accounts"></i> Admin
+                        </a>
+                    </li>
                 }
             }
 
-            @if (SignInManager.IsSignedIn(User))
-{
-            <li>
-                <a class="link" asp-controller="Manage" asp-action="Index" title="Manage">
-                    <i class="zmdi zmdi-accounts"></i> Hello @UserManager.GetUserName(User)!
-                </a>
-            </li>
-            <li>
-                <a class="link" href="javascript:{}" onclick="document.getElementById('logoutForm').submit()">
-                    <i class="zmdi zmdi-power"></i> Logout
-                </a>
-            </li>
-}
-else
-{
-            <li>
-                <a class="link" asp-controller="Account" asp-action="Login / Register">
-                    <i class="zmdi zmdi-accounts"></i> Login
-                </a>
-            </li>
-}
+            @if (User.Identity.IsAuthenticated)
+            {
+                <li>
+                    <a class="link" asp-controller="Home" asp-action="ManageAccount">
+                        <i class="zmdi zmdi-account"></i>
+                        @(await UserInfoService.GetCurrentUserNameAsync())
+                    </a>
+                </li>
+                <li>
+                    <a class="link" href="javascript:{}" onclick="document.getElementById('logoutForm').submit()">
+                        <i class="zmdi zmdi-power"></i> Logout
+                    </a>
+                </li>
+            }
+            else
+            {
+                <li>
+                    <a class="link" asp-controller="Account" asp-action="Login">
+                        <i class="zmdi zmdi-accounts"></i> Login / Register
+                    </a>
+                </li>
+            }
 
             <li>
                 <a class="link" asp-controller="Home" asp-action="Privacy">
