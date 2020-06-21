@@ -1,4 +1,4 @@
-﻿using Dangl.WebDocumentation.Models;
+using Dangl.WebDocumentation.Models;
 using Dangl.WebDocumentation.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -47,6 +47,8 @@ namespace Dangl.WebDocumentation
                     // which produces the following entry in the logs:
                     // An exception has been raised that is likely due to a transient failure. Consider enabling transient error resiliency by adding 'EnableRetryOnFailure()'
                     options => options.EnableRetryOnFailure()));
+
+            GlobalJobFilters.Filters.Add(new HangfireJobExpirationAttribute());
             services.AddHangfire(x => x.UseSqlServerStorage(Configuration["Data:DanglDocuSqlConnection:ConnectionString"]));
 
             var appSettings = Configuration.Get<AppSettings>();
