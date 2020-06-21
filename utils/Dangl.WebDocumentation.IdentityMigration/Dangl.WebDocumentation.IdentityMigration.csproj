@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Dangl.Identity.Data" Version="3.0.1" />
+    <PackageReference Include="Dangl.Identity.Data" Version="3.0.2" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="3.1.5" />
   </ItemGroup>
 
