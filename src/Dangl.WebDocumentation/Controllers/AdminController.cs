@@ -1,4 +1,4 @@
-﻿using Dangl.WebDocumentation.Models;
+using Dangl.WebDocumentation.Models;
 using Dangl.WebDocumentation.Services;
 using Dangl.WebDocumentation.ViewModels.Admin;
 using Microsoft.AspNetCore.Authorization;
@@ -418,8 +418,14 @@ namespace Dangl.WebDocumentation.Controllers
             var adminRoleId = (await _context.Roles.FirstAsync(role => role.Name == AppConstants.ADMIN_ROLE_NAME)).Id;
             var model = new ManageUsersViewModel();
             model.Users = await _context.Users
-                .Select(user => new UserAdminRoleViewModel { Name = user.Email, IsAdmin = user.Roles.Any(role => role.RoleId == adminRoleId) })
-                .OrderBy(user => user.Name)
+                .Select(user => new UserAdminRoleViewModel
+                {
+                    Name = user.UserName,
+                    Email = user.Email,
+                    IsAdmin = user.Roles.Any(role => role.RoleId == adminRoleId)
+                })
+                .OrderByDescending(user => user.IsAdmin)
+                .ThenBy(user => user.Name)
                 .ToListAsync();
             return View(model);
         }

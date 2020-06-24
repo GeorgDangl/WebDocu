@@ -16,7 +16,15 @@
                     {
                         <div class="form-group">
                             <input id="@user.Name" value="@user.Name" name="AdminUsers" disabled type="checkbox" @{if(user.IsAdmin) {<text>checked</text>}}/>
-                            <label for="@user.Name">@user.Name</label>
+                            <label for="@user.Name">
+                                @user.Name
+                                @if (!string.IsNullOrWhiteSpace(user.Email) && user.Name != user.Email)
+                                {
+                                    <text>(</text>
+                                    @user.Email
+                                    <text>)</text>
+                                }
+                            </label>
                         </div>
                     }
                 }
