@@ -1,4 +1,4 @@
-using Dangl.WebDocumentation.Models;
+﻿using Dangl.WebDocumentation.Models;
 using Dangl.WebDocumentation.Services;
 using Dangl.WebDocumentation.ViewModels.Admin;
 using Microsoft.AspNetCore.Authorization;
@@ -62,7 +62,7 @@ namespace Dangl.WebDocumentation.Controllers
         {
             ViewData["Section"] = "Admin";
             var model = new CreateProjectViewModel();
-            model.AvailableUsers = _context.Users.Select(appUser => appUser.UserName).OrderBy(username => username);
+            model.AvailableUsers = _context.Users.Select(appUser => appUser.Email).OrderBy(username => username);
             return View(model);
         }
 
@@ -90,8 +90,8 @@ namespace Dangl.WebDocumentation.Controllers
         public IActionResult CreateProject(CreateProjectViewModel model, List<string> selectedUsers)
         {
             ViewData["Section"] = "Admin";
-            var usersToAdd = _context.Users.Where(currentUser => selectedUsers.Contains(currentUser.UserName)).ToList();
-            if (selectedUsers.Any(selected => usersToAdd.All(foundUser => foundUser.UserName != selected)))
+            var usersToAdd = _context.Users.Where(currentUser => selectedUsers.Contains(currentUser.Email)).ToList();
+            if (selectedUsers.Any(selected => usersToAdd.All(foundUser => foundUser.Email != selected)))
             {
                 ModelState.AddModelError("", "Unrecognized user selected");
             }
@@ -132,8 +132,13 @@ namespace Dangl.WebDocumentation.Controllers
             {
                 return NotFound();
             }
-            var usersWithAccess = _context.UserProjects.Where(assignment => assignment.ProjectId == project.Id).Select(assignment => assignment.User.Email).ToList();
-            var usersWithoutAccess = _context.Users.Select(currentUser => currentUser.Email).Where(currentUser => !usersWithAccess.Contains(currentUser)).ToList();
+            var usersWithAccess = _context.UserProjects.Where(assignment => assignment.ProjectId == project.Id)
+                .Select(assignment => assignment.User.Email)
+                .ToList();
+            var usersWithoutAccess = _context.Users
+                .Select(currentUser => currentUser.Email)
+                .Where(currentUser => !usersWithAccess.Contains(currentUser))
+                .ToList();
             var model = new EditProjectViewModel();
             model.ProjectName = project.Name;
             model.IsPublic = project.IsPublic;
