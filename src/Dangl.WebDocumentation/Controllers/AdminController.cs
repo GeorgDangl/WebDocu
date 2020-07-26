@@ -69,8 +69,12 @@ namespace Dangl.WebDocumentation.Controllers
         [HttpPost]
         public async Task<IActionResult> SendTestEmail()
         {
-            var user = await _userManager.GetUserAsync(User);
-            var email = user.Email;
+            var email = User.Claims.FirstOrDefault(c => c.Type == "email")?.Value;
+            if (email == null)
+            {
+                throw new Exception("Could not get user email from claims.");
+            }
+
             var emailSendResult = await _emailSender.SendMessage(email, "DanglDocu Test Email", $@"<h1>Email Test</h1>
 <p>This email was sent from DanglDocu at {DateTime.UtcNow:dd.MM.yyyy HH:mm} (UTC) to {email} by manual invocation from the owner of this user account.</p>");
 
