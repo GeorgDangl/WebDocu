@@ -58,21 +58,16 @@ pipeline {
                 }
             }
         }
-        stage ('Deploy') {
-            when {
-                branch 'master'
-            }
-            steps {
-                script {
-                    env.PublishEnvironmentName = 'Production'
-                    env.WebDeployUsernameSecretName = 'DanglDocu-Prod-WebDeployUsername'
-                    env.WebDeployPasswordSecretName = 'DanglDocu-Prod-WebDeployPassword'
-                    env.WebDeployPublishUrlSecretName = 'DanglDocu-Prod-WebDeployUrl'
-                    env.WebDeploySiteNameSecretName = 'DanglDocu-Prod-WebDeploySitename'
-                }
-                powershell './build.ps1 Deploy'
-            }
-        }
+       stage ('Deploy Docker') {
+			agent {
+				node {
+					label 'linux'
+				}
+			}
+			steps {
+				sh 'bash build.sh PushDocker'
+			}
+		}
     }
     post {
         always {
