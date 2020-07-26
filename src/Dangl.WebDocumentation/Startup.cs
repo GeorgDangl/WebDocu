@@ -127,6 +127,8 @@ namespace Dangl.WebDocumentation
             {
                 options.ForwardedHeaders = ForwardedHeaders.All;
             });
+
+            services.AddHsts(o => o.MaxAge = TimeSpan.FromDays(365));
         }
 
         private static void ConfigureAzureStorageDataProtectionIfRequired(IServiceCollection services, string azureBlobStorageConnectionString)
