@@ -1,4 +1,4 @@
-﻿using Nuke.CoberturaConverter;
+using Nuke.CoberturaConverter;
 using Nuke.Common;
 using Nuke.Common.Tools.DotCover;
 using Nuke.Common.Tools.DotNet;
@@ -29,6 +29,10 @@ using Nuke.Common.Utilities.Collections;
 using Nuke.Common.Tools.AzureKeyVault.Attributes;
 using Nuke.Common.Tools.AzureKeyVault;
 using Nuke.Common.IO;
+using static Nuke.Common.Tools.Docker.DockerTasks;
+using Nuke.Common.Tools.Docker;
+using System.Threading.Tasks;
+using Nuke.Common.Tools.Slack;
 
 class Build : NukeBuild
 {
@@ -60,12 +64,20 @@ class Build : NukeBuild
     [KeyVaultSecret("DanglDocu-AzureAppServiceStagingSlotName")] string AzureAppServiceStagingSlotName;
     [KeyVaultSecret("DanglDocu-AzureAppServiceName")] string AzureAppServiceName;
 
+    [KeyVaultSecret] string DockerRegistryUrl;
+    [KeyVaultSecret] string DockerRegistryUsername;
+    [KeyVaultSecret] string DockerRegistryPassword;
+
+    [KeyVaultSecret] string DanglCiCdSlackWebhookUrl;
+
     [Parameter] readonly string Configuration = IsLocalBuild ? "Debug" : "Release";
 
     [Solution("Dangl.WebDocumentation.sln")] readonly Solution Solution;
     AbsolutePath SolutionDirectory => Solution.Directory;
     AbsolutePath OutputDirectory => SolutionDirectory / "output";
     AbsolutePath SourceDirectory => SolutionDirectory / "src";
+
+    string DockerImageName => "dangldocu";
 
     Target Clean => _ => _
             .Executes(() =>
@@ -149,6 +161,102 @@ namespace Dangl.WebDocumentation.Services
                     .SetOutputFile(OutputDirectory / "cobertura.xml"))
                 .ConfigureAwait(false);
         });
+
+    Target BuildDocker => _ => _
+        .DependsOn(GenerateVersion)
+        .Requires(() => Configuration.EqualsOrdinalIgnoreCase("Release"))
+        .Executes(() =>
+        {
+            DockerPull(c => c.SetName("mcr.microsoft.com/dotnet/core/aspnet:3.1-bionic"));
+            DotNetPublish(s => s
+                .SetProject(SourceDirectory / "Dangl.WebDocumentation")
+                .SetOutput(OutputDirectory)
+                .SetConfiguration(Configuration));
+
+            foreach (var configFileToDelete in GlobFiles(OutputDirectory, "web*.config"))
+            {
+                File.Delete(configFileToDelete);
+            }
+
+            CopyFile(SourceDirectory / "Dangl.WebDocumentation" / "Dockerfile_CI", OutputDirectory / "Dockerfile", Nuke.Common.IO.FileExistsPolicy.Overwrite);
+
+            DockerBuild(c => c
+                .SetFile(OutputDirectory / "Dockerfile")
+                .SetTag(DockerImageName + ":dev")
+                .SetPath(".")
+                .SetWorkingDirectory(OutputDirectory));
+
+            EnsureCleanDirectory(OutputDirectory);
+        });
+
+    Target PushDocker => _ => _
+        .DependsOn(BuildDocker)
+        .Requires(() => DockerRegistryUrl)
+        .Requires(() => DockerRegistryUsername)
+        .Requires(() => DockerRegistryPassword)
+        .Requires(() => DanglCiCdSlackWebhookUrl)
+        .Executes(async () =>
+        {
+            DockerLogin(x => x
+                .SetUsername(DockerRegistryUsername)
+                .SetServer(DockerRegistryUrl)
+                .SetPassword(DockerRegistryPassword)
+                .DisableLogOutput());
+
+            await PushDockerWithTag("dev");
+
+            if (GitVersion.BranchName.Equals("master") || GitVersion.BranchName.Equals("origin/master"))
+            {
+                await PushDockerWithTag("latest");
+                await PushDockerWithTag(GitVersion.SemVer);
+                await EnsureAppIsAtLatestVersionAsync("https://docs.dangl-it.com/status");
+            }
+        });
+
+    async Task EnsureAppIsAtLatestVersionAsync(string appStatusUrl)
+    {
+        var timeoutInSeconds = 180;
+        var statusIsAtLatestVersion = false;
+        var start = DateTime.UtcNow;
+        while (!statusIsAtLatestVersion && DateTime.UtcNow < start.AddSeconds(timeoutInSeconds))
+        {
+            try
+            {
+                var stagingVersion = JObject.Parse(await HttpDownloadStringAsync(appStatusUrl))["version"].ToString();
+                statusIsAtLatestVersion = stagingVersion == GitVersion.NuGetVersionV2;
+            }
+            catch
+            {
+                await Task.Delay(1_000);
+            }
+        }
+
+        ControlFlow.Assert(statusIsAtLatestVersion, $"Status at {appStatusUrl} does not indicate latest version.");
+        Logger.Normal($"App at {appStatusUrl} is at latest version {GitVersion.NuGetVersionV2}");
+    }
+
+    private async Task PushDockerWithTag(string tag)
+    {
+        DockerTag(c => c
+            .SetSourceImage(DockerImageName + ":" + "dev")
+            .SetTargetImage($"{DockerRegistryUrl}/{DockerImageName}:{tag}"));
+        DockerPush(c => c
+            .SetName($"{DockerRegistryUrl}/{DockerImageName}:{tag}"));
+
+        await SlackTasks.SendSlackMessageAsync(c => c
+            .SetUsername("Dangl CI Build")
+            .SetAttachments(new SlackMessageAttachment()
+                .SetText($"A new container version was pushed for DanglDocu, Version {GitVersion.NuGetVersionV2}")
+                .SetColor("good")
+                .SetFields(new[]
+                {
+                    new SlackMessageField
+                    ()
+                    .SetTitle("Tag")
+                    .SetValue($"{DockerRegistryUrl}/{DockerImageName}:{tag}")
+                })),
+                DanglCiCdSlackWebhookUrl);
+    }
 
     Target Publish => _ => _
         .DependsOn(Restore)
