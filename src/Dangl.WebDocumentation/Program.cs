@@ -81,7 +81,7 @@ namespace Dangl.WebDocumentation
             var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
             var appSettings = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json", optional: false)
-                .AddJsonFile($"appsettings.{environment}.json", optional: false)
+                .AddJsonFile($"appsettings.{environment}.json", optional: true)
                 .AddEnvironmentVariables()
                 .Build()
                 .Get<AppSettings>();
