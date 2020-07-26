@@ -3,9 +3,13 @@ using Dangl.AspNetCore.FileHandling.Azure;
 using Dangl.WebDocumentation.Models;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Azure.Storage;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Serilog;
+using System;
 using System.Threading.Tasks;
 
 namespace Dangl.WebDocumentation
@@ -14,37 +18,87 @@ namespace Dangl.WebDocumentation
     {
         public static async Task Main(string[] args)
         {
-            var host = CreateWebHostBuilder(args).Build();
-
-            // Initialize the database
+            ConfigureSerilog();
             try
             {
-                using (var scope = host.Services.CreateScope())
-                {
-                    using (var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>())
-                    {
-                        dbContext.Database.Migrate();
-                    }
+                Log.Information("Starting web host");
+                var host = CreateWebHostBuilder(args).Build();
 
-                    // If using azure, containers must be intialized before they can be accessed
-                    if (scope.ServiceProvider.GetRequiredService<IFileManager>() is AzureBlobFileManager azureBlobHandler)
+                // Initialize the database
+                try
+                {
+                    using (var scope = host.Services.CreateScope())
                     {
-                        await azureBlobHandler.EnsureContainerCreated(AppConstants.PROJECTS_CONTAINER);
-                        await azureBlobHandler.EnsureContainerCreated(AppConstants.PROJECT_ASSETS_CONTAINER);
+                        using (var dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>())
+                        {
+                            dbContext.Database.Migrate();
+                        }
+
+                        // If using azure, containers must be intialized before they can be accessed
+                        if (scope.ServiceProvider.GetRequiredService<IFileManager>() is AzureBlobFileManager azureBlobHandler)
+                        {
+                            await azureBlobHandler.EnsureContainerCreated(AppConstants.PROJECTS_CONTAINER);
+                            await azureBlobHandler.EnsureContainerCreated(AppConstants.PROJECT_ASSETS_CONTAINER);
+                        }
                     }
                 }
-            }
-            catch
-            {
-                /* Don't catch database initialization error at startup */
-            }
+                catch (Exception e)
+                {
+                    /* Don't catch database initialization error at startup */
+                    Log.Error(e, "Error during database initialization, the app wil try to continue running.");
+                }
 
-            await host.RunAsync();
+                await host.RunAsync();
+            }
+            catch (Exception ex)
+            {
+                Log.Fatal(ex, "Host terminated unexpectedly");
+            }
+            finally
+            {
+                Log.CloseAndFlush();
+            }
         }
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
-                .ConfigureLogging(c => c.AddAzureWebAppDiagnostics())
+                .ConfigureLogging(c => c
+                    .AddAzureWebAppDiagnostics()
+                    .AddSerilog())
+                .UseSerilog()
                 .UseStartup<Startup>();
+
+        private static void ConfigureSerilog()
+        {
+            var logOutputTemplate = "[{Timestamp:HH:mm:ss} {MachineName} {Level:u3} {RequestId}] {SourceContext}{NewLine}    {Message:lj}{NewLine}{Exception}";
+            var loggerConfiguration = new LoggerConfiguration()
+                .MinimumLevel.Information()
+                .Enrich.FromLogContext()
+                .Enrich.WithMachineName()
+                .WriteTo.Debug(outputTemplate: logOutputTemplate)
+                .WriteTo.Console(outputTemplate: logOutputTemplate);
+
+            var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+            var appSettings = new ConfigurationBuilder()
+                .AddJsonFile("appsettings.json", optional: false)
+                .AddJsonFile($"appsettings.{environment}.json", optional: false)
+                .AddEnvironmentVariables()
+                .Build()
+                .Get<AppSettings>();
+
+            if (!string.IsNullOrWhiteSpace(appSettings.AzureBlobStorageLogConnectionString))
+            {
+                var connectionString = CloudStorageAccount.Parse(appSettings.AzureBlobStorageLogConnectionString);
+                loggerConfiguration.WriteTo.AzureBlobStorage(connectionString,
+                    storageFileName: $"{{yyyy}}/{{MM}}/{{dd}}/{{HH}}/log-{environment}.txt",
+                    outputTemplate: logOutputTemplate,
+                    storageContainerName: "dangldocu",
+                    writeInBatches: true,
+                    period: TimeSpan.FromSeconds(15),
+                    batchPostingLimit: 10);
+            }
+
+            Log.Logger = loggerConfiguration.CreateLogger();
+        }
     }
 }
