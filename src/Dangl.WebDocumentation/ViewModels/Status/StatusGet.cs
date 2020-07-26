@@ -14,5 +14,10 @@
         /// The current version of the Dangl.Docu service
         /// </summary>
         public string Version { get; set; }
+
+        /// <summary>
+        /// The current environment of the app
+        /// </summary>
+        public string Environment { get; set; }
     }
 }
