@@ -194,7 +194,7 @@ namespace Dangl.WebDocumentation.Services
             {
                 await PushDockerWithTag("latest");
                 await PushDockerWithTag(GitVersion.SemVer);
-                await EnsureAppIsAtLatestVersionAsync("https://docs.dangl-it.com/status");
+                await EnsureAppIsAtLatestVersionAsync("https://docs.dangl-it.com/api/status");
             }
         });
 
