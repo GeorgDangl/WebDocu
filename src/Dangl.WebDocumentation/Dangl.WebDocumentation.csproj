@@ -27,23 +27,23 @@
 
   <ItemGroup>
     <PackageReference Include="Dangl.Identity.ApiClient" Version="3.0.2" />
-    <PackageReference Include="Dangl.Identity.Client.Mvc" Version="3.2.0" />
+    <PackageReference Include="Dangl.Identity.Client.Mvc" Version="3.2.2" />
     <PackageReference Include="Dangl.RestClient.Identity.Server" Version="3.0.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="3.1.5" />
-    <PackageReference Include="Hangfire" Version="1.7.11" />
+    <PackageReference Include="Hangfire" Version="1.7.12" />
     <PackageReference Include="Microsoft.AspNetCore.DataProtection.AzureStorage" Version="3.1.5" />
-    <PackageReference Include="Dangl.AspNetCore.FileHandling.Azure" Version="0.3.0" />
+    <PackageReference Include="Dangl.AspNetCore.FileHandling.Azure" Version="0.4.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.AzureAppServices" Version="3.1.5" />
     <PackageReference Include="HtmlSanitizer" Version="5.0.331" />
     <PackageReference Include="Humanizer.Core" Version="2.8.26" />
     <PackageReference Include="Markdig" Version="0.20.0" />
-    <PackageReference Include="Dangl.Data.Shared" Version="1.5.0" />
+    <PackageReference Include="Dangl.Data.Shared" Version="1.6.0" />
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="3.1.5" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="3.1.5">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Mailkit" Version="2.7.0" />
+    <PackageReference Include="Mailkit" Version="2.8.0" />
     <PackageReference Include="WebConfigTransformRunner" Version="1.0.0.1">
       <PrivateAssets>All</PrivateAssets>
     </PackageReference>
