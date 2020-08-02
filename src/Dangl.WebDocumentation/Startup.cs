@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.Azure.Storage;
 using Microsoft.Azure.Storage.Blob;
 using Microsoft.EntityFrameworkCore;
@@ -24,6 +25,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 
 namespace Dangl.WebDocumentation
@@ -129,6 +131,28 @@ namespace Dangl.WebDocumentation
             });
 
             services.AddHsts(o => o.MaxAge = TimeSpan.FromDays(365));
+
+            services.AddResponseCompression(o =>
+            {
+                o.EnableForHttps = true;
+
+                o.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(new[]
+                {
+                    "image/png",
+                    "image/jpg",
+                    "image/gif"
+                });
+            });
+
+            services.Configure<GzipCompressionProviderOptions>(options =>
+            {
+                options.Level = System.IO.Compression.CompressionLevel.Fastest;
+            });
+
+            services.Configure<BrotliCompressionProviderOptions>(options =>
+            {
+                options.Level = System.IO.Compression.CompressionLevel.Fastest;
+            });
         }
 
         private static void ConfigureAzureStorageDataProtectionIfRequired(IServiceCollection services, string azureBlobStorageConnectionString)
@@ -161,6 +185,8 @@ namespace Dangl.WebDocumentation
             }
 
             app.UseHttpsRedirection();
+
+            app.UseResponseCompression();
 
             app.Use(async (context, next) =>
             {
