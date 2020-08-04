@@ -128,21 +128,28 @@ namespace Dangl.WebDocumentation.Controllers
 
         [HttpGet]
         [Route("EditProject/{projectId}")]
-        public IActionResult EditProject(Guid projectId)
+        public async Task<IActionResult> EditProject(Guid projectId)
         {
             ViewData["Section"] = "Admin";
-            var project = _context.DocumentationProjects.FirstOrDefault(curr => curr.Id == projectId);
+            var project = await _context.DocumentationProjects
+                .FirstOrDefaultAsync(curr => curr.Id == projectId);
             if (project == null)
             {
                 return NotFound();
             }
-            var usersWithAccess = _context.UserProjects.Where(assignment => assignment.ProjectId == project.Id)
-                .Select(assignment => assignment.User.Email)
-                .ToList();
-            var usersWithoutAccess = _context.Users
+            var usersWithAccess = await _context.UserProjects
+                .Where(assignment => assignment.ProjectId == project.Id)
+                .Select(assignment => new UserProjectAccessViewModel
+                    {
+                        Email = assignment.User.Email,
+                        SetFromIdentityProviderClaim = assignment.SetFromIdentityProviderClaim
+                    })
+                .ToListAsync();
+            var userEmailsWithAccess = usersWithAccess.Select(ua => ua.Email).ToList();
+            var usersWithoutAccess = await _context.Users
                 .Select(currentUser => currentUser.Email)
-                .Where(currentUser => !usersWithAccess.Contains(currentUser))
-                .ToList();
+                .Where(userEmail => !userEmailsWithAccess.Contains(userEmail))
+                .ToListAsync();
             var model = new EditProjectViewModel();
             model.ProjectName = project.Name;
             model.IsPublic = project.IsPublic;
@@ -155,14 +162,15 @@ namespace Dangl.WebDocumentation.Controllers
 
         [HttpPost]
         [Route("EditProject/{projectId}")]
-        public IActionResult EditProject(Guid projectId, EditProjectViewModel model, List<string> selectedUsers)
+        public async Task<IActionResult> EditProject(Guid projectId, EditProjectViewModel model, List<string> selectedUsers)
         {
             ViewData["Section"] = "Admin";
             if (!ModelState.IsValid)
             {
                 return View(model);
             }
-            var databaseProject = _context.DocumentationProjects.FirstOrDefault(project => project.Id == projectId);
+            var databaseProject = await _context.DocumentationProjects
+                .FirstOrDefaultAsync(project => project.Id == projectId);
             if (databaseProject == null)
             {
                 return NotFound();
@@ -171,24 +179,42 @@ namespace Dangl.WebDocumentation.Controllers
             databaseProject.IsPublic = model.IsPublic;
             databaseProject.Name = model.ProjectName;
             databaseProject.PathToIndex = model.PathToIndexPage;
-            _context.SaveChanges();
-            var selectedUsersIds = _context.Users
+            await _context.SaveChangesAsync();
+            var selectedUsersIds = await _context.Users
                 .Where(user => selectedUsers.Contains(user.Email))
                 .Select(user => user.Id)
-                .ToList();
+                .ToListAsync();
             // Add missing users
-            var knownUsersInProject = _context.UserProjects.Where(rel => rel.ProjectId == databaseProject.Id).Select(rel => rel.UserId).ToList();
+            var knownUsersInProject = await _context.UserProjects
+                .Where(rel => rel.ProjectId == databaseProject.Id)
+                .Select(rel => rel.UserId)
+                .ToListAsync();
             var usersToAdd = selectedUsersIds.Where(userId => !knownUsersInProject.Contains(userId));
             foreach (var newUserId in usersToAdd)
             {
                 _context.UserProjects.Add(new UserProjectAccess { UserId = newUserId, ProjectId = databaseProject.Id });
             }
             // Remove users that no longer have access
-            var usersToRemove = _context.UserProjects.Where(assignment => assignment.ProjectId == databaseProject.Id).Where(assignment => !selectedUsersIds.Contains(assignment.UserId));
+            // Assignments that were set from an identity provider claim will not be removed
+            var usersToRemove = await _context.UserProjects
+                .Where(assignment => assignment.ProjectId == databaseProject.Id && !assignment.SetFromIdentityProviderClaim)
+                .Where(assignment => !selectedUsersIds.Contains(assignment.UserId))
+                .ToListAsync();
             _context.UserProjects.RemoveRange(usersToRemove);
-            _context.SaveChanges();
-            var usersWithAccess = _context.UserProjects.Where(assignment => assignment.ProjectId == databaseProject.Id).Select(assignment => assignment.User.Email).ToList();
-            var usersWithoutAccess = _context.Users.Select(currentUser => currentUser.Email).Where(currentUser => !usersWithAccess.Contains(currentUser)).ToList();
+            await _context.SaveChangesAsync();
+            var usersWithAccess = await _context.UserProjects
+                .Where(assignment => assignment.ProjectId == databaseProject.Id)
+                .Select(assignment => new UserProjectAccessViewModel
+                {
+                    Email = assignment.User.Email,
+                    SetFromIdentityProviderClaim = assignment.SetFromIdentityProviderClaim
+                })
+                .ToListAsync();
+            var userEmailsWithAccess = usersWithAccess.Select(ua => ua.Email).ToList();
+            var usersWithoutAccess = await _context.Users
+                .Select(currentUser => currentUser.Email)
+                .Where(userEmail => !userEmailsWithAccess.Contains(userEmail))
+                .ToListAsync();
             model.UsersWithAccess = usersWithAccess;
             model.AvailableUsers = usersWithoutAccess;
             ViewBag.SuccessMessage = $"Changed project {databaseProject.Name}.";

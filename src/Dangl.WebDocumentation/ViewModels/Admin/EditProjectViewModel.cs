@@ -18,7 +18,7 @@ namespace Dangl.WebDocumentation.ViewModels.Admin
 
         [Display(Name ="Users with access")]
         public IEnumerable<string> AvailableUsers { get; set; }
-        public IEnumerable<string> UsersWithAccess { get; set; }
+        public IEnumerable<UserProjectAccessViewModel> UsersWithAccess { get; set; }
 
         [Display(Name ="API Key")]
         [Required]

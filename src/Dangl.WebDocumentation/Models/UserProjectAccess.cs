@@ -14,5 +14,7 @@ namespace Dangl.WebDocumentation.Models
 
         [ForeignKey(nameof(ProjectId))]
         public virtual DocumentationProject Project { get; set; }
+
+        public bool SetFromIdentityProviderClaim { get; set; } = false;
     }
 }

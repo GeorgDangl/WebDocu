@@ -123,7 +123,16 @@ namespace Dangl.WebDocumentation
                     BaseUrl = appSettings.DanglIdentityBaseUrl
                 };
             });
+            services.AddTransient<Identity.ApiClient.IUserClaimsClient>(s =>
+            {
+                var httpClient = s.GetRequiredService<DanglHttpClientAccessor>().HttpClient;
+                return new Identity.ApiClient.UserClaimsClient(httpClient)
+                {
+                    BaseUrl = appSettings.DanglIdentityBaseUrl
+                };
+            });
             services.AddTransient<UserDeletionService>();
+            services.AddTransient<UserClaimsProjectAccessService>();
 
             services.Configure<ForwardedHeadersOptions>(options =>
             {
@@ -213,6 +222,8 @@ namespace Dangl.WebDocumentation
                     hangfireRecurringInitialized = true;
                     var userDeletionService = ctx.RequestServices.GetRequiredService<UserDeletionService>();
                     RecurringJob.AddOrUpdate("DailyUserDeletionSyncFromDanglIdentity", () => userDeletionService.RemoveLocallyCachedDeletedUsersAsync(), Cron.Daily());
+                    var userClaimsProjectAccessService = ctx.RequestServices.GetRequiredService<UserClaimsProjectAccessService>();
+                    RecurringJob.AddOrUpdate("UserClaimProjectAccessSyncFromDanglIdentity", () => userClaimsProjectAccessService.SyncUserClaimsForProjectAccess(), Cron.Hourly());
                 }
 
                 return next();

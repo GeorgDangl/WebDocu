@@ -13,7 +13,7 @@
                 <div class="form-group row">
                     <label asp-for="ProjectName" class="col-md-2 control-label"></label>
                     <div class="col-md-10">
-                        <input asp-for="ProjectName" class="form-control"/>
+                        <input asp-for="ProjectName" class="form-control" />
                         <span asp-validation-for="ProjectName" class="text-danger"></span>
                     </div>
                 </div>
@@ -30,32 +30,40 @@
                 <div class="form-group row">
                     <label asp-for="PathToIndexPage" class="col-md-2 control-label"></label>
                     <div class="col-md-10">
-                        <input asp-for="PathToIndexPage" class="form-control"/>
+                        <input asp-for="PathToIndexPage" class="form-control" />
                         <span asp-validation-for="PathToIndexPage" class="text-danger"></span>
                     </div>
                 </div>
                 <div class="form-group row">
                     <label asp-for="ApiKey" class="col-md-2 control-label"></label>
                     <div class="col-md-10">
-                        <input asp-for="ApiKey" class="form-control"/>
+                        <input asp-for="ApiKey" class="form-control" />
                         <span asp-validation-for="ApiKey" class="text-danger"></span>
                     </div>
                 </div>
                 <div class="form-group row">
+                    <p>
+                        If a checkbox is disabled, this means the user has been given access via a claim in Dangl.<strong>Identity</strong>.
+                        It can not be changed here in Dangl<strong>Docu</strong>.
+                    </p>
                     <label asp-for="AvailableUsers" class="col-md-2 control-label"></label>
                     <div class="col-md-10">
                         @{
-                            var users = Model.UsersWithAccess.Select(entry => new { Name = entry, IsEnabled = true }).Union(Model.AvailableUsers.Select(entry => new { Name = entry, IsEnabled = false })).OrderBy(entry => entry.Name).ToList();
+                            var users = Model.UsersWithAccess.Select(entry => new { Name = entry.Email, entry.SetFromIdentityProviderClaim, IsEnabled = true })
+                                .Union(Model.AvailableUsers.Select(entry => new { Name = entry, SetFromIdentityProviderClaim = false, IsEnabled = false })).OrderBy(entry => entry.Name).ToList();
                             foreach (var user in users)
                             {
                                 <br />
 
-                                    <label for="User_@user.Name">
-                                        <input type="checkbox" id="User_@user.Name" name="SelectedUsers" value="@user.Name" @{ if (user.IsEnabled) { <text> checked</text>
-                                                                                                                            }
-                                                                                                                        } />
-                                        @user.Name
-                                    </label>
+                                <label for="User_@user.Name">
+                                    <input type="checkbox"
+                                           id="User_@user.Name" 
+                                           name="SelectedUsers" 
+                                           value="@user.Name"
+                                           @{ if (user.IsEnabled) { <text> checked</text> }} 
+                                           @{ if (user.SetFromIdentityProviderClaim) { <text> disabled</text> }} />
+                                    @user.Name
+                                </label>
                                 <br />
                             }
                         }
