@@ -17,6 +17,10 @@
     color: #fff;
 }
 
+.logged-in-partial {
+    align-items: center;
+}
+
 .ms-navbar .navbar-collapse .navbar-nav .nav-item.dropdown .dropdown-menu {
     background-color: #424242;
     color: #fff;
