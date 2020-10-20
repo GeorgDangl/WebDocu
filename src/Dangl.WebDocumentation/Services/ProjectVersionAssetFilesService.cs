@@ -1,5 +1,7 @@
-﻿using Dangl.Data.Shared;
+﻿using Dangl.AspNetCore.FileHandling.Azure;
+using Dangl.Data.Shared;
 using Dangl.WebDocumentation.Models;
+using Dangl.WebDocumentation.ViewModels.ProjectAssets;
 using Humanizer;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -65,6 +67,54 @@ namespace Dangl.WebDocumentation.Services
                 await _context.SaveChangesAsync();
                 return true;
             }
+        }
+
+        public async Task<RepositoryResult<SasUploadResponse>> GetSasBlobUploadLinkAsync(string projectName, string version, SasUploadModel sasUploadModel)
+        {
+            if (sasUploadModel == null)
+            {
+                return RepositoryResult<SasUploadResponse>.Fail("The model can not be empty.");
+            }
+
+            var azureBlobManager = _fileManager as AzureBlobFileManager;
+            if (azureBlobManager == null)
+            {
+                return RepositoryResult<SasUploadResponse>.Fail("There is no Azure Blob connection specified, the server is using regular disk storage.");
+            }
+
+            var projectVersionExists = await _context
+                .DocumentationProjectVersions
+                .AnyAsync(pv => pv.ProjectName == projectName
+                    && pv.Version == version);
+
+            if (!projectVersionExists)
+            {
+                return RepositoryResult<SasUploadResponse>.Fail($"The specified project version does not exist, version: {version}, project: {projectName}");
+            }
+
+            var fileName = NormalizeFilename(sasUploadModel.FileName);
+            var dbFile = new ProjectVersionAssetFile
+            {
+                FileName = fileName,
+                FileSizeInBytes = sasUploadModel.FileSizeInBytes,
+                ProjectName = projectName,
+                Version = version
+            };
+
+            var sasUri = await azureBlobManager.GetSasUploadLinkAsync(dbFile.FileId,
+                AppConstants.PROJECT_ASSETS_CONTAINER,
+                fileName);
+            if (sasUri.IsSuccess)
+            {
+                _context.ProjectVersionAssetFiles.Add(dbFile);
+                await _context.SaveChangesAsync();
+                return RepositoryResult<SasUploadResponse>.Success(new SasUploadResponse
+                {
+                    UploadLink = sasUri .Value.UploadLink
+                });
+            }
+
+            return RepositoryResult<SasUploadResponse>.Fail(sasUri.ErrorMessage);
         }
 
         private static string NormalizeFilename(string originalFilename)

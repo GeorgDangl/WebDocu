@@ -1,7 +1,10 @@
 ﻿using Dangl.WebDocumentation.Services;
+using Dangl.WebDocumentation.ViewModels.ProjectAssets;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+using System;
 using System.Threading.Tasks;
 
 namespace Dangl.WebDocumentation.Controllers.API
@@ -11,12 +14,15 @@ namespace Dangl.WebDocumentation.Controllers.API
     {
         private readonly IProjectsService _projectsService;
         private readonly IProjectVersionAssetFilesService _projectVersionAssetFilesService;
+        private readonly ILogger<ProjectAssetsController> _logger;
 
         public ProjectAssetsController(IProjectsService projectsService,
-            IProjectVersionAssetFilesService projectVersionAssetFilesService)
+            IProjectVersionAssetFilesService projectVersionAssetFilesService,
+            ILoggerFactory loggerFactory)
         {
             _projectsService = projectsService;
             _projectVersionAssetFilesService = projectVersionAssetFilesService;
+            _logger = loggerFactory.CreateLogger<ProjectAssetsController>();
         }
 
         /// <summary>
@@ -55,6 +61,34 @@ namespace Dangl.WebDocumentation.Controllers.API
                 }
                 return BadRequest();
             }
+        }
+
+        [HttpPost]
+        [Route("API/ProjectAssets/SASUpload")]
+        public async Task<IActionResult> GetSasUploadLinkAsync([FromQuery]string apiKey,
+            [FromQuery] string version, 
+            [FromBody]SasUploadModel sasUploadModel)
+        {
+            if (string.IsNullOrWhiteSpace(apiKey))
+            {
+                // Not accepting empty API key -> Disable API upload to projects by setting the API key empty
+                return NotFound();
+            }
+
+            var projectName = await _projectsService.GetProjectNameForApiKey(apiKey);
+            if (string.IsNullOrWhiteSpace(projectName))
+            {
+                return NotFound();
+            }
+
+            var sasLinkResult = await _projectVersionAssetFilesService.GetSasBlobUploadLinkAsync(projectName, version, sasUploadModel);
+            if (!sasLinkResult.IsSuccess)
+            {
+                _logger.LogInformation($"Failed to generate a SAS upload link:{Environment.NewLine}{sasLinkResult.ErrorMessage}");
+                return BadRequest();
+            }
+
+            return Ok(sasLinkResult.Value);
         }
     }
 }
