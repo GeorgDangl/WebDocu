@@ -180,6 +180,8 @@ namespace Dangl.WebDocumentation.Services
         .Requires(() => DockerRegistryUsername)
         .Requires(() => DockerRegistryPassword)
         .Requires(() => DanglCiCdSlackWebhookUrl)
+        .OnlyWhenDynamic(() => Nuke.Common.CI.Jenkins.Jenkins.Instance == null
+                || Nuke.Common.CI.Jenkins.Jenkins.Instance.ChangeId == null)
         .Executes(async () =>
         {
             DockerLogin(x => x
