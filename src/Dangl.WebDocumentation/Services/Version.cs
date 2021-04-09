@@ -14,12 +14,23 @@ namespace Dangl.WebDocumentation.Services
         }
 
         public string Value { get; }
-        private const string _semVerRegex = @"^(\d+\.\d+\.\d+)-[a-zA-Z0-9]+-?(\d\d\d\d)$";
+        private const string _semVerRegex = @"^(\d+\.\d+\.\d+)-[a-zA-Z0-9-]+-?(\d\d\d\d)$";
 
         public int CompareTo(Version other)
         {
             if (ReferenceEquals(this, other)) return 0;
             if (ReferenceEquals(null, other)) return 1;
+
+            if (string.IsNullOrWhiteSpace(Value)
+                && string.IsNullOrWhiteSpace(other.Value))
+            {
+                return 0;
+            }
+
+            if (Value == other.Value)
+            {
+                return 0;
+            }
 
             // Same base versions from a preview release
             // will be order by their commit number, e.g.:

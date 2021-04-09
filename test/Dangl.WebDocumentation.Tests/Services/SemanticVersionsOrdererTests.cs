@@ -28,6 +28,9 @@ namespace Dangl.WebDocumentation.Tests.Services
             [InlineData("0.0.1", true)]
             [InlineData("1.1.0", true)]
             [InlineData("0.999999999999.0", true)]
+            [InlineData("1.0.0-my-branch0004", false)]
+            [InlineData("1.0.0-my-branch-0004", false)]
+            [InlineData("1.0.0-mybranch0004", false)]
             [InlineData("1.0.0-beta004", false)]
             [InlineData("1.0.0-beta0004", false)]
             [InlineData("1.0.0-beta.0004", false)]
@@ -278,6 +281,50 @@ namespace Dangl.WebDocumentation.Tests.Services
                     "2.0.1-beta0003",
                     "2.0.0",
                     "1.8.11"
+                };
+                AssertOrdersCorrect(input, expectedOutput);
+            }
+
+            [Fact]
+            public void OrdersCorrect_WithCommitCounter_02()
+            {
+                var input = new[]
+                {
+                    "0.1.7",
+                    "0.1.8",
+                    "0.1.8-beta0952",
+                    "0.1.8-beta1141",
+                    "0.1.8-in-memory-sql0970"
+                };
+                var expectedOutput = new[]
+                {
+                    "0.1.8",
+                    "0.1.8-beta1141",
+                    "0.1.8-in-memory-sql0970",
+                    "0.1.8-beta0952",
+                    "0.1.7"
+                };
+                AssertOrdersCorrect(input, expectedOutput);
+            }
+
+            [Fact]
+            public void OrdersCorrect_WithCommitCounter_03()
+            {
+                var input = new[]
+                {
+                    "0.1.7",
+                    "0.1.8",
+                    "0.1.8-beta0952",
+                    "0.1.8-beta1141",
+                    "0.1.8-inmemorysql0970"
+                };
+                var expectedOutput = new[]
+                {
+                    "0.1.8",
+                    "0.1.8-beta1141",
+                    "0.1.8-inmemorysql0970",
+                    "0.1.8-beta0952",
+                    "0.1.7"
                 };
                 AssertOrdersCorrect(input, expectedOutput);
             }
