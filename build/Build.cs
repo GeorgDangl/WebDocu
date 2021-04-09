@@ -272,13 +272,14 @@ namespace Dangl.WebDocumentation.Services
 
     private async Task PushDockerWithTag(string tag)
     {
+        var imageTag = $"{DockerRegistryUrl}/{DockerImageName}:{tag}";
         DockerTag(c => c
             .SetSourceImage(DockerImageName + ":" + "dev")
-            .SetTargetImage($"{DockerRegistryUrl}/{DockerImageName}:{tag}"));
+            .SetTargetImage(imageTag));
         DockerPush(c => c
-            .SetName($"{DockerRegistryUrl}/{DockerImageName}:{tag}"));
+            .SetName(imageTag));
 
-        var message = $"A new container version was pushed for DanglDocu, Version {GitVersion.NuGetVersionV2}";
+        var message = $"A new container version was pushed for DanglDocu, Version {GitVersion.NuGetVersionV2}, Tag {imageTag}";
         await SlackTasks.SendSlackMessageAsync(c => c
             .SetUsername("Dangl CI Build")
             .SetAttachments(new SlackMessageAttachment()
@@ -289,7 +290,7 @@ namespace Dangl.WebDocumentation.Services
                     new SlackMessageField
                     ()
                     .SetTitle("Tag")
-                    .SetValue($"{DockerRegistryUrl}/{DockerImageName}:{tag}")
+                    .SetValue(imageTag)
                 })),
                 DanglCiCdSlackWebhookUrl);
         SendTeamsMessage("Docker Push", message, false);
