@@ -46,7 +46,7 @@ namespace Dangl.WebDocumentation.Tests.Controllers
         }
     }
 
-    public class AdminControllerTests
+    public static class AdminControllerTests
     {
         public class General : IClassFixture<AdminControllerTestsFixture>
         {
@@ -129,7 +129,7 @@ namespace Dangl.WebDocumentation.Tests.Controllers
 
                 // Add users to project
                 var controller = Controller();
-                controller.EditProject(firstProject.Id, new ViewModels.Admin.EditProjectViewModel
+                await controller.EditProject(firstProject.Id, new ViewModels.Admin.EditProjectViewModel
                 {
                     ApiKey = "123",
                     IsPublic = false,
@@ -141,7 +141,7 @@ namespace Dangl.WebDocumentation.Tests.Controllers
                 Assert.Equal(1, Context.UserProjects.Count(rel => rel.User.UserName == user.UserName && rel.ProjectId == firstProject.Id));
 
                 // Add the same user to another project
-                controller.EditProject(secondProject.Id, new ViewModels.Admin.EditProjectViewModel
+                await controller.EditProject(secondProject.Id, new ViewModels.Admin.EditProjectViewModel
                 {
                     ApiKey = "456",
                     IsPublic = false,

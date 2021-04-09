@@ -113,7 +113,9 @@ namespace Dangl.WebDocumentation.IdentityMigration
             var sourceUsers = await _sourceDanglDocuContext.Users.ToListAsync();
             foreach (var sourceUser in sourceUsers)
             {
+#pragma warning disable RCS1155 // Add call to 'ConfigureAwait' (or vice versa).
                 var danglIdentityUser = await _danglIdentityDbContext.Users.FirstOrDefaultAsync(u => u.Email.ToUpper() == sourceUser.Email.ToUpper());
+#pragma warning restore RCS1155 // Add call to 'ConfigureAwait' (or vice versa).
                 if (danglIdentityUser == null)
                 {
                     // Should add the user in Dangl.Identity
