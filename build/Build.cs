@@ -30,6 +30,8 @@ using static Nuke.Common.Tools.Docker.DockerTasks;
 using Nuke.Common.Tools.Docker;
 using System.Threading.Tasks;
 using Nuke.Common.Tools.Slack;
+using Nuke.Common.Git;
+using Nuke.Common.Tools.Teams;
 
 class Build : NukeBuild
 {
@@ -47,11 +49,13 @@ class Build : NukeBuild
     [Parameter] string KeyVaultClientSecret;
     [KeyVault] KeyVault KeyVault;
 
-    [GitVersion(Framework = "netcoreapp3.1")] readonly GitVersion GitVersion;
+    [GitRepository] readonly GitRepository GitRepository;
+    [GitVersion(Framework = "netcoreapp3.1")] GitVersion GitVersion;
 
     [KeyVaultSecret] string DockerRegistryUrl;
     [KeyVaultSecret] string DockerRegistryUsername;
     [KeyVaultSecret] string DockerRegistryPassword;
+    [KeyVaultSecret] readonly string DanglCiCdTeamsWebhookUrl;
 
     [KeyVaultSecret] string DanglCiCdSlackWebhookUrl;
 
@@ -63,6 +67,51 @@ class Build : NukeBuild
     AbsolutePath SourceDirectory => SolutionDirectory / "src";
 
     string DockerImageName => "dangldocu";
+
+    protected override void OnBuildInitialized()
+    {
+        if (GitVersion == null)
+        {
+            // Sometimes, GitVersion failed to initialize on the build server for the GitVersionAttribute
+            // Since log output is disabled there, we're enabling it here to be able to see what error occurred
+            Logger.Normal("Failed to get GitVersion automatically, trying to obtain it manually with NoFetch specified");
+            GitVersion = GitVersionTasks.GitVersion(s => s
+                    .SetNoFetch(true)
+                    .SetFramework("netcoreapp3.1")).Result;
+        }
+
+        base.OnBuildInitialized();
+    }
+
+    protected override void OnTargetFailed(string target)
+    {
+        if (IsServerBuild)
+        {
+            SendTeamsMessage("Build Failed", $"Target {target} failed for Dangl.WebDocumentation, " +
+                        $"Branch: {GitRepository.Branch}", true);
+        }
+    }
+
+    void SendTeamsMessage(string title, string message, bool isError)
+    {
+        if (!string.IsNullOrWhiteSpace(DanglCiCdTeamsWebhookUrl))
+        {
+            var themeColor = isError ? "f44336" : "00acc1";
+            try
+            {
+                TeamsTasks
+                    .SendTeamsMessage(m => m
+                        .SetTitle(title)
+                        .SetText(message)
+                        .SetThemeColor(themeColor),
+                        DanglCiCdTeamsWebhookUrl);
+            }
+            catch
+            {
+                Logger.Warn("Failed to send a Teams message");
+            }
+        }
+    }
 
     Target Clean => _ => _
             .Executes(() =>
@@ -169,7 +218,7 @@ namespace Dangl.WebDocumentation.Services
                 .SetFile(OutputDirectory / "Dockerfile")
                 .SetTag(DockerImageName + ":dev")
                 .SetPath(".")
-                .SetWorkingDirectory(OutputDirectory));
+                .SetProcessWorkingDirectory(OutputDirectory));
 
             EnsureCleanDirectory(OutputDirectory);
         });
@@ -180,15 +229,14 @@ namespace Dangl.WebDocumentation.Services
         .Requires(() => DockerRegistryUsername)
         .Requires(() => DockerRegistryPassword)
         .Requires(() => DanglCiCdSlackWebhookUrl)
-        .OnlyWhenDynamic(() => Nuke.Common.CI.Jenkins.Jenkins.Instance == null
-                || Nuke.Common.CI.Jenkins.Jenkins.Instance.ChangeId == null)
+        .OnlyWhenDynamic(() => !(Nuke.Common.CI.Jenkins.Jenkins.Instance is Nuke.Common.CI.Jenkins.Jenkins) || (Nuke.Common.CI.Jenkins.Jenkins.Instance as Nuke.Common.CI.Jenkins.Jenkins).ChangeId == null)
         .Executes(async () =>
         {
             DockerLogin(x => x
                 .SetUsername(DockerRegistryUsername)
                 .SetServer(DockerRegistryUrl)
                 .SetPassword(DockerRegistryPassword)
-                .DisableLogOutput());
+                .DisableProcessLogOutput());
 
             await PushDockerWithTag("dev");
 
@@ -230,10 +278,11 @@ namespace Dangl.WebDocumentation.Services
         DockerPush(c => c
             .SetName($"{DockerRegistryUrl}/{DockerImageName}:{tag}"));
 
+        var message = $"A new container version was pushed for DanglDocu, Version {GitVersion.NuGetVersionV2}";
         await SlackTasks.SendSlackMessageAsync(c => c
             .SetUsername("Dangl CI Build")
             .SetAttachments(new SlackMessageAttachment()
-                .SetText($"A new container version was pushed for DanglDocu, Version {GitVersion.NuGetVersionV2}")
+                .SetText(message)
                 .SetColor("good")
                 .SetFields(new[]
                 {
@@ -243,5 +292,6 @@ namespace Dangl.WebDocumentation.Services
                     .SetValue($"{DockerRegistryUrl}/{DockerImageName}:{tag}")
                 })),
                 DanglCiCdSlackWebhookUrl);
+        SendTeamsMessage("Docker Push", message, false);
     }
 }
