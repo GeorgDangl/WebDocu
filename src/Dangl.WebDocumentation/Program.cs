@@ -88,8 +88,7 @@ namespace Dangl.WebDocumentation
 
             if (!string.IsNullOrWhiteSpace(appSettings.AzureBlobStorageLogConnectionString))
             {
-                var connectionString = CloudStorageAccount.Parse(appSettings.AzureBlobStorageLogConnectionString);
-                loggerConfiguration.WriteTo.AzureBlobStorage(connectionString,
+                loggerConfiguration.WriteTo.AzureBlobStorage(appSettings.AzureBlobStorageLogConnectionString,
                     storageFileName: $"{{yyyy}}/{{MM}}/{{dd}}/{{HH}}/log-{environment}.txt",
                     outputTemplate: logOutputTemplate,
                     storageContainerName: "dangldocu",
