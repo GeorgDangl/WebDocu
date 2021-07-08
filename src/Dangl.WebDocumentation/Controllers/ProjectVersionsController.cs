@@ -64,7 +64,8 @@ namespace Dangl.WebDocumentation.Controllers
                     {
                         Version = v.version,
                         HasAssetFiles = v.hasAssets,
-                        HasChangelog = v.hasChangelog
+                        HasChangelog = v.hasChangelog,
+                        DateUtc = v.dateUtc
                     })
                     .ToList()
             };

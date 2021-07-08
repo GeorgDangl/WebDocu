@@ -4,6 +4,7 @@
     var isAdmin = User.IsInRole(AppConstants.ADMIN_ROLE_NAME);
     var hasAnyAssets = Model.Versions.Any(v => v.HasAssetFiles);
     var hasAnyChangelogs = Model.Versions.Any(v => v.HasChangelog);
+    var hasAnyDates = Model.Versions.Any(v => v.DateUtc != null);
 }
 
 <h2>@ViewData["Title"]</h2>
@@ -43,6 +44,16 @@ else
                                     @if (version.HasChangelog)
                                     {
                                         <a asp-controller="ProjectChangelogs" asp-action="Index" asp-route-projectName="@Model.ProjectName" asp-route-version="@version.Version">Changelog</a>
+                                    }
+                                </td>
+                            }
+                        }
+                        @{if (hasAnyDates)
+                            {
+                                <td>
+                                    @if (version.DateUtc != null)
+                                    {
+                                        <span>@($"{version.DateUtc:dd.MM.yyyy HH:mm}")</span>
                                     }
                                 </td>
                             }

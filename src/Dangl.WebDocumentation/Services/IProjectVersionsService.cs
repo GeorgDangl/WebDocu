@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Dangl.WebDocumentation.Services
@@ -10,7 +11,7 @@ namespace Dangl.WebDocumentation.Services
         /// </summary>
         /// <param name="projectName"></param>
         /// <returns></returns>
-        Task<List<(string version, bool hasAssets, bool hasChangelog)>> GetProjectVersionsAsync(string projectName);
+        Task<List<(string version, bool hasAssets, bool hasChangelog, DateTimeOffset? dateUtc)>> GetProjectVersionsAsync(string projectName);
 
         /// <summary>
         /// This is supposed to return all versions that are not stable and that do have an earlier and a later

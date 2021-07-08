@@ -1,5 +1,6 @@
 ﻿using Dangl.WebDocumentation.Models;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -15,16 +16,19 @@ namespace Dangl.WebDocumentation.Services
             _context = context;
         }
 
-        public async Task<List<(string version, bool hasAssets, bool hasChangelog)>> GetProjectVersionsAsync(string projectName)
+        public async Task<List<(string version, bool hasAssets, bool hasChangelog, DateTimeOffset? dateUtc)>> GetProjectVersionsAsync(string projectName)
         {
             var versions = await _context.DocumentationProjectVersions
                 .Where(v => v.ProjectName == projectName)
-                .Select(v => new { v.Version, HasAssets = v.AssetFiles.Any(), HasChangelog = v.MarkdownChangelog != null})
+                .Select(v => new { v.Version, HasAssets = v.AssetFiles.Any(), HasChangelog = v.MarkdownChangelog != null, v.CreatedAtUtc})
                 .ToListAsync();
             var semVerOrderer = new SemanticVersionsOrderer(versions.Select(v => v.Version).ToList());
             var orderedVersions = semVerOrderer.GetVersionsOrderedBySemanticVersionDescending();
             return orderedVersions
-                .Select(ov => (ov, versions.Single(v => v.Version == ov).HasAssets, versions.Single(v => v.Version == ov).HasChangelog))
+                .Select(ov => (ov,
+                versions.Single(v => v.Version == ov).HasAssets,
+                versions.Single(v => v.Version == ov).HasChangelog,
+                versions.Single(v =>v.Version == ov).CreatedAtUtc == default ? (DateTimeOffset?)null : versions.Single(v => v.Version == ov).CreatedAtUtc))
                 .ToList();
         }
 
