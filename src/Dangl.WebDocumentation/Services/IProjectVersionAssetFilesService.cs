@@ -16,7 +16,7 @@ namespace Dangl.WebDocumentation.Services
 
         Task<List<(string fileName, string prettyfiedFileSize, Guid fileId)>> GetAssetsForProjectVersionAsync(string projectName, string version);
 
-        Task<RepositoryResult<Stream>> GetAssetFileStreamAsync(string fileName, Guid fileId);
+        Task<RepositoryResult<(string sasDownloadUrl, Stream stream)>> GetAssetDownloadAsync(string fileName, Guid fileId);
 
         Task<bool> DeleteProjectAssetFileAsync(Guid fileId);
     }

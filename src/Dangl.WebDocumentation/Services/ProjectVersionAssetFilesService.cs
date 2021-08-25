@@ -141,9 +141,28 @@ namespace Dangl.WebDocumentation.Services
             return assets;
         }
 
-        public Task<RepositoryResult<Stream>> GetAssetFileStreamAsync(string fileName, Guid fileId)
+        public async Task<RepositoryResult<(string sasDownloadUrl, Stream stream)>> GetAssetDownloadAsync(string fileName, Guid fileId)
         {
-            return _fileManager.GetFileAsync(fileId, AppConstants.PROJECT_ASSETS_CONTAINER, fileName);
+            if (_fileManager is AzureBlobFileManager azureBlobManager)
+            {
+                var sasDownloadUrl = await azureBlobManager.GetSasDownloadLinkAsync(fileId,
+                    AppConstants.PROJECT_ASSETS_CONTAINER,
+                    fileName,
+                    validForMinutes: 5);
+                if (sasDownloadUrl.IsSuccess)
+                {
+                    return RepositoryResult<(string sasDownloadUrl, Stream stream)>.Success((sasDownloadUrl.Value.DownloadLink, null));
+                }
+            }
+
+            var fileManagerResult = await _fileManager.GetFileAsync(fileId, AppConstants.PROJECT_ASSETS_CONTAINER, fileName);
+
+            if (!fileManagerResult.IsSuccess)
+            {
+                return RepositoryResult<(string sasDownloadUrl, Stream stream)>.Fail(fileManagerResult.ErrorMessage);
+            }
+
+            return RepositoryResult<(string sasDownloadUrl, Stream stream)>.Success((null, fileManagerResult.Value));
         }
 
         public async Task<bool> DeleteProjectAssetFileAsync(Guid fileId)

@@ -121,14 +121,23 @@ namespace Dangl.WebDocumentation.Controllers
             }
 
             var fileRepoResult = await _projectVersionAssetFilesService
-                .GetAssetFileStreamAsync(assetFileName, fileId);
+                .GetAssetDownloadAsync(assetFileName, fileId);
 
             if (!fileRepoResult.IsSuccess)
             {
                 return NotFound();
             }
 
-            return File(fileRepoResult.Value, "application/octet-stream", assetFileName);
+            if (fileRepoResult.Value.stream != null)
+            {
+                return File(fileRepoResult.Value.stream, "application/octet-stream", assetFileName);
+            }
+            else if (!string.IsNullOrWhiteSpace(fileRepoResult.Value.sasDownloadUrl))
+            {
+                return Redirect(fileRepoResult.Value.sasDownloadUrl);
+            }
+
+            return NotFound();
         }
 
         [Authorize(Roles = AppConstants.ADMIN_ROLE_NAME)]
