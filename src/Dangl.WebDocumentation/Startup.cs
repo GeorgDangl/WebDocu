@@ -1,4 +1,5 @@
-﻿using Dangl.AspNetCore.FileHandling;
+﻿using Azure.Storage.Blobs;
+using Dangl.AspNetCore.FileHandling;
 using Dangl.AspNetCore.FileHandling.Azure;
 using Dangl.Identity.Client;
 using Dangl.Identity.Client.Mvc;
@@ -16,8 +17,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.ResponseCompression;
-using Microsoft.Azure.Storage;
-using Microsoft.Azure.Storage.Blob;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -166,9 +165,8 @@ namespace Dangl.WebDocumentation
 
         private static void ConfigureAzureStorageDataProtectionIfRequired(IServiceCollection services, string azureBlobStorageConnectionString)
         {
-            var storageAccount = CloudStorageAccount.Parse(azureBlobStorageConnectionString);
-            var client = storageAccount.CreateCloudBlobClient();
-            var container = client.GetContainerReference(AppConstants.DATA_PROTECTION_KEYS_CONTAINER);
+            var client = new BlobServiceClient(azureBlobStorageConnectionString);
+            var container = client.GetBlobContainerClient(AppConstants.DATA_PROTECTION_KEYS_CONTAINER);
 
             // The container must exist before calling the DataProtection APIs.
             // The specific file within the container does not have to exist,
@@ -176,7 +174,7 @@ namespace Dangl.WebDocumentation
             container.CreateIfNotExistsAsync().GetAwaiter().GetResult();
 
             services.AddDataProtection()
-                .PersistKeysToAzureBlobStorage(container, "dangl-docu-keys.xml");
+                .PersistKeysToAzureBlobStorage(azureBlobStorageConnectionString, AppConstants.DATA_PROTECTION_KEYS_CONTAINER, "dangl-docu-keys.xml");
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)

@@ -3,7 +3,6 @@ using Dangl.AspNetCore.FileHandling.Azure;
 using Dangl.WebDocumentation.Models;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Azure.Storage;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
