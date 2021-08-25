@@ -148,7 +148,8 @@ namespace Dangl.WebDocumentation.Services
                 var sasDownloadUrl = await azureBlobManager.GetSasDownloadLinkAsync(fileId,
                     AppConstants.PROJECT_ASSETS_CONTAINER,
                     fileName,
-                    validForMinutes: 5);
+                    validForMinutes: 5,
+                    friendlyFileName: fileName);
                 if (sasDownloadUrl.IsSuccess)
                 {
                     return RepositoryResult<(string sasDownloadUrl, Stream stream)>.Success((sasDownloadUrl.Value.DownloadLink, null));
