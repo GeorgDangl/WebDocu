@@ -153,7 +153,14 @@ namespace Dangl.WebDocumentation.Services
             .DependsOn(GenerateVersion)
             .Executes(() =>
             {
-                DotNetRestore();
+                try
+                {
+                    DotNetRestore();
+                }
+                catch
+                {
+                    DotNetRestore(r => r.EnableNoCache());
+                }
             });
 
     Target Compile => _ => _
