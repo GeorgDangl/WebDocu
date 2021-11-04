@@ -182,7 +182,13 @@ namespace Dangl.WebDocumentation.Services
 
             if (!fileDeletionResult.IsSuccess)
             {
-                return false;
+                var fileExists = await _fileManager.CheckIfFileExistsAsync(fileId, AppConstants.PROJECT_ASSETS_CONTAINER, assetFile.FileName);
+                if (!fileExists.IsSuccess && fileExists.Value)
+                {
+                    return false;
+                }
+                // This means that the file is likely to not exist at all, which could mean that it hasn't been uploaded correctly. In that case,
+                // we can just remove the database entry
             }
 
             _context.ProjectVersionAssetFiles.Remove(assetFile);
