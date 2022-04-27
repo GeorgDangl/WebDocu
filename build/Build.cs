@@ -74,7 +74,7 @@ class Build : NukeBuild
         {
             // Sometimes, GitVersion failed to initialize on the build server for the GitVersionAttribute
             // Since log output is disabled there, we're enabling it here to be able to see what error occurred
-            Logger.Normal("Failed to get GitVersion automatically, trying to obtain it manually with NoFetch specified");
+            Serilog.Log.Information("Failed to get GitVersion automatically, trying to obtain it manually with NoFetch specified");
             GitVersion = GitVersionTasks.GitVersion(s => s
                     .SetNoFetch(true)
                     .SetFramework("netcoreapp3.1")).Result;
@@ -108,7 +108,7 @@ class Build : NukeBuild
             }
             catch
             {
-                Logger.Warn("Failed to send a Teams message");
+                Serilog.Log.Warning("Failed to send a Teams message");
             }
         }
     }
@@ -190,7 +190,7 @@ namespace Dangl.WebDocumentation.Services
 
             //// This is the report that's pretty and visualized in Jenkins
             ReportGenerator(c => c
-                .SetFramework("netcoreapp2.1")
+                .SetFramework("net5.0")
                 .SetReports(OutputDirectory / "dotCover.xml")
                 .SetTargetDirectory(OutputDirectory / "CoverageReport"));
 
@@ -273,8 +273,8 @@ namespace Dangl.WebDocumentation.Services
             }
         }
 
-        ControlFlow.Assert(statusIsAtLatestVersion, $"Status at {appStatusUrl} does not indicate latest version.");
-        Logger.Normal($"App at {appStatusUrl} is at latest version {GitVersion.NuGetVersionV2}");
+        Assert.True(statusIsAtLatestVersion, $"Status at {appStatusUrl} does not indicate latest version.");
+        Serilog.Log.Information($"App at {appStatusUrl} is at latest version {GitVersion.NuGetVersionV2}");
     }
 
     private async Task PushDockerWithTag(string tag)
