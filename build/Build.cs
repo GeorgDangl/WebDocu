@@ -177,7 +177,7 @@ namespace Dangl.WebDocumentation.Services
     Target Coverage => _ => _
         .DependsOn(Compile)
         .Requires(() => Configuration.EqualsOrdinalIgnoreCase("Debug")) // Required for coverage data gathering
-        .Executes(async () =>
+        .Executes(() =>
         {
             var testProjectPath = SolutionDirectory / "test" / "Dangl.WebDocumentation.Tests" / "Dangl.WebDocumentation.Tests.csproj";
 
