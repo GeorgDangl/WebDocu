@@ -32,6 +32,8 @@ using System.Threading.Tasks;
 using Nuke.Common.Tools.Slack;
 using Nuke.Common.Git;
 using Nuke.Common.Tools.Teams;
+using Nuke.Common.Tools.Coverlet;
+using System.Xml.Linq;
 
 class Build : NukeBuild
 {
@@ -177,31 +179,86 @@ namespace Dangl.WebDocumentation.Services
         .Requires(() => Configuration.EqualsOrdinalIgnoreCase("Debug")) // Required for coverage data gathering
         .Executes(async () =>
         {
-            var testProjectDirectory = SolutionDirectory / "test" / "Dangl.WebDocumentation.Tests";
+            var testProjectPath = SolutionDirectory / "test" / "Dangl.WebDocumentation.Tests" / "Dangl.WebDocumentation.Tests.csproj";
 
-            DotCoverAnalyse(x => x
-                .SetTargetExecutable(ToolPathResolver.GetPathExecutable("dotnet"))
-                .SetTargetWorkingDirectory(testProjectDirectory)
-                .SetTargetArguments($"test --no-build --test-adapter-path:. \"--logger:xunit;LogFilePath={OutputDirectory / "testresults.xml"}\"")
-                .SetFilters("+:Dangl.WebDocumentation")
-                .SetAttributeFilters("System.CodeDom.Compiler.GeneratedCodeAttribute")
-                .SetOutputFile(OutputDirectory / "dotCover.xml")
-                .SetReportType(DotCoverReportType.DetailedXml));
+            try
+            {
+                DotNetTest(x => x
+                    .EnableCollectCoverage()
+                    .SetCoverletOutputFormat(CoverletOutputFormat.cobertura)
+                    .SetCoverletOutput(OutputDirectory / "_coverage.xml")
+                    .EnableNoBuild()
+                    .SetTestAdapterPath(".")
+                    .SetLoggers($"xunit;LogFilePath={OutputDirectory / "testresults.xml"}")
+                    .SetProcessArgumentConfigurator(a => a
+                        .Add($"/p:Include=[Dangl.WebDocumentation*]*"))
+                    .SetProjectFile(testProjectPath));
+            }
+            finally
+            {
+                // Merge coverage reports, otherwise they might not be completely
+                // picked up by Jenkins
+                ReportGenerator(c => c
+                    .SetFramework("net5.0")
+                    .SetReports(OutputDirectory / "*_coverage.xml")
+                    .SetTargetDirectory(OutputDirectory)
+                    .SetReportTypes(ReportTypes.Cobertura));
 
-            //// This is the report that's pretty and visualized in Jenkins
-            ReportGenerator(c => c
-                .SetFramework("net5.0")
-                .SetReports(OutputDirectory / "dotCover.xml")
-                .SetTargetDirectory(OutputDirectory / "CoverageReport"));
-
-            //// This is the report in Cobertura format that integrates so nice in Jenkins
-            //// dashboard and allows to extract more metrics and set build health based
-            //// on coverage readings
-            await DotCoverToCobertura(s => s
-                    .SetInputFile(OutputDirectory / "dotCover.xml")
-                    .SetOutputFile(OutputDirectory / "cobertura.xml"))
-                .ConfigureAwait(false);
+                MakeSourceEntriesRelativeInCoberturaFormat(OutputDirectory / "Cobertura.xml");
+            }
         });
+
+    private void MakeSourceEntriesRelativeInCoberturaFormat(string coberturaReportPath)
+    {
+        var originalText = ReadAllText(coberturaReportPath);
+        var xml = XDocument.Parse(originalText);
+
+        var xDoc = XDocument.Load(coberturaReportPath);
+
+        var sourcesEntry = xDoc
+            .Root
+            .Elements()
+            .Where(e => e.Name.LocalName == "sources")
+            .Single();
+
+        string basePath;
+        if (sourcesEntry.HasElements)
+        {
+            var elements = sourcesEntry.Elements().ToList();
+            basePath = elements
+                .Select(e => e.Value)
+                .OrderBy(p => p.Length)
+                .First();
+            foreach (var element in elements)
+            {
+                if (element.Value != basePath)
+                {
+                    element.Remove();
+                }
+            }
+        }
+        else
+        {
+            basePath = sourcesEntry.Value;
+        }
+
+        Serilog.Log.Information($"Normalizing Cobertura report to base path: \"{basePath}\"");
+
+        var filenameAttributes = xDoc
+            .Root
+            .Descendants()
+            .Where(d => d.Attributes().Any(a => a.Name.LocalName == "filename"))
+            .Select(d => d.Attributes().First(a => a.Name.LocalName == "filename"));
+        foreach (var filenameAttribute in filenameAttributes)
+        {
+            if (filenameAttribute.Value.StartsWith(basePath))
+            {
+                filenameAttribute.Value = filenameAttribute.Value.Substring(basePath.Length);
+            }
+        }
+
+        xDoc.Save(coberturaReportPath);
+    }
 
     Target BuildDocker => _ => _
         .DependsOn(GenerateVersion)
