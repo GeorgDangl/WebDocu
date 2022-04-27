@@ -161,6 +161,8 @@ namespace Dangl.WebDocumentation
             {
                 options.Level = System.IO.Compression.CompressionLevel.Fastest;
             });
+
+            services.AddHangfireServer();
         }
 
         private static void ConfigureAzureStorageDataProtectionIfRequired(IServiceCollection services, string azureBlobStorageConnectionString)
@@ -182,7 +184,6 @@ namespace Dangl.WebDocumentation
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                app.UseDatabaseErrorPage();
                 app.UseStatusCodePages();
             }
             else
@@ -205,7 +206,6 @@ namespace Dangl.WebDocumentation
 
             app.UseAuthentication();
 
-            app.UseHangfireServer();
             app.UseHangfireDashboard(AppConstants.HANGFIRE_DASHBOARD_LINK, new DashboardOptions()
             {
                 Authorization = new[] { new HangfireAdminRoleAuthorizationFilter() }
