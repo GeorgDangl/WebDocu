@@ -12,16 +12,16 @@
 
   <ItemGroup>
     <PackageDownload Include="GitVersion.Tool" Version="[5.10.1]" />
-    <PackageReference Include="Nuke.Common" Version="6.0.2" />
+    <PackageReference Include="Nuke.Common" Version="6.3.0" />
     <PackageReference Include="Microsoft.Azure.Management.Fluent" Version="1.38.1" />
     <PackageReference Include="Dangl.Nuke.CoberturaConverter" Version="2.0.0" />
-    <PackageReference Include="JetBrains.dotCover.CommandLineTools" Version="2022.1.0">
+    <PackageReference Include="JetBrains.dotCover.CommandLineTools" Version="2022.3.2">
       <PrivateAssets>all</PrivateAssets>
       <ExcludeAssets>all</ExcludeAssets>
       <IncludeAssets>none</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="ReportGenerator" Version="5.1.5" />
-    <PackageReference Include="docfx.console" Version="2.59.2">
+    <PackageReference Include="ReportGenerator" Version="5.1.17" />
+    <PackageReference Include="docfx.console" Version="2.59.4">
       <ExcludeAssets>build</ExcludeAssets>
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; native; contentfiles; analyzers</IncludeAssets>
