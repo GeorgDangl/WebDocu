@@ -1,6 +1,5 @@
 ﻿using Nuke.CoberturaConverter;
 using Nuke.Common;
-using Nuke.Common.Tools.DotCover;
 using Nuke.Common.Tools.DotNet;
 using Nuke.Common.Tools.ReportGenerator;
 using Nuke.Common.Tools.WebConfigTransformRunner;
@@ -9,7 +8,6 @@ using System.IO;
 using static Nuke.CoberturaConverter.CoberturaConverterTasks;
 using static Nuke.Common.IO.FileSystemTasks;
 using static Nuke.Common.IO.PathConstruction;
-using static Nuke.Common.Tools.DotCover.DotCoverTasks;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
 using static Nuke.Common.Tools.ReportGenerator.ReportGeneratorTasks;
 using Nuke.Common.ProjectModel;
