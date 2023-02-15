@@ -182,14 +182,14 @@ namespace Dangl.WebDocumentation.Services
             try
             {
                 DotNetTest(x => x
-                    .EnableCollectCoverage()
-                    .SetCoverletOutputFormat(CoverletOutputFormat.cobertura)
-                    .SetCoverletOutput(OutputDirectory / "_coverage.xml")
+                    .SetResultsDirectory(OutputDirectory)
+                    .SetDataCollector("XPlat Code Coverage")
+                    .AddRunSetting("DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format", "cobertura")
+                    .AddRunSetting("DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Include", "[Dangl.WebDocumentation*]*")
+                    .AddRunSetting("DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.ExcludeByAttribute", "Obsolete,GeneratedCodeAttribute,CompilerGeneratedAttribute")
                     .EnableNoBuild()
                     .SetTestAdapterPath(".")
                     .SetLoggers($"xunit;LogFilePath={OutputDirectory / "testresults.xml"}")
-                    .SetProcessArgumentConfigurator(a => a
-                        .Add($"/p:Include=[Dangl.WebDocumentation*]*"))
                     .SetProjectFile(testProjectPath));
             }
             finally
@@ -198,7 +198,7 @@ namespace Dangl.WebDocumentation.Services
                 // picked up by Jenkins
                 ReportGenerator(c => c
                     .SetFramework("net7.0")
-                    .SetReports(OutputDirectory / "*_coverage.xml")
+                    .SetReports(OutputDirectory / "**/*cobertura.xml")
                     .SetTargetDirectory(OutputDirectory)
                     .SetReportTypes(ReportTypes.Cobertura));
 
