@@ -199,7 +199,7 @@ namespace Dangl.WebDocumentation.Services
                 // Merge coverage reports, otherwise they might not be completely
                 // picked up by Jenkins
                 ReportGenerator(c => c
-                    .SetFramework("net5.0")
+                    .SetFramework("net7.0")
                     .SetReports(OutputDirectory / "*_coverage.xml")
                     .SetTargetDirectory(OutputDirectory)
                     .SetReportTypes(ReportTypes.Cobertura));
