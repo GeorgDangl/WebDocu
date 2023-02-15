@@ -1,5 +1,5 @@
 ﻿using Dangl.WebDocumentation.Models;
-using Ganss.XSS;
+using Ganss.Xss;
 using Markdig;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;

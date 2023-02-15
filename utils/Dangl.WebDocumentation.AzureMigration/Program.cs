@@ -25,7 +25,7 @@ namespace Dangl.WebDocumentation.AzureMigration
             var storageConnectionString = args[1];
 
             _azureBlobFileManager = new AzureBlobFileManager(storageConnectionString);
-            await _azureBlobFileManager.EnsureContainerCreated(AppConstants.PROJECTS_CONTAINER);
+            await _azureBlobFileManager.EnsureContainerCreatedAsync(AppConstants.PROJECTS_CONTAINER);
 
             var projectIds = GetAllProjectIds(localFolder);
             for (var i = 0; i < projectIds.Count; i++)

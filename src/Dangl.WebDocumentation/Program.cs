@@ -36,8 +36,8 @@ namespace Dangl.WebDocumentation
                         // If using azure, containers must be intialized before they can be accessed
                         if (scope.ServiceProvider.GetRequiredService<IFileManager>() is AzureBlobFileManager azureBlobHandler)
                         {
-                            await azureBlobHandler.EnsureContainerCreated(AppConstants.PROJECTS_CONTAINER);
-                            await azureBlobHandler.EnsureContainerCreated(AppConstants.PROJECT_ASSETS_CONTAINER);
+                            await azureBlobHandler.EnsureContainerCreatedAsync(AppConstants.PROJECTS_CONTAINER);
+                            await azureBlobHandler.EnsureContainerCreatedAsync(AppConstants.PROJECT_ASSETS_CONTAINER);
                         }
                     }
                 }
