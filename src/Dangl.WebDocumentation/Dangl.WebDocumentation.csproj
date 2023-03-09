@@ -32,6 +32,7 @@
     <PackageReference Include="Dangl.Identity.ApiClient" Version="5.0.1" />
     <PackageReference Include="Dangl.Identity.Client.Mvc" Version="5.0.1-beta0003" />
     <PackageReference Include="Dangl.RestClient.Identity.Server" Version="4.0.1-beta0007" />
+    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.15.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="7.0.3" />
     <PackageReference Include="Hangfire" Version="1.7.33" />
     <PackageReference Include="Dangl.AspNetCore.FileHandling.Azure" Version="0.8.1" />

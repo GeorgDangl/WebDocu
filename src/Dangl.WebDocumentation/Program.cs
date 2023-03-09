@@ -46,7 +46,8 @@ namespace Dangl.WebDocumentation
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
                 .ConfigureLogging(c => c
-                    .AddAzureWebAppDiagnostics())
+                    .AddAzureWebAppDiagnostics()
+                    .AddApplicationInsights())
                 .UseStartup<Startup>();
     }
 }
