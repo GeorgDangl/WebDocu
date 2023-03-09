@@ -70,6 +70,7 @@ namespace Dangl.WebDocumentation
                     .SetUseMemoryCacheUserInfoUpdater(true);
             services.AddControllersWithDanglIdentity<ApplicationDbContext, ApplicationUser, IdentityRole<Guid>>(danglIdentityServerConfig);
             services.AddMvc();
+            services.AddApplicationInsightsTelemetry();
 
             services.Configure<AppSettings>(Configuration);
             services.Configure<EmailSettings>(Configuration.GetSection(nameof(AppSettings.EmailSettings)));
