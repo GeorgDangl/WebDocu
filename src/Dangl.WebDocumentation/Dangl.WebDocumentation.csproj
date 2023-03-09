@@ -50,9 +50,6 @@
     <PackageReference Include="WebConfigTransformRunner" Version="1.0.0.1">
       <PrivateAssets>All</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="Serilog.AspNetCore" Version="4.1.0" />
-    <PackageReference Include="Serilog.Enrichers.Environment" Version="2.2.0" />
-    <PackageReference Include="Serilog.Sinks.AzureBlobStorage" Version="3.0.2" />
   </ItemGroup>
 
 </Project>

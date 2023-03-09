@@ -29,6 +29,5 @@
         public string DanglIdentityClientSecret { get; set; }
 
         public string DanglIdentityRequiredScope { get; set; }
-        public string AzureBlobStorageLogConnectionString { get; set; }
     }
 }

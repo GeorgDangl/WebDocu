@@ -3,7 +3,6 @@ using Dangl.WebDocumentation.Models;
 using Hangfire;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Serilog;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
