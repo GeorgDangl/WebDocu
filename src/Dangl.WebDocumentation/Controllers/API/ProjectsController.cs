@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
 
 namespace Dangl.WebDocumentation.Controllers.API
@@ -11,12 +12,15 @@ namespace Dangl.WebDocumentation.Controllers.API
     {
         private readonly IProjectsService _projectsService;
         private readonly IProjectFilesService _projectFilesService;
+        private readonly ILogger<ProjectsController> _logger;
 
         public ProjectsController(IProjectsService projectsService,
-            IProjectFilesService projectFilesService)
+            IProjectFilesService projectFilesService,
+            ILoggerFactory loggerFactory)
         {
             _projectsService = projectsService;
             _projectFilesService = projectFilesService;
+            _logger = loggerFactory.CreateLogger<ProjectsController>();
         }
 
         /// <summary>
@@ -33,21 +37,27 @@ namespace Dangl.WebDocumentation.Controllers.API
         {
             if (projectPackage == null)
             {
+                _logger.LogInformation("Tried to upload a new project revision without a projectPackage file.");
                 return BadRequest();
             }
+
             if (string.IsNullOrWhiteSpace(apiKey))
             {
                 // Not accepting empty API key -> Disable API upload to projects by setting the API key empty
+                _logger.LogInformation("Tried to upload a new project revision without providing an API key.");
                 return NotFound();
             }
+
             var projectName = await _projectsService.GetProjectNameForApiKey(apiKey);
             if (string.IsNullOrWhiteSpace(projectName))
             {
+                _logger.LogInformation("Failed to resolve the project name from the given api key.");
                 return NotFound();
             }
 
             if (await _projectFilesService.PackageAlreadyExistsAsync(projectName, version))
             {
+                _logger.LogInformation("Tried to reupload a project version that already exists.");
                 return Conflict();
             }
 
