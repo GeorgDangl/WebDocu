@@ -15,8 +15,6 @@ using Nuke.Common.Tooling;
 using System;
 using static Nuke.Common.IO.TextTasks;
 using Nuke.Common.Tools.GitVersion;
-using Microsoft.Azure.Management.Fluent;
-using Microsoft.Azure.Management.ResourceManager.Fluent;
 using static Nuke.Common.IO.HttpTasks;
 using Newtonsoft.Json.Linq;
 using System.Linq;
