@@ -6,12 +6,11 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using System;
 using System.Threading.Tasks;
 
 namespace Dangl.WebDocumentation
 {
-    public class Program
+    public static class Program
     {
         public static async Task Main(string[] args)
         {
@@ -35,7 +34,7 @@ namespace Dangl.WebDocumentation
                     }
                 }
             }
-            catch (Exception e)
+            catch
             {
                 /* Don't catch database initialization error at startup */
             }
