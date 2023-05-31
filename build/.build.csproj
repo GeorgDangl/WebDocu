@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <RootNamespace></RootNamespace>
     <IsPackable>False</IsPackable>
@@ -12,7 +12,7 @@
 
   <ItemGroup>
     <PackageDownload Include="GitVersion.Tool" Version="[5.12.0]" />
-    <PackageReference Include="Nuke.Common" Version="6.3.0" />
+    <PackageReference Include="Nuke.Common" Version="7.0.2" />
     <PackageReference Include="Dangl.Nuke.CoberturaConverter" Version="2.0.0" />
     <PackageReference Include="ReportGenerator" Version="5.1.21" />
     <PackageReference Include="docfx.console" Version="2.59.4">

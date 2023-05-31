@@ -8,6 +8,7 @@ using System.IO;
 using static Nuke.CoberturaConverter.CoberturaConverterTasks;
 using static Nuke.Common.IO.FileSystemTasks;
 using static Nuke.Common.IO.PathConstruction;
+using static Nuke.Common.IO.Globbing;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
 using static Nuke.Common.Tools.ReportGenerator.ReportGeneratorTasks;
 using Nuke.Common.ProjectModel;
@@ -19,7 +20,6 @@ using static Nuke.Common.IO.HttpTasks;
 using Newtonsoft.Json.Linq;
 using System.Linq;
 using Nuke.Common.Utilities.Collections;
-using Nuke.Common.Tools.AzureKeyVault.Attributes;
 using Nuke.Common.Tools.AzureKeyVault;
 using Nuke.Common.IO;
 using static Nuke.Common.Tools.Docker.DockerTasks;
@@ -36,26 +36,28 @@ class Build : NukeBuild
     // Console application entry point. Also defines the default target.
     public static int Main() => Execute<Build>(x => x.Compile);
 
-    [KeyVaultSettings(
+    [AzureKeyVaultConfiguration(
         BaseUrlParameterName = nameof(KeyVaultBaseUrl),
         ClientIdParameterName = nameof(KeyVaultClientId),
-        ClientSecretParameterName = nameof(KeyVaultClientSecret))]
-    readonly KeyVaultSettings KeyVaultSettings;
+        ClientSecretParameterName = nameof(KeyVaultClientSecret),
+        TenantIdParameterName = nameof(KeyVaultTenantId))]
+    readonly AzureKeyVaultConfiguration KeyVaultSettings;
 
     [Parameter] string KeyVaultBaseUrl;
     [Parameter] string KeyVaultClientId;
     [Parameter] string KeyVaultClientSecret;
-    [KeyVault] KeyVault KeyVault;
+    [Parameter] string KeyVaultTenantId;
+    [AzureKeyVault] AzureKeyVault KeyVault;
 
     [GitRepository] readonly GitRepository GitRepository;
     [GitVersion(Framework = "netcoreapp3.1")] GitVersion GitVersion;
 
-    [KeyVaultSecret] string DockerRegistryUrl;
-    [KeyVaultSecret] string DockerRegistryUsername;
-    [KeyVaultSecret] string DockerRegistryPassword;
-    [KeyVaultSecret] readonly string DanglCiCdTeamsWebhookUrl;
+    [AzureKeyVaultSecret] string DockerRegistryUrl;
+    [AzureKeyVaultSecret] string DockerRegistryUsername;
+    [AzureKeyVaultSecret] string DockerRegistryPassword;
+    [AzureKeyVaultSecret] readonly string DanglCiCdTeamsWebhookUrl;
 
-    [KeyVaultSecret] string DanglCiCdSlackWebhookUrl;
+    [AzureKeyVaultSecret] string DanglCiCdSlackWebhookUrl;
 
     [Parameter] readonly string Configuration = IsLocalBuild ? "Debug" : "Release";
 
@@ -114,8 +116,8 @@ class Build : NukeBuild
     Target Clean => _ => _
             .Executes(() =>
             {
-                GlobDirectories(SourceDirectory, "**/bin", "**/obj").ForEach(DeleteDirectory);
-                EnsureCleanDirectory(OutputDirectory);
+                GlobDirectories(SourceDirectory, "**/bin", "**/obj").ForEach(d => ((AbsolutePath)d).DeleteDirectory());
+                OutputDirectory.CreateOrCleanDirectory();
             });
 
     Target GenerateVersion => _ => _
@@ -143,7 +145,7 @@ namespace Dangl.WebDocumentation.Services
         public static DateTime BuildDateUtc {{ get; }} = {currentDateUtc};
     }}
 }}";
-            WriteAllText(filePath, content);
+            filePath.WriteAllText(content);
         });
 
     Target Restore => _ => _
@@ -204,9 +206,9 @@ namespace Dangl.WebDocumentation.Services
             }
         });
 
-    private void MakeSourceEntriesRelativeInCoberturaFormat(string coberturaReportPath)
+    private void MakeSourceEntriesRelativeInCoberturaFormat(AbsolutePath coberturaReportPath)
     {
-        var originalText = ReadAllText(coberturaReportPath);
+        var originalText = coberturaReportPath.ReadAllText();
         var xml = XDocument.Parse(originalText);
 
         var xDoc = XDocument.Load(coberturaReportPath);
@@ -281,7 +283,7 @@ namespace Dangl.WebDocumentation.Services
                 .SetPath(".")
                 .SetProcessWorkingDirectory(OutputDirectory));
 
-            EnsureCleanDirectory(OutputDirectory);
+            OutputDirectory.CreateOrCleanDirectory();
         });
 
     Target PushDocker => _ => _
