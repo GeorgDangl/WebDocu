@@ -1,11 +1,9 @@
-﻿using Nuke.CoberturaConverter;
-using Nuke.Common;
+﻿using Nuke.Common;
 using Nuke.Common.Tools.DotNet;
 using Nuke.Common.Tools.ReportGenerator;
 using Nuke.Common.Tools.WebConfigTransformRunner;
 using Nuke.Common.Utilities;
 using System.IO;
-using static Nuke.CoberturaConverter.CoberturaConverterTasks;
 using static Nuke.Common.IO.FileSystemTasks;
 using static Nuke.Common.IO.PathConstruction;
 using static Nuke.Common.IO.Globbing;
@@ -77,7 +75,7 @@ class Build : NukeBuild
             Serilog.Log.Information("Failed to get GitVersion automatically, trying to obtain it manually with NoFetch specified");
             GitVersion = GitVersionTasks.GitVersion(s => s
                     .SetNoFetch(true)
-                    .SetFramework("netcoreapp3.1")).Result;
+                    .SetFramework("net7.0")).Result;
         }
 
         base.OnBuildInitialized();
