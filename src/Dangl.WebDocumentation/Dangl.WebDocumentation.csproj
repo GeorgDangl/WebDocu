@@ -34,7 +34,7 @@
     <PackageReference Include="Dangl.RestClient.Identity.Server" Version="4.0.1-beta0007" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.21.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="7.0.5" />
-    <PackageReference Include="Hangfire" Version="1.8.0" />
+    <PackageReference Include="Hangfire" Version="1.8.2" />
     <PackageReference Include="Dangl.AspNetCore.FileHandling.Azure" Version="0.8.2" />
     <PackageReference Include="Microsoft.Extensions.Logging.AzureAppServices" Version="7.0.5" />
     <PackageReference Include="HtmlSanitizer" Version="8.0.645" />

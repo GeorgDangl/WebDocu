@@ -11,10 +11,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageDownload Include="GitVersion.Tool" Version="[5.10.1]" />
+    <PackageDownload Include="GitVersion.Tool" Version="[5.12.0]" />
     <PackageReference Include="Nuke.Common" Version="6.3.0" />
     <PackageReference Include="Dangl.Nuke.CoberturaConverter" Version="2.0.0" />
-    <PackageReference Include="ReportGenerator" Version="5.1.20" />
+    <PackageReference Include="ReportGenerator" Version="5.1.21" />
     <PackageReference Include="docfx.console" Version="2.59.4">
       <ExcludeAssets>build</ExcludeAssets>
       <PrivateAssets>all</PrivateAssets>
