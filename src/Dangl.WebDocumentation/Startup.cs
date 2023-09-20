@@ -5,7 +5,6 @@ using Dangl.Identity.Client;
 using Dangl.Identity.Client.Mvc;
 using Dangl.Identity.Client.Mvc.Configuration;
 using Dangl.RestClient;
-using Dangl.RestClient.Identity.Server;
 using Dangl.WebDocumentation.Hangfire;
 using Dangl.WebDocumentation.Middleware;
 using Dangl.WebDocumentation.Models;
