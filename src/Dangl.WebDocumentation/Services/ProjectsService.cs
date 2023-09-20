@@ -54,7 +54,7 @@ namespace Dangl.WebDocumentation.Services
                 .FirstOrDefaultAsync();
         }
 
-        public async Task<List<DocumentationProject>> GetAllProjectsForUser(Guid? userId)
+        public async Task<List<DocumentationProject>> GetAllProjectsForUserAsync(Guid? userId, string? filter = null)
         {
             // Get a list of all projects that the user has access to
             var accessibleProjects = await _context
@@ -100,6 +100,7 @@ namespace Dangl.WebDocumentation.Services
 
             return distinctProjects
                 .OrderBy(project => project.Name)
+                .Where(p => filter == null || p.Name.Contains(filter, StringComparison.OrdinalIgnoreCase))
                 .ToList();
         }
 

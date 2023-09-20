@@ -25,16 +25,17 @@ namespace Dangl.WebDocumentation.Controllers
 
         private UserManager<ApplicationUser> UserManager { get; }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string? projectsFilter = null)
         {
             ViewData["Section"] = "Home";
 
             var userId = await _docuUserInfoService.GetCurrentUserIdOrNullAsync();
 
-            var accessibleProjects = await _projectsService.GetAllProjectsForUser(userId);
+            var accessibleProjects = await _projectsService.GetAllProjectsForUserAsync(userId, projectsFilter);
 
             var model = new IndexViewModel();
             model.Projects = accessibleProjects;
+            model.ProjectsFilter = projectsFilter;
             return View(model);
         }
 

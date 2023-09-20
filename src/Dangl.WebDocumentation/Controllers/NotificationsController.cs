@@ -31,7 +31,7 @@ namespace Dangl.WebDocumentation.Controllers
             ViewBag.ErrorMessage = errorMessage;
 
             var userId = await _docuUserInfoService.GetCurrentUserIdOrNullAsync();
-            var accessibleProjects = await _projectsService.GetAllProjectsForUser(userId);
+            var accessibleProjects = await _projectsService.GetAllProjectsForUserAsync(userId);
             var notificationSettings = await _userProjectNotificationsService
                 .GetProjectNotificationsForUserAsync(userId.Value);
 

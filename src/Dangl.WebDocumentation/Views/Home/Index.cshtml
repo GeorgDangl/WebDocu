@@ -4,6 +4,10 @@
 @{
     if (!Model.Projects.Any())
     {
+        @if (!string.IsNullOrWhiteSpace(Model.ProjectsFilter))
+        {
+            <p class="text-danger">The following projects match your filter:</p>
+        }
         <h3>No projects available.</h3>
         @if (User.Identity.IsAuthenticated)
         {
@@ -12,6 +16,23 @@
     }
     else
     {
+        <form asp-controller="Home" asp-action="Index" class="form-horizontal" role="form">
+            <div class="form-group row">
+                <label asp-for="ProjectsFilter" class="col-md-2 control-label"></label>
+                <div class="col-md-9">
+                    <input asp-for="ProjectsFilter" class="form-control" />
+                </div>
+                <div class="col-md-1">
+                    <button type="submit" class="btn btn-raised btn-primary">Search</button>
+                </div>
+            </div>
+        </form>
+
+        @if(!string.IsNullOrWhiteSpace(Model.ProjectsFilter))
+        {
+            <p class="text-danger">The following projects match your filter:</p>
+        }
+
         <table class="table">
             <tbody>
                 @{
