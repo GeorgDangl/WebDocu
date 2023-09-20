@@ -20,7 +20,7 @@ namespace Dangl.WebDocumentation.Services
             _logger = loggerFactory.CreateLogger<EmailSender>();
         }
 
-        public async Task<bool> SendMessage(string emailTo, string subject, string bodyHtml)
+        public async Task<bool> SendMessageAsync(string emailTo, string subject, string bodyHtml)
         {
             if (string.IsNullOrWhiteSpace(_emailSettings.FromAddress))
             {

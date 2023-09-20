@@ -44,7 +44,7 @@ namespace Dangl.WebDocumentation.Controllers
         {
             ViewData["Section"] = "Home";
             var userId = await _docuUserInfoService.GetCurrentUserIdOrNullAsync();
-            var hasProjectAccess = await _projectsService.UserHasAccessToProject(projectName, userId);
+            var hasProjectAccess = await _projectsService.UserHasAccessToProjectAsync(projectName, userId);
             if (!hasProjectAccess)
             {
                 var projectVersionExists = await _projectVersionsService.ProjectVersionExistsAsync(projectName, version);
@@ -66,7 +66,7 @@ namespace Dangl.WebDocumentation.Controllers
             if (string.IsNullOrWhiteSpace(pathToFile))
             {
                 // If not pathToFile is given, the response should redirect to the entry point for the project
-                var pathToEntryPoint = await _projectFilesService.GetEntryFilePathForProject(projectName);
+                var pathToEntryPoint = await _projectFilesService.GetEntryFilePathForProjectAsync(projectName);
                 return RedirectToAction(nameof(GetFile), new {projectName, version, pathToFile = pathToEntryPoint});
             }
 
@@ -93,10 +93,10 @@ namespace Dangl.WebDocumentation.Controllers
                 }
             }
 
-            var projectFile = await _projectFilesService.GetFileForProject(projectName, version, pathToFile);
+            var projectFile = await _projectFilesService.GetFileForProjectAsync(projectName, version, pathToFile);
             if (projectFile == null)
             {
-                var pathToEntryPoint = await _projectFilesService.GetEntryFilePathForProject(projectName);
+                var pathToEntryPoint = await _projectFilesService.GetEntryFilePathForProjectAsync(projectName);
                 if (pathToEntryPoint == pathToFile)
                 {
                     return NotFound();

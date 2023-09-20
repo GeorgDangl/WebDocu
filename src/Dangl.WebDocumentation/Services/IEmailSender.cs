@@ -4,6 +4,6 @@ namespace Dangl.WebDocumentation.Services
 {
     public interface IEmailSender
     {
-        Task<bool> SendMessage(string emailTo, string subject, string bodyHtml);
+        Task<bool> SendMessageAsync(string emailTo, string subject, string bodyHtml);
     }
 }

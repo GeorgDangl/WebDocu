@@ -35,10 +35,10 @@ namespace Dangl.WebDocumentation.Controllers
         {
             ViewData["Section"] = "Home";
             var userId = await _docuUserInfoService.GetCurrentUserIdOrNullAsync();
-            var hasProjectAccess = await _projectsService.UserHasAccessToProject(projectName, userId);
+            var hasProjectAccess = await _projectsService.UserHasAccessToProjectAsync(projectName, userId);
             if (!hasProjectAccess)
             {
-                var projectExists = await _projectsService.ProjectExistsAsync(projectName);
+                var projectExists = await _projectsService.ProjectExistsAsyncAsync(projectName);
                 if (projectExists)
                 {
                     if (User.Identity.IsAuthenticated)
@@ -53,7 +53,7 @@ namespace Dangl.WebDocumentation.Controllers
 
                 return NotFound();
             }
-            var entryFilePath = await _projectFilesService.GetEntryFilePathForProject(projectName);
+            var entryFilePath = await _projectFilesService.GetEntryFilePathForProjectAsync(projectName);
             var model = new IndexViewModel
             {
                 ProjectId = await _projectsService.GetIdForProjectByNameAsync(projectName),

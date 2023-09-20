@@ -26,7 +26,7 @@ namespace Dangl.WebDocumentation.Services
             _projectChangelogService = projectChangelogService;
         }
 
-        public async Task ScheduleProjectUploadNotifications(string projectName, string version)
+        public async Task ScheduleProjectUploadNotificationsAsync(string projectName, string version)
         {
             var isStableVersion = SemanticVersionsOrderer.IsStableVersion(version);
             var projectId = await _projectsService.GetIdForProjectByNameAsync(projectName);
@@ -51,13 +51,13 @@ namespace Dangl.WebDocumentation.Services
 
             foreach (var user in userData)
             {
-                if (!await _projectsService.UserHasAccessToProject(projectName, user.UserId))
+                if (!await _projectsService.UserHasAccessToProjectAsync(projectName, user.UserId))
                 {
                     continue;
                 }
 
                 var emailData = await GetEmailContent(projectName, version, _appSettings.BaseUrl);
-                BackgroundJob.Enqueue<IEmailSender>(emailSender => emailSender.SendMessage(user.Email, emailData.subject, emailData.body));
+                BackgroundJob.Enqueue<IEmailSender>(emailSender => emailSender.SendMessageAsync(user.Email, emailData.subject, emailData.body));
             }
         }
 
@@ -69,7 +69,7 @@ namespace Dangl.WebDocumentation.Services
                 ? $"New Beta Release Available for {projectName}"
                 : $"New Release Available for {projectName}";
 
-            var htmlChangelog = await _projectChangelogService.GetChangelogInHtmlFormat(projectName, version);
+            var htmlChangelog = await _projectChangelogService.GetChangelogInHtmlFormatAsync(projectName, version);
             var emailBody = GetEmailBody(isPrereleaseVersion, projectName, version, danglDocuBaseUrl, htmlChangelog);
 
             return (subject, emailBody);

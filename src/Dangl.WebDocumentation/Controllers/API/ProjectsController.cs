@@ -48,7 +48,7 @@ namespace Dangl.WebDocumentation.Controllers.API
                 return NotFound();
             }
 
-            var projectName = await _projectsService.GetProjectNameForApiKey(apiKey);
+            var projectName = await _projectsService.GetProjectNameForApiKeyAsync(apiKey);
             if (string.IsNullOrWhiteSpace(projectName))
             {
                 _logger.LogInformation("Failed to resolve the project name from the given api key.");

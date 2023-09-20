@@ -29,7 +29,7 @@ namespace Dangl.WebDocumentation.Services
             _projectVersionAssetFilesService = projectVersionAssetFilesService;
         }
 
-        public Task<string> GetEntryFilePathForProject(string projectName)
+        public Task<string> GetEntryFilePathForProjectAsync(string projectName)
         {
             var entryPath = _context.DocumentationProjects
                 .Where(p => p.Name == projectName)
@@ -38,7 +38,7 @@ namespace Dangl.WebDocumentation.Services
             return entryPath;
         }
 
-        public async Task<ProjectFileDto> GetFileForProject(string projectName, string version, string filePath)
+        public async Task<ProjectFileDto> GetFileForProjectAsync(string projectName, string version, string filePath)
         {
             var projectId = await _context.DocumentationProjects
                 .Where(p => p.Name == projectName)
@@ -135,7 +135,7 @@ namespace Dangl.WebDocumentation.Services
                         if (repoResult.IsSuccess)
                         {
                             transaction.Commit();
-                            await _projectUploadNotificationsService.ScheduleProjectUploadNotifications(projectName, version);
+                            await _projectUploadNotificationsService.ScheduleProjectUploadNotificationsAsync(projectName, version);
                             transactionResult = true;
                         }
                     }

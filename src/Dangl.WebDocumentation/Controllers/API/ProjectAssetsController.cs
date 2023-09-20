@@ -47,7 +47,7 @@ namespace Dangl.WebDocumentation.Controllers.API
                 // Not accepting empty API key -> Disable API upload to projects by setting the API key empty
                 return NotFound();
             }
-            var projectName = await _projectsService.GetProjectNameForApiKey(apiKey);
+            var projectName = await _projectsService.GetProjectNameForApiKeyAsync(apiKey);
             if (string.IsNullOrWhiteSpace(projectName))
             {
                 return NotFound();
@@ -75,7 +75,7 @@ namespace Dangl.WebDocumentation.Controllers.API
                 return NotFound();
             }
 
-            var projectName = await _projectsService.GetProjectNameForApiKey(apiKey);
+            var projectName = await _projectsService.GetProjectNameForApiKeyAsync(apiKey);
             if (string.IsNullOrWhiteSpace(projectName))
             {
                 return NotFound();

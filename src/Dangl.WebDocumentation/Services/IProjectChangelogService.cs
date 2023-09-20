@@ -4,7 +4,7 @@ namespace Dangl.WebDocumentation.Services
 {
     public interface IProjectChangelogService
     {
-        Task<string> GetChangelogInMarkdownFormat(string projectName, string version);
-        Task<string> GetChangelogInHtmlFormat(string projectName, string version);
+        Task<string> GetChangelogInMarkdownFormatAsync(string projectName, string version);
+        Task<string> GetChangelogInHtmlFormatAsync(string projectName, string version);
     }
 }

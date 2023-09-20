@@ -55,7 +55,7 @@ namespace Dangl.WebDocumentation.Controllers
 
             var userId = await _docuUserInfoService.GetCurrentUserIdOrNullAsync();
 
-            if (!await _projectsService.UserHasAccessToProject(projectName, userId))
+            if (!await _projectsService.UserHasAccessToProjectAsync(projectName, userId))
             {
                 // No need to show a detailed error message, this state should
                 // not be reached if the user navigates via the WebUI

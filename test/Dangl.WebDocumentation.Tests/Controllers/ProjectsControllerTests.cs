@@ -40,9 +40,9 @@ namespace Dangl.WebDocumentation.Tests.Controllers
         [Fact]
         public async Task RedirectToEntryIfNoFilePathGiven()
         {
-            _projectsServiceMock.Setup(s => s.UserHasAccessToProject(It.IsAny<string>(), It.IsAny<Guid?>()))
+            _projectsServiceMock.Setup(s => s.UserHasAccessToProjectAsync(It.IsAny<string>(), It.IsAny<Guid?>()))
                 .Returns(Task.FromResult(true));
-            _projectFilesServiceMock.Setup(s => s.GetEntryFilePathForProject(It.IsAny<string>()))
+            _projectFilesServiceMock.Setup(s => s.GetEntryFilePathForProjectAsync(It.IsAny<string>()))
                 .Returns(Task.FromResult("index.html"));
 
             var controller = GetController();
@@ -58,7 +58,7 @@ namespace Dangl.WebDocumentation.Tests.Controllers
         [Fact]
         public async Task RedirectToHigherVersionIfVersionNotPresent()
         {
-            _projectsServiceMock.Setup(s => s.UserHasAccessToProject(It.IsAny<string>(), It.IsAny<Guid?>()))
+            _projectsServiceMock.Setup(s => s.UserHasAccessToProjectAsync(It.IsAny<string>(), It.IsAny<Guid?>()))
                 .Returns(Task.FromResult(true));
             _projectVersionsServiceMock.Setup(s => s.GetProjectVersionsAsync(It.IsAny<string>()))
                 .Returns(Task.FromResult(new List<(string, bool, bool, DateTimeOffset?)> {("v1.0.0",false, false, null), ("v1.0.1", false, false, null) }));
@@ -76,7 +76,7 @@ namespace Dangl.WebDocumentation.Tests.Controllers
         [Fact]
         public async Task ReturnNotFoundIfVersionNotPresentAndNoHigherVersion()
         {
-            _projectsServiceMock.Setup(s => s.UserHasAccessToProject(It.IsAny<string>(), It.IsAny<Guid?>()))
+            _projectsServiceMock.Setup(s => s.UserHasAccessToProjectAsync(It.IsAny<string>(), It.IsAny<Guid?>()))
                 .Returns(Task.FromResult(true));
             _projectVersionsServiceMock.Setup(s => s.GetProjectVersionsAsync(It.IsAny<string>()))
                 .Returns(Task.FromResult(new List<(string, bool, bool, DateTimeOffset?)> { ("v1.0.0", false, false, null), ("v1.0.1", false, false, null) }));
@@ -89,11 +89,11 @@ namespace Dangl.WebDocumentation.Tests.Controllers
         [Fact]
         public async Task ReturnRedirectToIndexIfVersionCorrectButFileNotFound()
         {
-            _projectsServiceMock.Setup(s => s.UserHasAccessToProject(It.IsAny<string>(), It.IsAny<Guid?>()))
+            _projectsServiceMock.Setup(s => s.UserHasAccessToProjectAsync(It.IsAny<string>(), It.IsAny<Guid?>()))
                 .Returns(Task.FromResult(true));
             _projectVersionsServiceMock.Setup(s => s.GetProjectVersionsAsync(It.IsAny<string>()))
                 .Returns(Task.FromResult(new List<(string, bool, bool, DateTimeOffset?)> { ("v1.0.0", false, false, null), ("v1.0.1", false, false, null) }));
-            _projectFilesServiceMock.Setup(s => s.GetEntryFilePathForProject(It.IsAny<string>()))
+            _projectFilesServiceMock.Setup(s => s.GetEntryFilePathForProjectAsync(It.IsAny<string>()))
                 .Returns(Task.FromResult("index.html"));
 
             var controller = GetController();

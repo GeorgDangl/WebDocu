@@ -4,6 +4,6 @@ namespace Dangl.WebDocumentation.Services
 {
     public interface IProjectUploadNotificationsService
     {
-        Task ScheduleProjectUploadNotifications(string projectName, string version);
+        Task ScheduleProjectUploadNotificationsAsync(string projectName, string version);
     }
 }

@@ -16,9 +16,9 @@ namespace Dangl.WebDocumentation.Services
             _context = context;
         }
 
-        public async Task<string> GetChangelogInHtmlFormat(string projectName, string version)
+        public async Task<string> GetChangelogInHtmlFormatAsync(string projectName, string version)
         {
-            var markdownChangelog = await GetChangelogInMarkdownFormat(projectName, version);
+            var markdownChangelog = await GetChangelogInMarkdownFormatAsync(projectName, version);
             if (markdownChangelog == null)
             {
                 return null;
@@ -29,7 +29,7 @@ namespace Dangl.WebDocumentation.Services
             return htmlSanitizer.Sanitize(html);
         }
 
-        public Task<string> GetChangelogInMarkdownFormat(string projectName, string version)
+        public Task<string> GetChangelogInMarkdownFormatAsync(string projectName, string version)
         {
             return _context
                 .DocumentationProjectVersions

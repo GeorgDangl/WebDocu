@@ -75,7 +75,7 @@ namespace Dangl.WebDocumentation.Controllers
                 throw new Exception("Could not get user email from claims.");
             }
 
-            var emailSendResult = await _emailSender.SendMessage(email, "DanglDocu Test Email", $@"<h1>Email Test</h1>
+            var emailSendResult = await _emailSender.SendMessageAsync(email, "DanglDocu Test Email", $@"<h1>Email Test</h1>
 <p>This email was sent from DanglDocu at {DateTime.UtcNow:dd.MM.yyyy HH:mm} (UTC) to {email} by manual invocation from the owner of this user account.</p>");
 
             if (emailSendResult)

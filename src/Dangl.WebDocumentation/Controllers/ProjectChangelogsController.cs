@@ -31,14 +31,14 @@ namespace Dangl.WebDocumentation.Controllers
         {
             ViewData["Section"] = "Home";
             var userId = await _docuUserInfoService.GetCurrentUserIdOrNullAsync();
-            var hasProjectAccess = await _projectsService.UserHasAccessToProject(projectName, userId);
+            var hasProjectAccess = await _projectsService.UserHasAccessToProjectAsync(projectName, userId);
             if (!hasProjectAccess)
             {
                 // HttpNotFound for either the project not existing or the user not having access
                 return NotFound();
             }
 
-            var htmlChangelog = await _projectChangelogService.GetChangelogInHtmlFormat(projectName, version);
+            var htmlChangelog = await _projectChangelogService.GetChangelogInHtmlFormatAsync(projectName, version);
 
             if (htmlChangelog == null)
             {

@@ -20,7 +20,7 @@ namespace Dangl.WebDocumentation.Services
             _userInfoService = userInfoService;
         }
 
-        public async Task<bool> UserHasAccessToProject(string projectName, Guid? userId = null)
+        public async Task<bool> UserHasAccessToProjectAsync(string projectName, Guid? userId = null)
         {
             var userClaims = await _userInfoService.GetUserClaimsAsync();
             if (userClaims.Any(c => c.Type == AppConstants.PROJECT_ACCESS_CLAIM_NAME
@@ -37,7 +37,7 @@ namespace Dangl.WebDocumentation.Services
             return projectIsPublicOrUserHasAccess;
         }
 
-        public Task<string> GetProjectNameForApiKey(string apiKey)
+        public Task<string> GetProjectNameForApiKeyAsync(string apiKey)
         {
             var projectName = _context.DocumentationProjects
                 .Where(p => p.ApiKey == apiKey)
@@ -104,7 +104,7 @@ namespace Dangl.WebDocumentation.Services
                 .ToList();
         }
 
-        public Task<bool> ProjectExistsAsync(string projectName)
+        public Task<bool> ProjectExistsAsyncAsync(string projectName)
         {
             return _context.DocumentationProjects.AnyAsync(p => p.Name == projectName);
         }

@@ -45,7 +45,7 @@ namespace Dangl.WebDocumentation.Controllers
             }
 
             var userId = await _docuUserInfoService.GetCurrentUserIdOrNullAsync();
-            var hasProjectAccess = await _projectsService.UserHasAccessToProject(projectName, userId);
+            var hasProjectAccess = await _projectsService.UserHasAccessToProjectAsync(projectName, userId);
             if (!hasProjectAccess)
             {
                 var projectVersionExists = await _projectVersionsService.ProjectVersionExistsAsync(projectName, version);
@@ -94,7 +94,7 @@ namespace Dangl.WebDocumentation.Controllers
         public async Task<IActionResult> GetAssetFile(string projectName, string version, string assetFileName, Guid fileId)
         {
             var userId = await _docuUserInfoService.GetCurrentUserIdOrNullAsync();
-            var hasProjectAccess = await _projectsService.UserHasAccessToProject(projectName, userId);
+            var hasProjectAccess = await _projectsService.UserHasAccessToProjectAsync(projectName, userId);
             if (!hasProjectAccess)
             {
                 var projectVersionExists = await _projectVersionsService.ProjectVersionExistsAsync(projectName, version);
