@@ -7,4 +7,5 @@ FROM base AS final
 WORKDIR /app
 COPY . .
 ENV ASPNETCORE_FORWARDEDHEADERS_ENABLED=true
+ENV ASPNETCORE_HTTP_PORTS=80
 ENTRYPOINT ["dotnet", "Dangl.WebDocumentation.dll"]
