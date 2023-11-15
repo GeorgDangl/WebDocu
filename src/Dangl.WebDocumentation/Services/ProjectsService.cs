@@ -30,10 +30,12 @@ namespace Dangl.WebDocumentation.Services
             }
 
             // Find only public projects or projects where the user has access to (if logged in)
+#pragma warning disable RCS1155 // Use StringComparison when comparing strings.
             var projectIsPublicOrUserHasAccess = await (from dbProject in _context.DocumentationProjects
                                                   where dbProject.Name.ToUpper() == projectName.ToUpper()
                                                         && (dbProject.IsPublic || (userId != null && _context.UserProjects.Any(projectAccess => projectAccess.UserId == userId && projectAccess.ProjectId == dbProject.Id)))
                                                   select dbProject).AnyAsync();
+#pragma warning restore RCS1155 // Use StringComparison when comparing strings.
             return projectIsPublicOrUserHasAccess;
         }
 
@@ -54,7 +56,7 @@ namespace Dangl.WebDocumentation.Services
                 .FirstOrDefaultAsync();
         }
 
-        public async Task<List<DocumentationProject>> GetAllProjectsForUserAsync(Guid? userId, string? filter = null)
+        public async Task<List<DocumentationProject>> GetAllProjectsForUserAsync(Guid? userId, string filter = null)
         {
             // Get a list of all projects that the user has access to
             var accessibleProjects = await _context

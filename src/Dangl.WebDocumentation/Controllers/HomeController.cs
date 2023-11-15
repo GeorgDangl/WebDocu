@@ -25,7 +25,7 @@ namespace Dangl.WebDocumentation.Controllers
 
         private UserManager<ApplicationUser> UserManager { get; }
 
-        public async Task<IActionResult> Index(string? projectsFilter = null)
+        public async Task<IActionResult> Index(string projectsFilter = null)
         {
             ViewData["Section"] = "Home";
 
