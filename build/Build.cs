@@ -1,18 +1,14 @@
 ﻿using Nuke.Common;
 using Nuke.Common.Tools.DotNet;
 using Nuke.Common.Tools.ReportGenerator;
-using Nuke.Common.Tools.WebConfigTransformRunner;
 using Nuke.Common.Utilities;
 using System.IO;
-using static Nuke.Common.IO.FileSystemTasks;
-using static Nuke.Common.IO.PathConstruction;
 using static Nuke.Common.IO.Globbing;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
 using static Nuke.Common.Tools.ReportGenerator.ReportGeneratorTasks;
 using Nuke.Common.ProjectModel;
 using Nuke.Common.Tooling;
 using System;
-using static Nuke.Common.IO.TextTasks;
 using Nuke.Common.Tools.GitVersion;
 using static Nuke.Common.IO.HttpTasks;
 using Newtonsoft.Json.Linq;
@@ -70,8 +66,9 @@ class Build : NukeBuild
     {
         if (GitVersion == null)
         {
-            // Sometimes, GitVersion failed to initialize on the build server for the GitVersionAttribute
-            // Since log output is disabled there, we're enabling it here to be able to see what error occurred
+            // Sometimes, GitVersion failed to initialize on the build server for the
+            // GitVersionAttribute Since log output is disabled there, we're enabling it here to be
+            // able to see what error occurred
             Serilog.Log.Information("Failed to get GitVersion automatically, trying to obtain it manually with NoFetch specified");
             GitVersion = GitVersionTasks.GitVersion(s => s
                     .SetNoFetch(true)
@@ -90,7 +87,7 @@ class Build : NukeBuild
         }
     }
 
-    void SendTeamsMessage(string title, string message, bool isError)
+    private void SendTeamsMessage(string title, string message, bool isError)
     {
         if (!string.IsNullOrWhiteSpace(DanglCiCdTeamsWebhookUrl))
         {
@@ -192,8 +189,7 @@ namespace Dangl.WebDocumentation.Services
             }
             finally
             {
-                // Merge coverage reports, otherwise they might not be completely
-                // picked up by Jenkins
+                // Merge coverage reports, otherwise they might not be completely picked up by Jenkins
                 ReportGenerator(c => c
                     .SetFramework("net7.0")
                     .SetReports(OutputDirectory / "**/*cobertura.xml")
@@ -273,7 +269,7 @@ namespace Dangl.WebDocumentation.Services
                 File.Delete(configFileToDelete);
             }
 
-            CopyFile(SourceDirectory / "Dangl.WebDocumentation" / "Dockerfile_CI", OutputDirectory / "Dockerfile", Nuke.Common.IO.FileExistsPolicy.Overwrite);
+            (SourceDirectory / "Dangl.WebDocumentation" / "Dockerfile_CI").Copy(OutputDirectory / "Dockerfile", ExistsPolicy.FileOverwrite);
 
             DockerBuild(c => c
                 .SetFile(OutputDirectory / "Dockerfile")
@@ -291,25 +287,37 @@ namespace Dangl.WebDocumentation.Services
         .Requires(() => DockerRegistryPassword)
         .Requires(() => DanglCiCdSlackWebhookUrl)
         .OnlyWhenDynamic(() => !(Nuke.Common.CI.Jenkins.Jenkins.Instance is Nuke.Common.CI.Jenkins.Jenkins) || (Nuke.Common.CI.Jenkins.Jenkins.Instance as Nuke.Common.CI.Jenkins.Jenkins).ChangeId == null)
-        .Executes(async () =>
+        .Executes(() =>
         {
             DockerLogin(x => x
                 .SetUsername(DockerRegistryUsername)
                 .SetServer(DockerRegistryUrl)
                 .SetPassword(DockerRegistryPassword)
-                .DisableProcessLogOutput());
+                .DisableProcessOutputLogging());
 
-            await PushDockerWithTag("dev");
+            PushDockerWithTag("dev")
+                .ConfigureAwait(false)
+                .GetAwaiter()
+                .GetResult();
 
             if (GitVersion.BranchName.Equals("master") || GitVersion.BranchName.Equals("origin/master"))
             {
-                await PushDockerWithTag("latest");
-                await PushDockerWithTag(GitVersion.SemVer);
-                await EnsureAppIsAtLatestVersionAsync("https://docs.dangl-it.com/api/status");
+                PushDockerWithTag("latest")
+                .ConfigureAwait(false)
+                .GetAwaiter()
+                .GetResult();
+                PushDockerWithTag(GitVersion.SemVer)
+                .ConfigureAwait(false)
+                .GetAwaiter()
+                .GetResult();
+                EnsureAppIsAtLatestVersionAsync("https://docs.dangl-it.com/api/status")
+                .ConfigureAwait(false)
+                .GetAwaiter()
+                .GetResult();
             }
         });
 
-    async Task EnsureAppIsAtLatestVersionAsync(string appStatusUrl)
+    private async Task EnsureAppIsAtLatestVersionAsync(string appStatusUrl)
     {
         var timeoutInSeconds = 180;
         var statusIsAtLatestVersion = false;
