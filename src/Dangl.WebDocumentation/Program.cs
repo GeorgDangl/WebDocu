@@ -1,10 +1,10 @@
 ﻿using Dangl.AspNetCore.FileHandling;
 using Dangl.AspNetCore.FileHandling.Azure;
 using Dangl.WebDocumentation.Models;
-using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
 
@@ -14,7 +14,7 @@ namespace Dangl.WebDocumentation
     {
         public static async Task Main(string[] args)
         {
-            var host = CreateWebHostBuilder(args).Build();
+            var host = CreateHostBuilder(args).Build();
 
             // Initialize the database
             try
@@ -42,11 +42,12 @@ namespace Dangl.WebDocumentation
             await host.RunAsync();
         }
 
-        public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
-            WebHost.CreateDefaultBuilder(args)
+        public static IHostBuilder CreateHostBuilder(string[] args) =>
+            new HostBuilder()
+            .ConfigureDefaults(args)
+            .ConfigureWebHostDefaults(c => c
                 .ConfigureLogging(c => c
-                    .AddAzureWebAppDiagnostics()
-                    .AddApplicationInsights())
-                .UseStartup<Startup>();
+                    .AddAzureWebAppDiagnostics())
+                .UseStartup<Startup>());
     }
 }
