@@ -257,8 +257,8 @@ namespace Dangl.WebDocumentation.Services
         .Requires(() => Configuration.EqualsOrdinalIgnoreCase("Release"))
         .Executes(() =>
         {
-            DockerPull(c => c.SetName("mcr.microsoft.com/dotnet/aspnet:9.0"));
-            DockerPull(c => c.SetName("mcr.microsoft.com/dotnet/sdk:9.0"));
+            DockerPull(c => c.SetName("mcr.microsoft.com/dotnet/aspnet:10.0"));
+            DockerPull(c => c.SetName("mcr.microsoft.com/dotnet/sdk:10.0"));
             DotNetPublish(s => s
                 .SetProject(SourceDirectory / "Dangl.WebDocumentation")
                 .SetOutput(OutputDirectory)
