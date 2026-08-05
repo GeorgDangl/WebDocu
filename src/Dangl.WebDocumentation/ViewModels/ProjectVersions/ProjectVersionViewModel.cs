@@ -8,5 +8,6 @@ namespace Dangl.WebDocumentation.ViewModels.ProjectVersions
         public bool HasAssetFiles { get; set; }
         public bool HasChangelog { get; set; }
         public DateTimeOffset? DateUtc { get; set; }
+        public long? PackageSizeInBytes { get; set; }
     }
 }

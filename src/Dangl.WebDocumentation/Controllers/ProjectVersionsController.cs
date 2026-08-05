@@ -54,22 +54,52 @@ namespace Dangl.WebDocumentation.Controllers
                 return NotFound();
             }
             var entryFilePath = await _projectFilesService.GetEntryFilePathForProjectAsync(projectName);
+            var isAdmin = User.IsInRole(AppConstants.ADMIN_ROLE_NAME);
+            var versions = await _projectVersionsService.GetProjectVersionsAsync(projectName);
+            var versionViewModels = versions
+                .Select(v => new ProjectVersionViewModel
+                {
+                    Version = v.version,
+                    HasAssetFiles = v.hasAssets,
+                    HasChangelog = v.hasChangelog,
+                    DateUtc = v.dateUtc
+                })
+                .ToList();
+
+            if (isAdmin)
+            {
+                foreach (var versionViewModel in versionViewModels)
+                {
+                    versionViewModel.PackageSizeInBytes = await _projectFilesService.GetProjectPackageSizeInBytesAsync(projectName, versionViewModel.Version);
+                }
+            }
+
             var model = new IndexViewModel
             {
                 ProjectId = await _projectsService.GetIdForProjectByNameAsync(projectName),
                 PathToIndex = entryFilePath,
                 ProjectName = projectName,
-                Versions = (await _projectVersionsService.GetProjectVersionsAsync(projectName))
-                    .Select(v => new ProjectVersionViewModel
-                    {
-                        Version = v.version,
-                        HasAssetFiles = v.hasAssets,
-                        HasChangelog = v.hasChangelog,
-                        DateUtc = v.dateUtc
-                    })
-                    .ToList()
+                Versions = versionViewModels
             };
             return View(model);
+        }
+
+        [HttpGet("Download/{version}")]
+        public async Task<IActionResult> DownloadPackage(string projectName, string version)
+        {
+            if (!User.IsInRole(AppConstants.ADMIN_ROLE_NAME))
+            {
+                return Forbid();
+            }
+
+            var packageStream = await _projectFilesService.GetProjectPackageAsync(projectName, version);
+            if (packageStream == null)
+            {
+                return NotFound();
+            }
+
+            var fileName = $"{projectName}_{version}.zip";
+            return File(packageStream, "application/zip", fileName);
         }
     }
 }
