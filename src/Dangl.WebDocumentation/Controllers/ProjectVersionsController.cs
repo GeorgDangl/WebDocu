@@ -54,7 +54,6 @@ namespace Dangl.WebDocumentation.Controllers
                 return NotFound();
             }
             var entryFilePath = await _projectFilesService.GetEntryFilePathForProjectAsync(projectName);
-            var isAdmin = User.IsInRole(AppConstants.ADMIN_ROLE_NAME);
             var versions = await _projectVersionsService.GetProjectVersionsAsync(projectName);
             var versionViewModels = versions
                 .Select(v => new ProjectVersionViewModel
@@ -62,17 +61,10 @@ namespace Dangl.WebDocumentation.Controllers
                     Version = v.version,
                     HasAssetFiles = v.hasAssets,
                     HasChangelog = v.hasChangelog,
-                    DateUtc = v.dateUtc
+                    DateUtc = v.dateUtc,
+                    PackageSizeInBytes = v.packageSizeInBytes
                 })
                 .ToList();
-
-            if (isAdmin)
-            {
-                foreach (var versionViewModel in versionViewModels)
-                {
-                    versionViewModel.PackageSizeInBytes = await _projectFilesService.GetProjectPackageSizeInBytesAsync(projectName, versionViewModel.Version);
-                }
-            }
 
             var model = new IndexViewModel
             {
