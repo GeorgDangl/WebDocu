@@ -14,6 +14,5 @@ namespace Dangl.WebDocumentation.Services
         Task<bool> UploadProjectPackageAsync(string projectName, string version, string markdownChangelog, Stream zipArchiveStream);
         Task<bool> DeleteProjectVersionPackageAsync(Guid projectId, string version);
         Task<Stream> GetProjectPackageAsync(string projectName, string version);
-        Task<long?> GetProjectPackageSizeInBytesAsync(string projectName, string version);
     }
 }

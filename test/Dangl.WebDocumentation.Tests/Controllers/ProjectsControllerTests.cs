@@ -61,7 +61,7 @@ namespace Dangl.WebDocumentation.Tests.Controllers
             _projectsServiceMock.Setup(s => s.UserHasAccessToProjectAsync(It.IsAny<string>(), It.IsAny<Guid?>()))
                 .Returns(Task.FromResult(true));
             _projectVersionsServiceMock.Setup(s => s.GetProjectVersionsAsync(It.IsAny<string>()))
-                .Returns(Task.FromResult(new List<(string, bool, bool, DateTimeOffset?)> {("v1.0.0",false, false, null), ("v1.0.1", false, false, null) }));
+                .Returns(Task.FromResult(new List<(string, bool, bool, DateTimeOffset?, long?)> {("v1.0.0", false, false, null, null), ("v1.0.1", false, false, null, null) }));
 
             var controller = GetController();
             var result = await controller.GetFile("DemoProject", "v0.0.1", "index.html");
@@ -79,7 +79,7 @@ namespace Dangl.WebDocumentation.Tests.Controllers
             _projectsServiceMock.Setup(s => s.UserHasAccessToProjectAsync(It.IsAny<string>(), It.IsAny<Guid?>()))
                 .Returns(Task.FromResult(true));
             _projectVersionsServiceMock.Setup(s => s.GetProjectVersionsAsync(It.IsAny<string>()))
-                .Returns(Task.FromResult(new List<(string, bool, bool, DateTimeOffset?)> { ("v1.0.0", false, false, null), ("v1.0.1", false, false, null) }));
+                .Returns(Task.FromResult(new List<(string, bool, bool, DateTimeOffset?, long?)> { ("v1.0.0", false, false, null, null), ("v1.0.1", false, false, null, null) }));
 
             var controller = GetController();
             var result = await controller.GetFile("DemoProject", "v1.0.2", "index.html");
@@ -92,7 +92,7 @@ namespace Dangl.WebDocumentation.Tests.Controllers
             _projectsServiceMock.Setup(s => s.UserHasAccessToProjectAsync(It.IsAny<string>(), It.IsAny<Guid?>()))
                 .Returns(Task.FromResult(true));
             _projectVersionsServiceMock.Setup(s => s.GetProjectVersionsAsync(It.IsAny<string>()))
-                .Returns(Task.FromResult(new List<(string, bool, bool, DateTimeOffset?)> { ("v1.0.0", false, false, null), ("v1.0.1", false, false, null) }));
+                .Returns(Task.FromResult(new List<(string, bool, bool, DateTimeOffset?, long?)> { ("v1.0.0", false, false, null, null), ("v1.0.1", false, false, null, null) }));
             _projectFilesServiceMock.Setup(s => s.GetEntryFilePathForProjectAsync(It.IsAny<string>()))
                 .Returns(Task.FromResult("index.html"));
 
