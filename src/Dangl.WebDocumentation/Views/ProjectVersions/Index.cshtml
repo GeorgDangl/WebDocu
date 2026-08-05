@@ -5,6 +5,7 @@
     var hasAnyAssets = Model.Versions.Any(v => v.HasAssetFiles);
     var hasAnyChangelogs = Model.Versions.Any(v => v.HasChangelog);
     var hasAnyDates = Model.Versions.Any(v => v.DateUtc != null);
+    var hasAnyPackageSizes = isAdmin && Model.Versions.Any(v => v.PackageSizeInBytes != null);
 }
 
 <h2>@ViewData["Title"]</h2>
@@ -60,6 +61,18 @@ else
                         }
                         @if(isAdmin)
                         {
+                            @if (hasAnyPackageSizes)
+                            {
+                                <td>
+                                    @if (version.PackageSizeInBytes != null)
+                                    {
+                                        <span>@($"{version.PackageSizeInBytes / 1024.0 / 1024.0:F2} MB")</span>
+                                    }
+                                </td>
+                            }
+                            <td>
+                                <a asp-controller="ProjectVersions" asp-action="DownloadPackage" asp-route-projectName="@Model.ProjectName" asp-route-version="@version.Version">Download Package</a>
+                            </td>
                             <td>
                                 <a asp-controller="ProjectAssets" asp-action="UploadAsset" asp-route-projectName="@Model.ProjectName" asp-route-version="@version.Version">Upload Asset</a>
                             </td>

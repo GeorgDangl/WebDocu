@@ -188,6 +188,61 @@ namespace Dangl.WebDocumentation.Services
             return true;
         }
 
+        public async Task<Stream> GetProjectPackageAsync(string projectName, string version)
+        {
+            var packagePath = await GetPackagePathForProjectVersionAsync(projectName, version);
+            if (packagePath == null)
+            {
+                return null;
+            }
+            var repoResult = await _fileManager.GetFileAsync(AppConstants.PROJECTS_CONTAINER, packagePath);
+            if (!repoResult.IsSuccess)
+            {
+                return null;
+            }
+            return repoResult.Value;
+        }
+
+        public async Task<long?> GetProjectPackageSizeInBytesAsync(string projectName, string version)
+        {
+            var packageStream = await GetProjectPackageAsync(projectName, version);
+            if (packageStream == null)
+            {
+                return null;
+            }
+            using (packageStream)
+            {
+                if (packageStream.CanSeek)
+                {
+                    return packageStream.Length;
+                }
+                var memoryStream = new MemoryStream();
+                await packageStream.CopyToAsync(memoryStream);
+                return memoryStream.Length;
+            }
+        }
+
+        private async Task<string> GetPackagePathForProjectVersionAsync(string projectName, string version)
+        {
+            var projectId = await _context.DocumentationProjects
+                .Where(p => p.Name == projectName)
+                .Select(p => new { p.Id })
+                .FirstOrDefaultAsync();
+            if (projectId == null)
+            {
+                return null;
+            }
+            var versionPackageId = await _context.DocumentationProjectVersions
+                .Where(v => v.ProjectName == projectName && v.Version == version)
+                .Select(v => new { v.FileId })
+                .FirstOrDefaultAsync();
+            if (versionPackageId == null)
+            {
+                return null;
+            }
+            return GetPackagePath(projectId.Id, versionPackageId.FileId);
+        }
+
         private string GetPackagePath(Guid projectId, Guid versionFileId)
         {
             var packagePath = Path.Combine(projectId.ToString(), versionFileId + ".zip");
