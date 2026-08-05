@@ -1,4 +1,5 @@
 ﻿using Dangl.WebDocumentation.Models;
+using Hangfire;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Threading.Tasks;
@@ -7,6 +8,8 @@ namespace Dangl.WebDocumentation.Services
 {
     public class ProjectVersionPackageSizeBackfillService
     {
+        private const int BatchSize = 100;
+
         private readonly ApplicationDbContext _context;
         private readonly IProjectFilesService _projectFilesService;
 
@@ -22,6 +25,7 @@ namespace Dangl.WebDocumentation.Services
             var versionsWithoutSize = await _context.DocumentationProjectVersions
                 .Where(v => v.PackageSizeInBytes == null)
                 .Select(v => new { v.ProjectName, v.Version })
+                .Take(BatchSize)
                 .ToListAsync();
 
             foreach (var entry in versionsWithoutSize)
@@ -61,6 +65,11 @@ namespace Dangl.WebDocumentation.Services
             }
 
             await _context.SaveChangesAsync();
+
+            if (versionsWithoutSize.Count == BatchSize)
+            {
+                BackgroundJob.Enqueue<ProjectVersionPackageSizeBackfillService>(s => s.BackfillPackageSizesAsync());
+            }
         }
     }
 }
