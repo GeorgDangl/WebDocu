@@ -1,31 +1,31 @@
-﻿using Nuke.Common;
-using Nuke.Common.Tools.DotNet;
-using Nuke.Common.Tools.ReportGenerator;
-using Nuke.Common.Utilities;
+using Fallout.Common;
+using Fallout.Common.Tools.DotNet;
+using Fallout.Common.Tools.ReportGenerator;
+using Fallout.Common.Utilities;
 using System.IO;
-using static Nuke.Common.IO.Globbing;
-using static Nuke.Common.Tools.DotNet.DotNetTasks;
-using static Nuke.Common.Tools.ReportGenerator.ReportGeneratorTasks;
-using Nuke.Common.ProjectModel;
-using Nuke.Common.Tooling;
+using static Fallout.Common.IO.Globbing;
+using static Fallout.Common.Tools.DotNet.DotNetTasks;
+using static Fallout.Common.Tools.ReportGenerator.ReportGeneratorTasks;
+using Fallout.Common.ProjectModel;
+using Fallout.Common.Tooling;
 using System;
-using Nuke.Common.Tools.GitVersion;
-using static Nuke.Common.IO.HttpTasks;
+using Fallout.Common.Tools.GitVersion;
+using static Fallout.Common.IO.HttpTasks;
 using Newtonsoft.Json.Linq;
 using System.Linq;
-using Nuke.Common.Utilities.Collections;
-using Nuke.Common.Tools.AzureKeyVault;
-using Nuke.Common.IO;
-using static Nuke.Common.Tools.Docker.DockerTasks;
-using Nuke.Common.Tools.Docker;
+using Fallout.Common.Utilities.Collections;
+using Fallout.Common.Tools.AzureKeyVault;
+using Fallout.Common.IO;
+using static Fallout.Common.Tools.Docker.DockerTasks;
+using Fallout.Common.Tools.Docker;
 using System.Threading.Tasks;
-using Nuke.Common.Tools.Slack;
-using Nuke.Common.Git;
-using Nuke.Common.Tools.Teams;
-using Nuke.Common.Tools.Coverlet;
+using Fallout.Common.Tools.Slack;
+using Fallout.Common.Git;
+using Fallout.Common.Tools.Teams;
+using Fallout.Common.Tools.Coverlet;
 using System.Xml.Linq;
 
-class Build : NukeBuild
+class Build : FalloutBuild
 {
     // Console application entry point. Also defines the default target.
     public static int Main() => Execute<Build>(x => x.Compile);
@@ -286,7 +286,7 @@ namespace Dangl.WebDocumentation.Services
         .Requires(() => DockerRegistryUsername)
         .Requires(() => DockerRegistryPassword)
         .Requires(() => DanglCiCdSlackWebhookUrl)
-        .OnlyWhenDynamic(() => !(Nuke.Common.CI.Jenkins.Jenkins.Instance is Nuke.Common.CI.Jenkins.Jenkins) || (Nuke.Common.CI.Jenkins.Jenkins.Instance as Nuke.Common.CI.Jenkins.Jenkins).ChangeId == null)
+        .OnlyWhenDynamic(() => !(Fallout.Common.CI.Jenkins.Jenkins.Instance is Fallout.Common.CI.Jenkins.Jenkins) || (Fallout.Common.CI.Jenkins.Jenkins.Instance as Fallout.Common.CI.Jenkins.Jenkins).ChangeId == null)
         .Executes(() =>
         {
             DockerLogin(x => x
