@@ -16,11 +16,11 @@ namespace Dangl.WebDocumentation.Services
             _context = context;
         }
 
-        public async Task<List<(string version, bool hasAssets, bool hasChangelog, DateTimeOffset? dateUtc)>> GetProjectVersionsAsync(string projectName)
+        public async Task<List<(string version, bool hasAssets, bool hasChangelog, DateTimeOffset? dateUtc, long? packageSizeInBytes)>> GetProjectVersionsAsync(string projectName)
         {
             var versions = await _context.DocumentationProjectVersions
                 .Where(v => v.ProjectName == projectName)
-                .Select(v => new { v.Version, HasAssets = v.AssetFiles.Any(), HasChangelog = v.MarkdownChangelog != null, v.CreatedAtUtc})
+                .Select(v => new { v.Version, HasAssets = v.AssetFiles.Any(), HasChangelog = v.MarkdownChangelog != null, v.CreatedAtUtc, v.PackageSizeInBytes})
                 .ToListAsync();
             var semVerOrderer = new SemanticVersionsOrderer(versions.Select(v => v.Version).ToList());
             var orderedVersions = semVerOrderer.GetVersionsOrderedBySemanticVersionDescending();
@@ -28,7 +28,8 @@ namespace Dangl.WebDocumentation.Services
                 .Select(ov => (ov,
                 versions.Single(v => v.Version == ov).HasAssets,
                 versions.Single(v => v.Version == ov).HasChangelog,
-                versions.Single(v =>v.Version == ov).CreatedAtUtc == default ? (DateTimeOffset?)null : versions.Single(v => v.Version == ov).CreatedAtUtc))
+                versions.Single(v =>v.Version == ov).CreatedAtUtc == default ? (DateTimeOffset?)null : versions.Single(v => v.Version == ov).CreatedAtUtc,
+                versions.Single(v => v.Version == ov).PackageSizeInBytes))
                 .ToList();
         }
 

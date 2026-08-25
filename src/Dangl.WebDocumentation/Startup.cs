@@ -136,6 +136,7 @@ namespace Dangl.WebDocumentation
             });
             services.AddTransient<UserDeletionService>();
             services.AddTransient<UserClaimsProjectAccessService>();
+            services.AddTransient<ProjectVersionPackageSizeBackfillService>();
 
             services.Configure<ForwardedHeadersOptions>(options =>
             {
@@ -226,6 +227,8 @@ namespace Dangl.WebDocumentation
                     RecurringJob.AddOrUpdate("DailyUserDeletionSyncFromDanglIdentity", () => userDeletionService.RemoveLocallyCachedDeletedUsersAsync(), Cron.Daily());
                     var userClaimsProjectAccessService = ctx.RequestServices.GetRequiredService<UserClaimsProjectAccessService>();
                     RecurringJob.AddOrUpdate("UserClaimProjectAccessSyncFromDanglIdentity", () => userClaimsProjectAccessService.SyncUserClaimsForProjectAccess(), Cron.Hourly());
+                    var packageSizeBackfillService = ctx.RequestServices.GetRequiredService<ProjectVersionPackageSizeBackfillService>();
+                    BackgroundJob.Enqueue(() => packageSizeBackfillService.BackfillPackageSizesAsync());
                 }
 
                 return next();

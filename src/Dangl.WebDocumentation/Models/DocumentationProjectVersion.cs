@@ -20,6 +20,8 @@ namespace Dangl.WebDocumentation.Models
 
         public DateTimeOffset CreatedAtUtc { get; set; } = DateTimeOffset.UtcNow;
 
+        public long? PackageSizeInBytes { get; set; }
+
         public static void OnModelCreating(ModelBuilder builder)
         {
             builder.Entity<DocumentationProjectVersion>()

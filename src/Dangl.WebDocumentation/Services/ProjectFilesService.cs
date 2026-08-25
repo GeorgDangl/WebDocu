@@ -115,6 +115,23 @@ namespace Dangl.WebDocumentation.Services
             // Try to read as zip file
             try
             {
+                // Buffer the stream to get the size and allow re-reading if needed
+                long packageSizeInBytes;
+                Stream streamToSave;
+                if (zipArchiveStream.CanSeek)
+                {
+                    packageSizeInBytes = zipArchiveStream.Length;
+                    streamToSave = zipArchiveStream;
+                }
+                else
+                {
+                    var memoryStream = new MemoryStream();
+                    await zipArchiveStream.CopyToAsync(memoryStream);
+                    packageSizeInBytes = memoryStream.Length;
+                    memoryStream.Position = 0;
+                    streamToSave = memoryStream;
+                }
+
                 var transactionResult = false;
                 var executionStrategy = _context.Database.CreateExecutionStrategy();
                 await executionStrategy.ExecuteAsync(async () =>
@@ -125,13 +142,14 @@ namespace Dangl.WebDocumentation.Services
                         {
                             ProjectName = projectName,
                             Version = version,
-                            MarkdownChangelog = markdownChangelog
+                            MarkdownChangelog = markdownChangelog,
+                            PackageSizeInBytes = packageSizeInBytes
                         };
                         _context.DocumentationProjectVersions.Add(newVersion);
                         await _context.SaveChangesAsync();
                         var packagePath = GetPackagePath(projectId, newVersion.FileId);
 
-                        var repoResult = await _fileManager.SaveFileAsync(AppConstants.PROJECTS_CONTAINER, packagePath, zipArchiveStream);
+                        var repoResult = await _fileManager.SaveFileAsync(AppConstants.PROJECTS_CONTAINER, packagePath, streamToSave);
                         if (repoResult.IsSuccess)
                         {
                             transaction.Commit();
@@ -186,6 +204,42 @@ namespace Dangl.WebDocumentation.Services
             _context.DocumentationProjectVersions.Remove(projectVersion);
             await _context.SaveChangesAsync();
             return true;
+        }
+
+        public async Task<Stream> GetProjectPackageAsync(string projectName, string version)
+        {
+            var packagePath = await GetPackagePathForProjectVersionAsync(projectName, version);
+            if (packagePath == null)
+            {
+                return null;
+            }
+            var repoResult = await _fileManager.GetFileAsync(AppConstants.PROJECTS_CONTAINER, packagePath);
+            if (!repoResult.IsSuccess)
+            {
+                return null;
+            }
+            return repoResult.Value;
+        }
+
+        private async Task<string> GetPackagePathForProjectVersionAsync(string projectName, string version)
+        {
+            var projectId = await _context.DocumentationProjects
+                .Where(p => p.Name == projectName)
+                .Select(p => new { p.Id })
+                .FirstOrDefaultAsync();
+            if (projectId == null)
+            {
+                return null;
+            }
+            var versionPackageId = await _context.DocumentationProjectVersions
+                .Where(v => v.ProjectName == projectName && v.Version == version)
+                .Select(v => new { v.FileId })
+                .FirstOrDefaultAsync();
+            if (versionPackageId == null)
+            {
+                return null;
+            }
+            return GetPackagePath(projectId.Id, versionPackageId.FileId);
         }
 
         private string GetPackagePath(Guid projectId, Guid versionFileId)
