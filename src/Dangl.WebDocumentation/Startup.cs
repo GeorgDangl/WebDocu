@@ -69,6 +69,7 @@ namespace Dangl.WebDocumentation
                     .SetUseMemoryCacheUserInfoUpdater(true);
             services.AddControllersWithDanglIdentity<ApplicationDbContext, ApplicationUser, IdentityRole<Guid>>(danglIdentityServerConfig);
             services.AddMvc();
+            services.AddMemoryCache();
             services.AddApplicationInsightsTelemetry(options =>
             {
                 options.SamplingRatio = .01f;

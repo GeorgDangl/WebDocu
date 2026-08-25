@@ -1,6 +1,7 @@
 ﻿using Dangl.Identity.Client.Mvc.Services;
 using Dangl.WebDocumentation.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,18 +11,37 @@ namespace Dangl.WebDocumentation.Services
 {
     public class ProjectsService : IProjectsService
     {
+        private const string PUBLIC_PROJECT_NAMES_CACHE_KEY = "PublicProjectNames";
         private readonly ApplicationDbContext _context;
+        private readonly IMemoryCache _memoryCache;
         private readonly IUserInfoService _userInfoService;
 
         public ProjectsService(ApplicationDbContext context,
-            IUserInfoService userInfoService)
+            IUserInfoService userInfoService,
+            IMemoryCache memoryCache)
         {
             _context = context;
             _userInfoService = userInfoService;
+            _memoryCache = memoryCache;
         }
 
         public async Task<bool> UserHasAccessToProjectAsync(string projectName, Guid? userId = null)
         {
+            if (userId == null)
+            {
+                var publicProjectNames = await _memoryCache.GetOrCreateAsync(PUBLIC_PROJECT_NAMES_CACHE_KEY, async entry =>
+                {
+                    entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5);
+                    return await _context.DocumentationProjects
+                        .AsNoTracking()
+                        .Where(project => project.IsPublic)
+                        .Select(project => project.Name)
+                        .ToHashSetAsync(StringComparer.OrdinalIgnoreCase);
+                });
+
+                return publicProjectNames.Contains(projectName);
+            }
+
             var userClaims = await _userInfoService.GetUserClaimsAsync();
             if (userClaims.Any(c => c.Type == AppConstants.PROJECT_ACCESS_CLAIM_NAME
                 && c.Value == projectName))
