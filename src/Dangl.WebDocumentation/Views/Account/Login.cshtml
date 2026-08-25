@@ -1,0 +1,16 @@
+@{
+    ViewData["Title"] = "Login / Register";
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-6 col-md-offset-3">
+            <h1>Login / Register</h1>
+            <p>Continue to Dangl.Identity to log in or register.</p>
+            <form class="nav-link" a"sp-controller="Account" asp-action="ExternalLogin" method="post">
+                <input name="returnUrl" type="hidden" value="@ViewData["ReturnUrl"]" />
+                <button class="btn btn-primary" type="submit">Continue to login</button>
+            </form>
+        </div>
+    </div>
+</div>

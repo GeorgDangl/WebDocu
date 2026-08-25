@@ -140,3 +140,9 @@
 .btn[disabled][disabled] {
     background-color: #00acc1;
 }
+
+.login-link-button {
+    color: #fff;
+    border: 0;
+    background: transparent;
+}

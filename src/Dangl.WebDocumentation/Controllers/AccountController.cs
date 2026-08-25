@@ -41,16 +41,31 @@ namespace Dangl.WebDocumentation.Controllers
 
         [HttpGet]
         [AllowAnonymous]
-        public IActionResult Login()
+        public IActionResult Login(string returnUrl = null)
         {
             if (!User.Identity.IsAuthenticated)
             {
-                return Challenge();
+                ViewData["ReturnUrl"] = returnUrl;
+                return View();
             }
-            else
+
+            return RedirectToLocal(returnUrl);
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public IActionResult ExternalLogin(string returnUrl = null)
+        {
+            if (User.Identity.IsAuthenticated)
             {
-                return RedirectToAction("Index", "Home");
+                return RedirectToLocal(returnUrl);
             }
+
+            var redirectUrl = Url.IsLocalUrl(returnUrl)
+                ? returnUrl
+                : Url.Action(nameof(HomeController.Index), "Home");
+            return Challenge(new AuthenticationProperties { RedirectUri = redirectUrl });
         }
 
         [HttpPost]

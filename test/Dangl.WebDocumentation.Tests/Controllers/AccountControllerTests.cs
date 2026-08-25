@@ -4,7 +4,9 @@ using System.Threading.Tasks;
 using Dangl.WebDocumentation.Controllers;
 using Dangl.WebDocumentation.Models;
 using Dangl.WebDocumentation.ViewModels.Account;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Xunit;
 
@@ -82,7 +84,13 @@ namespace Dangl.WebDocumentation.Tests.Controllers
 
             private AccountController Controller()
             {
-                return new AccountController(UserManager, SignInManager, LoggerFactory, Context, null, null);
+                return new AccountController(UserManager, SignInManager, LoggerFactory, Context, null, null)
+                {
+                    ControllerContext = new ControllerContext
+                    {
+                        HttpContext = new DefaultHttpContext()
+                    }
+                };
             }
 
             /// <summary>
@@ -93,6 +101,14 @@ namespace Dangl.WebDocumentation.Tests.Controllers
             {
                 var controller = Controller();
                 Assert.NotNull(controller);
+            }
+
+            [Fact]
+            public void LoginGetReturnsLocalConfirmationPageForAnonymousUser()
+            {
+                var result = Controller().Login();
+
+                Assert.IsType<ViewResult>(result);
             }
         }
     }

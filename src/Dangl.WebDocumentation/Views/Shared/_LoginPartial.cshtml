@@ -24,7 +24,9 @@ else
 {
     <ul class="nav navbar-nav navbar-right ms-navbar-right">
         <li>
-            <a class="nav-link" asp-controller="Account" asp-action="Login">Login / Register</a>
+            <form asp-controller="Account" asp-action="ExternalLogin" method="post">
+                <button class="nav-link login-link-button" type="submit">Login / Register</button>
+            </form>
         </li>
     </ul>
 }
