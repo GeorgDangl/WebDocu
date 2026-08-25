@@ -38,7 +38,7 @@ namespace Dangl.WebDocumentation.Controllers
             var hasProjectAccess = await _projectsService.UserHasAccessToProjectAsync(projectName, userId);
             if (!hasProjectAccess)
             {
-                var projectExists = await _projectsService.ProjectExistsAsyncAsync(projectName);
+                var projectExists = await _projectsService.ProjectExistsAsync(projectName);
                 if (projectExists)
                 {
                     if (User.Identity.IsAuthenticated)

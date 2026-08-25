@@ -44,6 +44,24 @@ namespace Dangl.WebDocumentation.Tests.Services
         }
 
         [Fact]
+        public async Task ProjectExistsUsesCachedResult()
+        {
+            _context.DocumentationProjects.Add(new DocumentationProject
+            {
+                Name = "Dangl.Documentation",
+                PathToIndex = "index.html"
+            });
+            await _context.SaveChangesAsync();
+            var service = CreateService();
+
+            Assert.True(await service.ProjectExistsAsync("dangl.documentation"));
+            _context.DocumentationProjects.RemoveRange(_context.DocumentationProjects);
+            await _context.SaveChangesAsync();
+
+            Assert.True(await service.ProjectExistsAsync("Dangl.Documentation"));
+        }
+
+        [Fact]
         public async Task AnonymousUserCannotAccessPrivateProjectFromCachedProjectList()
         {
             _context.DocumentationProjects.AddRange(

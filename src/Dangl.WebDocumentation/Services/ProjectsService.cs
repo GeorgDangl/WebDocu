@@ -12,6 +12,7 @@ namespace Dangl.WebDocumentation.Services
     public class ProjectsService : IProjectsService
     {
         private const string PUBLIC_PROJECT_NAMES_CACHE_KEY = "PublicProjectNames";
+        private const string PROJECT_EXISTS_CACHE_KEY_PREFIX = "ProjectExists_";
         private readonly ApplicationDbContext _context;
         private readonly IMemoryCache _memoryCache;
         private readonly IUserInfoService _userInfoService;
@@ -126,9 +127,16 @@ namespace Dangl.WebDocumentation.Services
                 .ToList();
         }
 
-        public Task<bool> ProjectExistsAsyncAsync(string projectName)
+        public Task<bool> ProjectExistsAsync(string projectName)
         {
-            return _context.DocumentationProjects.AnyAsync(p => p.Name == projectName);
+            var cacheKey = PROJECT_EXISTS_CACHE_KEY_PREFIX + projectName.ToUpperInvariant();
+            return _memoryCache.GetOrCreateAsync(cacheKey, async entry =>
+            {
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5);
+                return await _context.DocumentationProjects
+                    .AsNoTracking()
+                    .AnyAsync(project => project.Name.ToUpper() == projectName.ToUpper());
+            });
         }
     }
 }

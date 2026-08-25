@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Dangl.WebDocumentation.Controllers;
 using Dangl.WebDocumentation.Models;
 using Dangl.WebDocumentation.Services;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
@@ -34,7 +35,38 @@ namespace Dangl.WebDocumentation.Tests.Controllers
                 _projectVersionsServiceMock.Object,
                 _projectsServiceMock.Object,
                 _docuUserInfoService.Object);
+            controller.ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext()
+            };
             return controller;
+        }
+
+        [Fact]
+        public async Task ReturnUnauthorizedForExistingProjectWithoutAccess()
+        {
+            _projectsServiceMock.Setup(s => s.UserHasAccessToProjectAsync(It.IsAny<string>(), It.IsAny<Guid?>()))
+                .Returns(Task.FromResult(false));
+            _projectsServiceMock.Setup(s => s.ProjectExistsAsync("Dangl.PrivateDocumentation"))
+                .Returns(Task.FromResult(true));
+
+            var result = await GetController().GetFile("Dangl.PrivateDocumentation", "1.0.0", "index.html");
+
+            Assert.IsType<UnauthorizedResult>(result);
+            _projectVersionsServiceMock.Verify(s => s.ProjectVersionExistsAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task ReturnNotFoundForUnknownProjectWithoutAccess()
+        {
+            _projectsServiceMock.Setup(s => s.UserHasAccessToProjectAsync(It.IsAny<string>(), It.IsAny<Guid?>()))
+                .Returns(Task.FromResult(false));
+            _projectsServiceMock.Setup(s => s.ProjectExistsAsync("Dangl.UnknownDocumentation"))
+                .Returns(Task.FromResult(false));
+
+            var result = await GetController().GetFile("Dangl.UnknownDocumentation", "1.0.0", "index.html");
+
+            Assert.IsType<NotFoundResult>(result);
         }
 
         [Fact]
