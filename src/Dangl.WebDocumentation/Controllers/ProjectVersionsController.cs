@@ -54,22 +54,58 @@ namespace Dangl.WebDocumentation.Controllers
                 return NotFound();
             }
             var entryFilePath = await _projectFilesService.GetEntryFilePathForProjectAsync(projectName);
+            var versions = await _projectVersionsService.GetProjectVersionsAsync(projectName);
+            var versionViewModels = versions
+                .Select(v => new ProjectVersionViewModel
+                {
+                    Version = v.version,
+                    HasAssetFiles = v.hasAssets,
+                    HasChangelog = v.hasChangelog,
+                    DateUtc = v.dateUtc,
+                    PackageSizeInBytes = v.packageSizeInBytes
+                })
+                .ToList();
+
             var model = new IndexViewModel
             {
                 ProjectId = await _projectsService.GetIdForProjectByNameAsync(projectName),
                 PathToIndex = entryFilePath,
                 ProjectName = projectName,
-                Versions = (await _projectVersionsService.GetProjectVersionsAsync(projectName))
-                    .Select(v => new ProjectVersionViewModel
-                    {
-                        Version = v.version,
-                        HasAssetFiles = v.hasAssets,
-                        HasChangelog = v.hasChangelog,
-                        DateUtc = v.dateUtc
-                    })
-                    .ToList()
+                Versions = versionViewModels
             };
             return View(model);
+        }
+
+        [HttpGet("Download/{version}")]
+        public async Task<IActionResult> DownloadPackage(string projectName, string version)
+        {
+            if (User.Identity?.IsAuthenticated != true)
+            {
+                return Unauthorized();
+            }
+
+            if (!User.IsInRole(AppConstants.ADMIN_ROLE_NAME))
+            {
+                var userId = await _docuUserInfoService.GetCurrentUserIdOrNullAsync();
+                if (!await _projectsService.UserHasAccessToProjectAsync(projectName, userId))
+                {
+                    return Forbid();
+                }
+            }
+
+            var packageDownload = await _projectFilesService.GetProjectPackageDownloadAsync(projectName, version);
+            if (!packageDownload.IsSuccess)
+            {
+                return NotFound();
+            }
+
+            if (!string.IsNullOrWhiteSpace(packageDownload.Value.sasDownloadUrl))
+            {
+                return Redirect(packageDownload.Value.sasDownloadUrl);
+            }
+
+            var fileName = $"{projectName}_{version}.zip";
+            return File(packageDownload.Value.stream, "application/zip", fileName);
         }
     }
 }

@@ -1,7 +1,11 @@
-﻿using Dangl.WebDocumentation.Dtos;
+﻿using Dangl.AspNetCore.FileHandling;
+using Dangl.AspNetCore.FileHandling.Azure;
+using Dangl.Data.Shared;
+using Dangl.WebDocumentation.Dtos;
 using Dangl.WebDocumentation.Models;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System;
 using System.IO;
 using System.IO.Compression;
@@ -17,16 +21,19 @@ namespace Dangl.WebDocumentation.Services
         private static readonly FileExtensionContentTypeProvider _fileExtensionContentTypeProvider = new FileExtensionContentTypeProvider();
         private readonly IProjectUploadNotificationsService _projectUploadNotificationsService;
         private readonly IProjectVersionAssetFilesService _projectVersionAssetFilesService;
+        private readonly ILogger<ProjectFilesService> _logger;
 
         public ProjectFilesService(ApplicationDbContext context,
             Dangl.AspNetCore.FileHandling.IFileManager fileManager,
             IProjectVersionAssetFilesService projectVersionAssetFilesService,
-            IProjectUploadNotificationsService projectUploadNotificationsService)
+            IProjectUploadNotificationsService projectUploadNotificationsService,
+            ILogger<ProjectFilesService> logger)
         {
             _context = context;
             _fileManager = fileManager;
             _projectUploadNotificationsService = projectUploadNotificationsService;
             _projectVersionAssetFilesService = projectVersionAssetFilesService;
+            _logger = logger;
         }
 
         public Task<string> GetEntryFilePathForProjectAsync(string projectName)
@@ -134,6 +141,8 @@ namespace Dangl.WebDocumentation.Services
                         var repoResult = await _fileManager.SaveFileAsync(AppConstants.PROJECTS_CONTAINER, packagePath, zipArchiveStream);
                         if (repoResult.IsSuccess)
                         {
+                            newVersion.PackageSizeInBytes = await GetPackageSizeInBytesAsync(packagePath);
+                            await _context.SaveChangesAsync();
                             transaction.Commit();
                             await _projectUploadNotificationsService.ScheduleProjectUploadNotificationsAsync(projectName, version);
                             transactionResult = true;
@@ -148,8 +157,9 @@ namespace Dangl.WebDocumentation.Services
                 // Could not read the file as zip
                 return false;
             }
-            catch
+            catch (Exception exception)
             {
+                _logger.LogError(exception, "Failed to upload documentation package for {ProjectName} {Version}.", projectName, version);
                 return false;
             }
         }
@@ -186,6 +196,85 @@ namespace Dangl.WebDocumentation.Services
             _context.DocumentationProjectVersions.Remove(projectVersion);
             await _context.SaveChangesAsync();
             return true;
+        }
+
+        public async Task<RepositoryResult<(string sasDownloadUrl, Stream stream)>> GetProjectPackageDownloadAsync(string projectName, string version)
+        {
+            var packagePath = await GetPackagePathForProjectVersionAsync(projectName, version);
+            if (packagePath == null)
+            {
+                return RepositoryResult<(string sasDownloadUrl, Stream stream)>.Fail("The project version does not exist.");
+            }
+
+            if (_fileManager is IAzureBlobFileManager azureBlobFileManager)
+            {
+                var sasDownload = await azureBlobFileManager.GetSasDownloadLinkAsync(AppConstants.PROJECTS_CONTAINER,
+                    packagePath,
+                    validForMinutes: 5,
+                    friendlyFileName: $"{projectName}_{version}.zip");
+                if (!sasDownload.IsSuccess)
+                {
+                    return RepositoryResult<(string sasDownloadUrl, Stream stream)>.Fail(sasDownload.ErrorMessage);
+                }
+
+                return RepositoryResult<(string sasDownloadUrl, Stream stream)>.Success((sasDownload.Value.DownloadLink, null));
+            }
+
+            var repoResult = await _fileManager.GetFileAsync(AppConstants.PROJECTS_CONTAINER, packagePath);
+            if (!repoResult.IsSuccess)
+            {
+                return RepositoryResult<(string sasDownloadUrl, Stream stream)>.Fail(repoResult.ErrorMessage);
+            }
+
+            return RepositoryResult<(string sasDownloadUrl, Stream stream)>.Success((null, repoResult.Value));
+        }
+
+        public async Task<long?> GetProjectPackageSizeInBytesAsync(string projectName, string version)
+        {
+            var packagePath = await GetPackagePathForProjectVersionAsync(projectName, version);
+            return packagePath == null ? null : await GetPackageSizeInBytesAsync(packagePath);
+        }
+
+        private async Task<long> GetPackageSizeInBytesAsync(string packagePath)
+        {
+            if (_fileManager is IAzureBlobFileManager azureBlobFileManager)
+            {
+                var properties = await azureBlobFileManager.GetBlobPropertiesAsync(AppConstants.PROJECTS_CONTAINER, packagePath);
+                if (!properties.IsSuccess)
+                {
+                    throw new IOException($"Could not get package properties for '{packagePath}': {properties.ErrorMessage}");
+                }
+
+                return properties.Value.ContentLength;
+            }
+
+            if (_fileManager is DiskFileManager diskFileManager)
+            {
+                return new FileInfo(diskFileManager.GetFilePath(null, AppConstants.PROJECTS_CONTAINER, packagePath)).Length;
+            }
+
+            throw new NotSupportedException("The file storage provider does not support querying package sizes.");
+        }
+
+        private async Task<string> GetPackagePathForProjectVersionAsync(string projectName, string version)
+        {
+            var projectId = await _context.DocumentationProjects
+                .Where(p => p.Name == projectName)
+                .Select(p => new { p.Id })
+                .FirstOrDefaultAsync();
+            if (projectId == null)
+            {
+                return null;
+            }
+            var versionPackageId = await _context.DocumentationProjectVersions
+                .Where(v => v.ProjectName == projectName && v.Version == version)
+                .Select(v => new { v.FileId })
+                .FirstOrDefaultAsync();
+            if (versionPackageId == null)
+            {
+                return null;
+            }
+            return GetPackagePath(projectId.Id, versionPackageId.FileId);
         }
 
         private string GetPackagePath(Guid projectId, Guid versionFileId)

@@ -141,6 +141,9 @@ namespace Dangl.WebDocumentation.Migrations
                     b.Property<string>("MarkdownChangelog")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<long?>("PackageSizeInBytes")
+                        .HasColumnType("bigint");
+
                     b.HasKey("ProjectName", "Version");
 
                     b.HasIndex("ProjectName");
