@@ -71,7 +71,7 @@ else
                         @if (User.Identity?.IsAuthenticated == true)
                         {
                             <td>
-                                <a asp-controller="ProjectVersions" asp-action="DownloadPackage" asp-route-projectName="@Model.ProjectName" asp-route-version="@version.Version">Download Package</a>
+                                <a asp-controller="ProjectVersions" asp-action="DownloadPackage" asp-route-projectName="@Model.ProjectName" asp-route-version="@version.Version">Download Docs Package</a>
                             </td>
                         }
                         @if(isAdmin)
