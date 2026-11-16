@@ -34,7 +34,7 @@ namespace Dangl.WebDocumentation.Tests.Services
                 PathToIndex = "index.html",
                 IsPublic = true
             });
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
             var service = CreateService();
 
             var hasAccess = await service.UserHasAccessToProjectAsync("dangl.publicdocumentation");
@@ -51,12 +51,12 @@ namespace Dangl.WebDocumentation.Tests.Services
                 Name = "Dangl.Documentation",
                 PathToIndex = "index.html"
             });
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
             var service = CreateService();
 
             Assert.True(await service.ProjectExistsAsync("dangl.documentation"));
             _context.DocumentationProjects.RemoveRange(_context.DocumentationProjects);
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             Assert.True(await service.ProjectExistsAsync("Dangl.Documentation"));
         }
@@ -77,12 +77,12 @@ namespace Dangl.WebDocumentation.Tests.Services
                     PathToIndex = "index.html",
                     IsPublic = false
                 });
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
             var service = CreateService();
 
             Assert.True(await service.UserHasAccessToProjectAsync("Dangl.PublicDocumentation"));
             _context.DocumentationProjects.RemoveRange(_context.DocumentationProjects);
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var hasAccess = await service.UserHasAccessToProjectAsync("Dangl.PrivateDocumentation");
 

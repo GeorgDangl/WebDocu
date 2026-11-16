@@ -122,7 +122,7 @@ namespace Dangl.WebDocumentation.Tests.Controllers
                 };
                 Context.DocumentationProjects.Add(firstProject);
                 Context.DocumentationProjects.Add(secondProject);
-                await Context.SaveChangesAsync();
+                await Context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
                 // Check that no user/project relationships exist
                 Assert.Equal(0, Context.UserProjects.Count(rel => rel.User.UserName == user.UserName));
