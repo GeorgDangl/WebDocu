@@ -185,7 +185,6 @@ namespace Dangl.WebDocumentation.Services
                 DotNetTest(x => x
                     .SetResultsDirectory(OutputDirectory)
                     .EnableNoBuild()
-                    .SetLoggers($"xunit;LogFilePath={OutputDirectory / "testresults.xml"}")
                      .AddProcessAdditionalArguments($"--coverlet --coverlet-output-format cobertura --coverlet-include [Dangl.WebDocumentation*]* -- --report-spekt-xunit --report-spekt-xunit-filename {OutputDirectory / "testresults.xml"}_testresults.xml")
                     .SetProjectFile(testProjectPath));
             }

@@ -30,6 +30,7 @@ namespace Dangl.WebDocumentation.Tests.Models
     }
 
 
+    [TestClass(DisableParallelization = true)]
     public class DatabaseInitializationTests : IClassFixture<DatabaseInitializationTestsFixture>
     {
         public DatabaseInitializationTests(DatabaseInitializationTestsFixture fixture)
