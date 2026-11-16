@@ -8,7 +8,6 @@ using Fallout.Common.Tools.Coverlet;
 using Fallout.Common.Tools.Docker;
 using Fallout.Common.Tools.DotNet;
 using Fallout.Common.Tools.GitVersion;
-using Fallout.Common.Tools.ReportGenerator;
 using Fallout.Common.Tools.Slack;
 using Fallout.Common.Tools.Teams;
 using Fallout.Common.Utilities;
@@ -25,7 +24,6 @@ using static Fallout.Common.IO.Globbing;
 using static Fallout.Common.IO.HttpTasks;
 using static Fallout.Common.Tools.Docker.DockerTasks;
 using static Fallout.Common.Tools.DotNet.DotNetTasks;
-using static Fallout.Common.Tools.ReportGenerator.ReportGeneratorTasks;
 
 class Build : FalloutBuild
 {
@@ -190,12 +188,9 @@ namespace Dangl.WebDocumentation.Services
             }
             finally
             {
-                // Merge coverage reports, otherwise they might not be completely picked up by Jenkins
-                ReportGenerator(c => c
-                    .SetFramework("net7.0")
-                    .SetReports(OutputDirectory / "**/*cobertura*.xml")
-                    .SetTargetDirectory(OutputDirectory)
-                    .SetReportTypes(ReportTypes.Cobertura));
+                // Preserve Coverlet's async method identities; ReportGenerator collapses overloaded async methods.
+                var coverageReport = GlobFiles(OutputDirectory, "**/coverage.cobertura*.xml").Single();
+                File.Copy(coverageReport, OutputDirectory / "Cobertura.xml", overwrite: true);
 
                 MakeSourceEntriesRelativeInCoberturaFormat(OutputDirectory / "Cobertura.xml");
             }
