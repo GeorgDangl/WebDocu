@@ -49,7 +49,7 @@ namespace Dangl.WebDocumentation.Services
 
                     entry.PackageSizeInBytes = sizeInBytes;
                 }
-                catch (IOException exception)
+                catch (System.Exception exception) when (exception is IOException || exception is System.UnauthorizedAccessException)
                 {
                     _logger.LogWarning(exception, "Could not backfill package size for {ProjectName} {Version}.", entry.ProjectName, entry.Version);
                 }
