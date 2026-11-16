@@ -1,29 +1,31 @@
 using Fallout.Common;
-using Fallout.Common.Tools.DotNet;
-using Fallout.Common.Tools.ReportGenerator;
-using Fallout.Common.Utilities;
-using System.IO;
-using static Fallout.Common.IO.Globbing;
-using static Fallout.Common.Tools.DotNet.DotNetTasks;
-using static Fallout.Common.Tools.ReportGenerator.ReportGeneratorTasks;
+using Fallout.Common.Git;
+using Fallout.Common.IO;
 using Fallout.Common.ProjectModel;
 using Fallout.Common.Tooling;
-using System;
-using Fallout.Common.Tools.GitVersion;
-using static Fallout.Common.IO.HttpTasks;
-using Newtonsoft.Json.Linq;
-using System.Linq;
-using Fallout.Common.Utilities.Collections;
 using Fallout.Common.Tools.AzureKeyVault;
-using Fallout.Common.IO;
-using static Fallout.Common.Tools.Docker.DockerTasks;
-using Fallout.Common.Tools.Docker;
-using System.Threading.Tasks;
-using Fallout.Common.Tools.Slack;
-using Fallout.Common.Git;
-using Fallout.Common.Tools.Teams;
 using Fallout.Common.Tools.Coverlet;
+using Fallout.Common.Tools.Docker;
+using Fallout.Common.Tools.DotNet;
+using Fallout.Common.Tools.GitVersion;
+using Fallout.Common.Tools.ReportGenerator;
+using Fallout.Common.Tools.Slack;
+using Fallout.Common.Tools.Teams;
+using Fallout.Common.Utilities;
+using Fallout.Common.Utilities.Collections;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System;
+using System.IO;
+using System.Linq;
+using System.Net.Http;
+using System.Threading.Tasks;
 using System.Xml.Linq;
+using static Fallout.Common.IO.Globbing;
+using static Fallout.Common.IO.HttpTasks;
+using static Fallout.Common.Tools.Docker.DockerTasks;
+using static Fallout.Common.Tools.DotNet.DotNetTasks;
+using static Fallout.Common.Tools.ReportGenerator.ReportGeneratorTasks;
 
 class Build : FalloutBuild
 {
@@ -92,19 +94,23 @@ class Build : FalloutBuild
         if (!string.IsNullOrWhiteSpace(DanglCiCdTeamsWebhookUrl))
         {
             var themeColor = isError ? "f44336" : "00acc1";
-            try
+
+            Serilog.Log.Information("Sending Teams message with title " + title);
+            var payload = JsonConvert.SerializeObject(new
             {
-                TeamsTasks
-                    .SendTeamsMessage(m => m
-                        .SetTitle(title)
-                        .SetText(message)
-                        .SetThemeColor(themeColor),
-                        DanglCiCdTeamsWebhookUrl);
-            }
-            catch
-            {
-                Serilog.Log.Warning("Failed to send a Teams message");
-            }
+                @type = "MessageCard",
+                themeColor,
+                title,
+                text = message
+            });
+
+            using var httpClient = new HttpClient();
+            var response = httpClient.PostAsync(DanglCiCdTeamsWebhookUrl,
+                new StringContent(payload, System.Text.Encoding.UTF8, "application/json"))
+                .GetAwaiter().GetResult();
+
+            Assert.True(response.IsSuccessStatusCode,
+                $"Teams webhook failed with status {response.StatusCode}");
         }
     }
 
@@ -178,13 +184,9 @@ namespace Dangl.WebDocumentation.Services
             {
                 DotNetTest(x => x
                     .SetResultsDirectory(OutputDirectory)
-                    .SetDataCollector("XPlat Code Coverage")
-                    .AddRunSetting("DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format", "cobertura")
-                    .AddRunSetting("DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Include", "[Dangl.WebDocumentation*]*")
-                    .AddRunSetting("DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.ExcludeByAttribute", "Obsolete,GeneratedCodeAttribute,CompilerGeneratedAttribute")
                     .EnableNoBuild()
-                    .SetTestAdapterPath(".")
                     .SetLoggers($"xunit;LogFilePath={OutputDirectory / "testresults.xml"}")
+                     .AddProcessAdditionalArguments($"--coverlet --coverlet-output-format cobertura --coverlet-include [Dangl.WebDocumentation*]* -- --report-spekt-xunit --report-spekt-xunit-filename {OutputDirectory / "testresults.xml"}_testresults.xml")
                     .SetProjectFile(testProjectPath));
             }
             finally
@@ -192,7 +194,7 @@ namespace Dangl.WebDocumentation.Services
                 // Merge coverage reports, otherwise they might not be completely picked up by Jenkins
                 ReportGenerator(c => c
                     .SetFramework("net7.0")
-                    .SetReports(OutputDirectory / "**/*cobertura.xml")
+                    .SetReports(OutputDirectory / "**/*cobertura*.xml")
                     .SetTargetDirectory(OutputDirectory)
                     .SetReportTypes(ReportTypes.Cobertura));
 
