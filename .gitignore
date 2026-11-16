@@ -248,3 +248,5 @@ src/Dangl.WebDocumentation/wwwroot/lib/
 output/
 
 test/Dangl\.WebDocumentation\.Tests/Properties/launchSettings\.json
+
+.fallout/temp/
