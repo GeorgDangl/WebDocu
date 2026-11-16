@@ -228,7 +228,7 @@ namespace Dangl.WebDocumentation
                     var userClaimsProjectAccessService = ctx.RequestServices.GetRequiredService<UserClaimsProjectAccessService>();
                     RecurringJob.AddOrUpdate("UserClaimProjectAccessSyncFromDanglIdentity", () => userClaimsProjectAccessService.SyncUserClaimsForProjectAccess(), Cron.Hourly());
                     var packageSizeBackfillService = ctx.RequestServices.GetRequiredService<ProjectVersionPackageSizeBackfillService>();
-                    BackgroundJob.Enqueue(() => packageSizeBackfillService.BackfillPackageSizesAsync());
+                    BackgroundJob.Enqueue(() => packageSizeBackfillService.BackfillPackageSizesAsync(null, null));
                 }
 
                 return next();

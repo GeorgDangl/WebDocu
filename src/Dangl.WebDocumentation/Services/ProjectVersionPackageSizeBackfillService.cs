@@ -1,6 +1,8 @@
 ﻿using Dangl.WebDocumentation.Models;
 using Hangfire;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -12,55 +14,44 @@ namespace Dangl.WebDocumentation.Services
 
         private readonly ApplicationDbContext _context;
         private readonly IProjectFilesService _projectFilesService;
+        private readonly IBackgroundJobClient _backgroundJobClient;
+        private readonly ILogger<ProjectVersionPackageSizeBackfillService> _logger;
 
         public ProjectVersionPackageSizeBackfillService(ApplicationDbContext context,
-            IProjectFilesService projectFilesService)
+            IProjectFilesService projectFilesService,
+            IBackgroundJobClient backgroundJobClient,
+            ILogger<ProjectVersionPackageSizeBackfillService> logger)
         {
             _context = context;
             _projectFilesService = projectFilesService;
+            _backgroundJobClient = backgroundJobClient;
+            _logger = logger;
         }
 
-        public async Task BackfillPackageSizesAsync()
+        public async Task BackfillPackageSizesAsync(string afterProjectName = null, string afterVersion = null)
         {
-            var versionsWithoutSize = await _context.DocumentationProjectVersions
-                .Where(v => v.PackageSizeInBytes == null)
-                .Select(v => new { v.ProjectName, v.Version })
+            var versionsWithoutSize = await GetVersionsWithoutSizeAfter(afterProjectName, afterVersion)
+                .OrderBy(v => v.ProjectName)
+                .ThenBy(v => v.Version)
                 .Take(BatchSize)
                 .ToListAsync();
 
             foreach (var entry in versionsWithoutSize)
             {
-                var packageStream = await _projectFilesService.GetProjectPackageAsync(entry.ProjectName, entry.Version);
-                if (packageStream == null)
+                try
                 {
-                    continue;
-                }
-
-                long sizeInBytes;
-                using (packageStream)
-                {
-                    if (packageStream.CanSeek)
+                    var sizeInBytes = await _projectFilesService.GetProjectPackageSizeInBytesAsync(entry.ProjectName, entry.Version);
+                    if (sizeInBytes == null)
                     {
-                        sizeInBytes = packageStream.Length;
+                        _logger.LogWarning("Documentation package no longer exists for {ProjectName} {Version}.", entry.ProjectName, entry.Version);
+                        continue;
                     }
-                    else
-                    {
-                        var buffer = new byte[4096];
-                        long totalRead = 0;
-                        int bytesRead;
-                        while ((bytesRead = await packageStream.ReadAsync(buffer, 0, buffer.Length)) > 0)
-                        {
-                            totalRead += bytesRead;
-                        }
-                        sizeInBytes = totalRead;
-                    }
-                }
 
-                var version = await _context.DocumentationProjectVersions
-                    .FirstOrDefaultAsync(v => v.ProjectName == entry.ProjectName && v.Version == entry.Version);
-                if (version != null)
+                    entry.PackageSizeInBytes = sizeInBytes;
+                }
+                catch (IOException exception)
                 {
-                    version.PackageSizeInBytes = sizeInBytes;
+                    _logger.LogWarning(exception, "Could not backfill package size for {ProjectName} {Version}.", entry.ProjectName, entry.Version);
                 }
             }
 
@@ -68,8 +59,25 @@ namespace Dangl.WebDocumentation.Services
 
             if (versionsWithoutSize.Count == BatchSize)
             {
-                BackgroundJob.Enqueue<ProjectVersionPackageSizeBackfillService>(s => s.BackfillPackageSizesAsync());
+                var lastVersion = versionsWithoutSize.Last();
+                if (await GetVersionsWithoutSizeAfter(lastVersion.ProjectName, lastVersion.Version).AnyAsync())
+                {
+                    _backgroundJobClient.Enqueue<ProjectVersionPackageSizeBackfillService>(
+                        s => s.BackfillPackageSizesAsync(lastVersion.ProjectName, lastVersion.Version));
+                }
             }
+        }
+
+        private IQueryable<DocumentationProjectVersion> GetVersionsWithoutSizeAfter(string projectName, string version)
+        {
+            var query = _context.DocumentationProjectVersions.Where(v => v.PackageSizeInBytes == null);
+            if (projectName != null)
+            {
+                query = query.Where(v => string.Compare(v.ProjectName, projectName) > 0
+                    || (v.ProjectName == projectName && string.Compare(v.Version, version) > 0));
+            }
+
+            return query;
         }
     }
 }

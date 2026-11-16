@@ -40,6 +40,8 @@ Project names are required to be unique for pretty urls. Access is routed via `h
 
 The `<Version>` parameter may be set to `latest` to display the most recent version of the package.
 
+Admins can download the original zip package from the project versions page, which also displays its stored size. Sizes are queried from Azure Blob properties or disk metadata after upload and saved in the database; viewing the page does not query storage. Existing versions are populated by a Hangfire job in batches of 100. Packages whose metadata cannot be read are logged and left without a size for a later run, without blocking subsequent batches.
+
 ## Conventions When Accessing Documentation
 
 Project file urls have the following format:

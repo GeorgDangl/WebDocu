@@ -1,14 +1,46 @@
 ﻿using Dangl.WebDocumentation.Services;
+using Dangl.WebDocumentation.Models;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace Dangl.WebDocumentation.Tests.Services
 {
     public static class ProjectVersionsServiceTests
     {
+        public class GetProjectVersions
+        {
+            [Fact]
+            public async Task ReturnsStoredPackageSizesInSemanticVersionOrder()
+            {
+                using var context = new ApplicationDbContext(new DbContextOptionsBuilder<ApplicationDbContext>()
+                    .UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
+                context.DocumentationProjectVersions.AddRange(
+                    new DocumentationProjectVersion { ProjectName = "Docs", Version = "1.0", PackageSizeInBytes = 12345 },
+                    new DocumentationProjectVersion { ProjectName = "Docs", Version = "2.0" },
+                    new DocumentationProjectVersion { ProjectName = "Other", Version = "3.0", PackageSizeInBytes = 54321 });
+                await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+                var versions = await new ProjectVersionsService(context).GetProjectVersionsAsync("Docs");
+
+                Assert.Collection(versions,
+                    version =>
+                    {
+                        Assert.Equal("2.0", version.version);
+                        Assert.Null(version.packageSizeInBytes);
+                    },
+                    version =>
+                    {
+                        Assert.Equal("1.0", version.version);
+                        Assert.Equal(12345L, version.packageSizeInBytes);
+                    });
+            }
+        }
+
         public class GetAllPreviewVersionsExceptFirstAndLast
         {
             [Fact]

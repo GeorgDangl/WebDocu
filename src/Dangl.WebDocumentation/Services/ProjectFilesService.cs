@@ -1,7 +1,10 @@
-﻿using Dangl.WebDocumentation.Dtos;
+﻿using Dangl.AspNetCore.FileHandling;
+using Dangl.AspNetCore.FileHandling.Azure;
+using Dangl.WebDocumentation.Dtos;
 using Dangl.WebDocumentation.Models;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System;
 using System.IO;
 using System.IO.Compression;
@@ -17,16 +20,19 @@ namespace Dangl.WebDocumentation.Services
         private static readonly FileExtensionContentTypeProvider _fileExtensionContentTypeProvider = new FileExtensionContentTypeProvider();
         private readonly IProjectUploadNotificationsService _projectUploadNotificationsService;
         private readonly IProjectVersionAssetFilesService _projectVersionAssetFilesService;
+        private readonly ILogger<ProjectFilesService> _logger;
 
         public ProjectFilesService(ApplicationDbContext context,
             Dangl.AspNetCore.FileHandling.IFileManager fileManager,
             IProjectVersionAssetFilesService projectVersionAssetFilesService,
-            IProjectUploadNotificationsService projectUploadNotificationsService)
+            IProjectUploadNotificationsService projectUploadNotificationsService,
+            ILogger<ProjectFilesService> logger)
         {
             _context = context;
             _fileManager = fileManager;
             _projectUploadNotificationsService = projectUploadNotificationsService;
             _projectVersionAssetFilesService = projectVersionAssetFilesService;
+            _logger = logger;
         }
 
         public Task<string> GetEntryFilePathForProjectAsync(string projectName)
@@ -115,23 +121,6 @@ namespace Dangl.WebDocumentation.Services
             // Try to read as zip file
             try
             {
-                // Buffer the stream to get the size and allow re-reading if needed
-                long packageSizeInBytes;
-                Stream streamToSave;
-                if (zipArchiveStream.CanSeek)
-                {
-                    packageSizeInBytes = zipArchiveStream.Length;
-                    streamToSave = zipArchiveStream;
-                }
-                else
-                {
-                    var memoryStream = new MemoryStream();
-                    await zipArchiveStream.CopyToAsync(memoryStream);
-                    packageSizeInBytes = memoryStream.Length;
-                    memoryStream.Position = 0;
-                    streamToSave = memoryStream;
-                }
-
                 var transactionResult = false;
                 var executionStrategy = _context.Database.CreateExecutionStrategy();
                 await executionStrategy.ExecuteAsync(async () =>
@@ -142,16 +131,17 @@ namespace Dangl.WebDocumentation.Services
                         {
                             ProjectName = projectName,
                             Version = version,
-                            MarkdownChangelog = markdownChangelog,
-                            PackageSizeInBytes = packageSizeInBytes
+                            MarkdownChangelog = markdownChangelog
                         };
                         _context.DocumentationProjectVersions.Add(newVersion);
                         await _context.SaveChangesAsync();
                         var packagePath = GetPackagePath(projectId, newVersion.FileId);
 
-                        var repoResult = await _fileManager.SaveFileAsync(AppConstants.PROJECTS_CONTAINER, packagePath, streamToSave);
+                        var repoResult = await _fileManager.SaveFileAsync(AppConstants.PROJECTS_CONTAINER, packagePath, zipArchiveStream);
                         if (repoResult.IsSuccess)
                         {
+                            newVersion.PackageSizeInBytes = await GetPackageSizeInBytesAsync(packagePath);
+                            await _context.SaveChangesAsync();
                             transaction.Commit();
                             await _projectUploadNotificationsService.ScheduleProjectUploadNotificationsAsync(projectName, version);
                             transactionResult = true;
@@ -166,8 +156,9 @@ namespace Dangl.WebDocumentation.Services
                 // Could not read the file as zip
                 return false;
             }
-            catch
+            catch (Exception exception)
             {
+                _logger.LogError(exception, "Failed to upload documentation package for {ProjectName} {Version}.", projectName, version);
                 return false;
             }
         }
@@ -219,6 +210,33 @@ namespace Dangl.WebDocumentation.Services
                 return null;
             }
             return repoResult.Value;
+        }
+
+        public async Task<long?> GetProjectPackageSizeInBytesAsync(string projectName, string version)
+        {
+            var packagePath = await GetPackagePathForProjectVersionAsync(projectName, version);
+            return packagePath == null ? null : await GetPackageSizeInBytesAsync(packagePath);
+        }
+
+        private async Task<long> GetPackageSizeInBytesAsync(string packagePath)
+        {
+            if (_fileManager is IAzureBlobFileManager azureBlobFileManager)
+            {
+                var properties = await azureBlobFileManager.GetBlobPropertiesAsync(AppConstants.PROJECTS_CONTAINER, packagePath);
+                if (!properties.IsSuccess)
+                {
+                    throw new IOException($"Could not get package properties for '{packagePath}': {properties.ErrorMessage}");
+                }
+
+                return properties.Value.ContentLength;
+            }
+
+            if (_fileManager is DiskFileManager diskFileManager)
+            {
+                return new FileInfo(diskFileManager.GetFilePath(null, AppConstants.PROJECTS_CONTAINER, packagePath)).Length;
+            }
+
+            throw new NotSupportedException("The file storage provider does not support querying package sizes.");
         }
 
         private async Task<string> GetPackagePathForProjectVersionAsync(string projectName, string version)
