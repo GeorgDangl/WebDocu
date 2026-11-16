@@ -1,5 +1,6 @@
 ﻿using Dangl.AspNetCore.FileHandling;
 using Dangl.AspNetCore.FileHandling.Azure;
+using Dangl.Data.Shared;
 using Dangl.WebDocumentation.Dtos;
 using Dangl.WebDocumentation.Models;
 using Microsoft.AspNetCore.StaticFiles;
@@ -197,19 +198,35 @@ namespace Dangl.WebDocumentation.Services
             return true;
         }
 
-        public async Task<Stream> GetProjectPackageAsync(string projectName, string version)
+        public async Task<RepositoryResult<(string sasDownloadUrl, Stream stream)>> GetProjectPackageDownloadAsync(string projectName, string version)
         {
             var packagePath = await GetPackagePathForProjectVersionAsync(projectName, version);
             if (packagePath == null)
             {
-                return null;
+                return RepositoryResult<(string sasDownloadUrl, Stream stream)>.Fail("The project version does not exist.");
             }
+
+            if (_fileManager is IAzureBlobFileManager azureBlobFileManager)
+            {
+                var sasDownload = await azureBlobFileManager.GetSasDownloadLinkAsync(AppConstants.PROJECTS_CONTAINER,
+                    packagePath,
+                    validForMinutes: 5,
+                    friendlyFileName: $"{projectName}_{version}.zip");
+                if (!sasDownload.IsSuccess)
+                {
+                    return RepositoryResult<(string sasDownloadUrl, Stream stream)>.Fail(sasDownload.ErrorMessage);
+                }
+
+                return RepositoryResult<(string sasDownloadUrl, Stream stream)>.Success((sasDownload.Value.DownloadLink, null));
+            }
+
             var repoResult = await _fileManager.GetFileAsync(AppConstants.PROJECTS_CONTAINER, packagePath);
             if (!repoResult.IsSuccess)
             {
-                return null;
+                return RepositoryResult<(string sasDownloadUrl, Stream stream)>.Fail(repoResult.ErrorMessage);
             }
-            return repoResult.Value;
+
+            return RepositoryResult<(string sasDownloadUrl, Stream stream)>.Success((null, repoResult.Value));
         }
 
         public async Task<long?> GetProjectPackageSizeInBytesAsync(string projectName, string version)

@@ -79,19 +79,33 @@ namespace Dangl.WebDocumentation.Controllers
         [HttpGet("Download/{version}")]
         public async Task<IActionResult> DownloadPackage(string projectName, string version)
         {
-            if (!User.IsInRole(AppConstants.ADMIN_ROLE_NAME))
+            if (User.Identity?.IsAuthenticated != true)
             {
-                return Forbid();
+                return Unauthorized();
             }
 
-            var packageStream = await _projectFilesService.GetProjectPackageAsync(projectName, version);
-            if (packageStream == null)
+            if (!User.IsInRole(AppConstants.ADMIN_ROLE_NAME))
+            {
+                var userId = await _docuUserInfoService.GetCurrentUserIdOrNullAsync();
+                if (!await _projectsService.UserHasAccessToProjectAsync(projectName, userId))
+                {
+                    return Forbid();
+                }
+            }
+
+            var packageDownload = await _projectFilesService.GetProjectPackageDownloadAsync(projectName, version);
+            if (!packageDownload.IsSuccess)
             {
                 return NotFound();
             }
 
+            if (!string.IsNullOrWhiteSpace(packageDownload.Value.sasDownloadUrl))
+            {
+                return Redirect(packageDownload.Value.sasDownloadUrl);
+            }
+
             var fileName = $"{projectName}_{version}.zip";
-            return File(packageStream, "application/zip", fileName);
+            return File(packageDownload.Value.stream, "application/zip", fileName);
         }
     }
 }

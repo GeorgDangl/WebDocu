@@ -138,7 +138,7 @@ namespace Dangl.WebDocumentation.Tests.Services
             await AddVersionAsync();
             var service = CreateService();
 
-            Assert.Null(await service.GetProjectPackageAsync(projectName, version));
+            Assert.False((await service.GetProjectPackageDownloadAsync(projectName, version)).IsSuccess);
             Assert.Null(await service.GetProjectPackageSizeInBytesAsync(projectName, version));
         }
 
@@ -150,7 +150,54 @@ namespace Dangl.WebDocumentation.Tests.Services
             _fileManager.Setup(m => m.GetFileAsync(AppConstants.PROJECTS_CONTAINER, path))
                 .ReturnsAsync(RepositoryResult<Stream>.Success(stream));
 
-            Assert.Same(stream, await CreateService().GetProjectPackageAsync("Docs", "1.0"));
+            var result = await CreateService().GetProjectPackageDownloadAsync("Docs", "1.0");
+
+            Assert.True(result.IsSuccess);
+            Assert.Same(stream, result.Value.stream);
+            Assert.Null(result.Value.sasDownloadUrl);
+        }
+
+        [Fact]
+        public async Task AzureDownloadUsesShortLivedSasLinkWithFriendlyFilenameWithoutReadingPackage()
+        {
+            var path = await AddVersionAsync();
+            const string downloadUrl = "https://storage.example/Docs.zip?sas=download";
+            _fileManager.As<IAzureBlobFileManager>()
+                .Setup(m => m.GetSasDownloadLinkAsync(AppConstants.PROJECTS_CONTAINER, path, 5, "Docs_1.0.zip"))
+                .ReturnsAsync(RepositoryResult<SasDownloadLink>.Success(new SasDownloadLink { DownloadLink = downloadUrl }));
+
+            var result = await CreateService().GetProjectPackageDownloadAsync("Docs", "1.0");
+
+            Assert.True(result.IsSuccess);
+            Assert.Equal(downloadUrl, result.Value.sasDownloadUrl);
+            Assert.Null(result.Value.stream);
+        }
+
+        [Fact]
+        public async Task FailedSasGenerationDoesNotFallBackToProxyingThePackage()
+        {
+            var path = await AddVersionAsync();
+            _fileManager.As<IAzureBlobFileManager>()
+                .Setup(m => m.GetSasDownloadLinkAsync(AppConstants.PROJECTS_CONTAINER, path, 5, "Docs_1.0.zip"))
+                .ReturnsAsync(RepositoryResult<SasDownloadLink>.Fail("Cannot generate SAS"));
+
+            var result = await CreateService().GetProjectPackageDownloadAsync("Docs", "1.0");
+
+            Assert.False(result.IsSuccess);
+            Assert.Equal("Cannot generate SAS", result.ErrorMessage);
+        }
+
+        [Fact]
+        public async Task FailedDiskDownloadReportsStorageError()
+        {
+            var path = await AddVersionAsync();
+            _fileManager.Setup(m => m.GetFileAsync(AppConstants.PROJECTS_CONTAINER, path))
+                .ReturnsAsync(RepositoryResult<Stream>.Fail("Package missing"));
+
+            var result = await CreateService().GetProjectPackageDownloadAsync("Docs", "1.0");
+
+            Assert.False(result.IsSuccess);
+            Assert.Equal("Package missing", result.ErrorMessage);
         }
 
         public void Dispose()

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Dangl.Data.Shared;
 using Dangl.WebDocumentation.Controllers;
 using Dangl.WebDocumentation.Services;
 using Dangl.WebDocumentation.ViewModels.ProjectVersions;
@@ -16,26 +17,69 @@ namespace Dangl.WebDocumentation.Tests.Controllers
     public class ProjectVersionsControllerTests
     {
         private readonly Mock<IProjectFilesService> _files = new Mock<IProjectFilesService>(MockBehavior.Strict);
+        private readonly Mock<IProjectsService> _projects = new Mock<IProjectsService>(MockBehavior.Strict);
+        private readonly Mock<IDocuUserInfoService> _userInfo = new Mock<IDocuUserInfoService>(MockBehavior.Strict);
+
+        [Fact]
+        public async Task AnonymousUsersCannotDownloadEvenPublicPackages()
+        {
+            var controller = CreateController();
+            controller.HttpContext.User = new ClaimsPrincipal(new ClaimsIdentity());
+            _projects.Setup(p => p.UserHasAccessToProjectAsync("Docs", It.IsAny<Guid?>())).ReturnsAsync(true);
+
+            Assert.IsType<UnauthorizedResult>(await controller.DownloadPackage("Docs", "1.0"));
+            _files.VerifyNoOtherCalls();
+            _userInfo.VerifyNoOtherCalls();
+        }
+
+        [Fact]
+        public async Task LoggedInUsersWithoutProjectAccessCannotDownloadPackages()
+        {
+            var userId = Guid.NewGuid();
+            _userInfo.Setup(u => u.GetCurrentUserIdOrNullAsync()).ReturnsAsync(userId);
+            _projects.Setup(p => p.UserHasAccessToProjectAsync("Docs", userId)).ReturnsAsync(false);
+
+            Assert.IsType<ForbidResult>(await CreateController().DownloadPackage("Docs", "1.0"));
+
+            _files.VerifyNoOtherCalls();
+        }
 
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
-        public async Task NonAdminsCannotDownloadPackages(bool authenticated)
+        public async Task AuthorizedDownloadRedirectsToSasUrl(bool isAdmin)
         {
-            var controller = CreateController();
-            controller.HttpContext.User = new ClaimsPrincipal(new ClaimsIdentity(authenticated ? "test" : null));
+            var userId = Guid.NewGuid();
+            if (!isAdmin)
+            {
+                _userInfo.Setup(u => u.GetCurrentUserIdOrNullAsync()).ReturnsAsync(userId);
+                _projects.Setup(p => p.UserHasAccessToProjectAsync("Docs", userId)).ReturnsAsync(true);
+            }
+            const string downloadUrl = "https://storage.example/Docs.zip?sas=download";
+            _files.Setup(f => f.GetProjectPackageDownloadAsync("Docs", "1.0"))
+                .ReturnsAsync(RepositoryResult<(string, Stream)>.Success((downloadUrl, null)));
 
-            Assert.IsType<ForbidResult>(await controller.DownloadPackage("Docs", "1.0"));
-            _files.VerifyNoOtherCalls();
+            var result = Assert.IsType<RedirectResult>(await CreateController(isAdmin).DownloadPackage("Docs", "1.0"));
+
+            Assert.Equal(downloadUrl, result.Url);
         }
 
-        [Fact]
-        public async Task AdminDownloadReturnsZipAttachment()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task AuthorizedDiskDownloadReturnsZipAttachment(bool isAdmin)
         {
+            if (!isAdmin)
+            {
+                var userId = Guid.NewGuid();
+                _userInfo.Setup(u => u.GetCurrentUserIdOrNullAsync()).ReturnsAsync(userId);
+                _projects.Setup(p => p.UserHasAccessToProjectAsync("Docs", userId)).ReturnsAsync(true);
+            }
             using var stream = new MemoryStream(new byte[] { 1, 2, 3 });
-            _files.Setup(f => f.GetProjectPackageAsync("Docs", "1.0")).ReturnsAsync(stream);
+            _files.Setup(f => f.GetProjectPackageDownloadAsync("Docs", "1.0"))
+                .ReturnsAsync(RepositoryResult<(string, Stream)>.Success((null, stream)));
 
-            var result = Assert.IsType<FileStreamResult>(await CreateController(isAdmin: true).DownloadPackage("Docs", "1.0"));
+            var result = Assert.IsType<FileStreamResult>(await CreateController(isAdmin).DownloadPackage("Docs", "1.0"));
 
             Assert.Same(stream, result.FileStream);
             Assert.Equal("application/zip", result.ContentType);
@@ -45,7 +89,8 @@ namespace Dangl.WebDocumentation.Tests.Controllers
         [Fact]
         public async Task MissingPackageReturnsNotFoundForAdmins()
         {
-            _files.Setup(f => f.GetProjectPackageAsync("Docs", "1.0")).ReturnsAsync((Stream)null);
+            _files.Setup(f => f.GetProjectPackageDownloadAsync("Docs", "1.0"))
+                .ReturnsAsync(RepositoryResult<(string, Stream)>.Fail("Package not found"));
 
             Assert.IsType<NotFoundResult>(await CreateController(isAdmin: true).DownloadPackage("Docs", "1.0"));
         }
@@ -78,8 +123,8 @@ namespace Dangl.WebDocumentation.Tests.Controllers
 
         private ProjectVersionsController CreateController(bool isAdmin = false)
         {
-            var controller = new ProjectVersionsController(null, Mock.Of<IProjectVersionsService>(), Mock.Of<IProjectsService>(),
-                _files.Object, Mock.Of<IDocuUserInfoService>());
+            var controller = new ProjectVersionsController(null, Mock.Of<IProjectVersionsService>(), _projects.Object,
+                _files.Object, _userInfo.Object);
             var identity = new ClaimsIdentity("test");
             if (isAdmin)
             {

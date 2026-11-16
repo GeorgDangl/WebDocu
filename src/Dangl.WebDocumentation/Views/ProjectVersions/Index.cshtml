@@ -59,20 +59,23 @@ else
                                 </td>
                             }
                         }
-                        @if(isAdmin)
+                        @if (hasAnyPackageSizes)
                         {
-                            @if (hasAnyPackageSizes)
-                            {
-                                <td>
-                                    @if (version.PackageSizeInBytes != null)
-                                    {
-                                        <span>@($"{version.PackageSizeInBytes / 1024.0 / 1024.0:F2} MB")</span>
-                                    }
-                                </td>
-                            }
+                            <td>
+                                @if (version.PackageSizeInBytes != null)
+                                {
+                                    <span>@($"{version.PackageSizeInBytes / 1024.0 / 1024.0:F2} MB")</span>
+                                }
+                            </td>
+                        }
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
                             <td>
                                 <a asp-controller="ProjectVersions" asp-action="DownloadPackage" asp-route-projectName="@Model.ProjectName" asp-route-version="@version.Version">Download Package</a>
                             </td>
+                        }
+                        @if(isAdmin)
+                        {
                             <td>
                                 <a asp-controller="ProjectAssets" asp-action="UploadAsset" asp-route-projectName="@Model.ProjectName" asp-route-version="@version.Version">Upload Asset</a>
                             </td>
