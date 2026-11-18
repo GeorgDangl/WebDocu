@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Dangl.WebDocumentation.Controllers
@@ -233,7 +234,49 @@ namespace Dangl.WebDocumentation.Controllers
             }
             ViewBag.ProjectName = project.Name;
             ViewBag.ApiKey = project.ApiKey;
+            ViewBag.ProjectId = projectId;
             return View();
+        }
+
+        [HttpPost("UploadMarkdownProject/{projectId}")]
+        [ValidateAntiForgeryToken]
+        [RequestSizeLimit(12 * 1024 * 1024)]
+        [RequestFormLimits(MultipartBodyLengthLimit = 12 * 1024 * 1024)]
+        public async Task<IActionResult> UploadMarkdownProject(Guid projectId, string version, IFormFile markdownPackage,
+            [FromServices] MarkdownDocumentsService documents, CancellationToken cancellationToken)
+        {
+            var project = await _context.DocumentationProjects
+                .SingleOrDefaultAsync(p => p.Id == projectId, cancellationToken);
+            if (project == null)
+            {
+                return NotFound();
+            }
+            ViewData["Section"] = "Admin";
+            ViewBag.ProjectName = project.Name;
+            ViewBag.ApiKey = project.ApiKey;
+            ViewBag.ProjectId = projectId;
+            if (string.IsNullOrWhiteSpace(version) || version.Length > 40 || markdownPackage == null)
+            {
+                ModelState.AddModelError("", "Select a Markdown ZIP and specify an existing documentation version.");
+            }
+            else if (markdownPackage.Length > MarkdownDocumentsService.MaxPackageBytes)
+            {
+                ModelState.AddModelError("", "Markdown ZIP files must not exceed 10 MiB.");
+            }
+            else
+            {
+                using var package = markdownPackage.OpenReadStream();
+                var result = await documents.UploadPackageAsync(project.Name, version, package, cancellationToken);
+                if (result.IsSuccess)
+                {
+                    ViewBag.SuccessMessage = $"Uploaded {result.Value} Markdown documents.";
+                }
+                else
+                {
+                    ModelState.AddModelError("", result.ErrorMessage);
+                }
+            }
+            return View("UploadProject");
         }
 
         [HttpPost]
@@ -241,6 +284,7 @@ namespace Dangl.WebDocumentation.Controllers
         public async Task<IActionResult> UploadProject(Guid projectId, string version, string markdownChangelog, IFormFile projectPackage)
         {
             ViewData["Section"] = "Admin";
+            ViewBag.ProjectId = projectId;
             if (projectPackage == null)
             {
                 ModelState.AddModelError("", "Please select a file to upload.");
@@ -256,6 +300,8 @@ namespace Dangl.WebDocumentation.Controllers
             {
                 return NotFound();
             }
+            ViewBag.ProjectName = projectEntry.Name;
+            ViewBag.ApiKey = projectEntry.ApiKey;
             // Try to read as zip file
             using (var inputStream = projectPackage.OpenReadStream())
             {

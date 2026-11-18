@@ -12,6 +12,7 @@ namespace Dangl.WebDocumentation.Models
         public DbSet<DocumentationProject> DocumentationProjects { get; set; }
         public DbSet<DocumentationProjectVersion> DocumentationProjectVersions { get; set; }
         public DbSet<ProjectVersionAssetFile> ProjectVersionAssetFiles { get; set; }
+        public DbSet<MarkdownDocument> MarkdownDocuments { get; set; }
 
         public DbSet<UserProjectAccess> UserProjects { get; set; }
         public DbSet<UserProjectNotification> UserProjectNotifications { get; set; }
@@ -22,6 +23,7 @@ namespace Dangl.WebDocumentation.Models
 
             DocumentationProjectVersion.OnModelCreating(builder);
             ProjectVersionAssetFile.OnModelCreating(builder);
+            MarkdownDocument.OnModelCreating(builder);
 
             // Make the ApiKey unique so it can be used as a single identifier for a project
             builder.Entity<DocumentationProject>()

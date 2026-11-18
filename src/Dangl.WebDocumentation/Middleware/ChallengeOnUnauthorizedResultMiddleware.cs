@@ -20,7 +20,9 @@ namespace Dangl.WebDocumentation.Middleware
 
             var isAnonymousDocumentRequest = context.User.Identity?.IsAuthenticated != true
                 && (HttpMethods.IsGet(context.Request.Method) || HttpMethods.IsHead(context.Request.Method))
-                && !context.Request.Path.StartsWithSegments("/API");
+                && !context.Request.Path.StartsWithSegments("/API")
+                && !context.Request.Path.StartsWithSegments("/mcp")
+                && !context.Request.Path.StartsWithSegments("/.well-known");
             if (context.Response.StatusCode == (int)HttpStatusCode.Unauthorized
                 && isAnonymousDocumentRequest
                 && !context.Response.HasStarted)

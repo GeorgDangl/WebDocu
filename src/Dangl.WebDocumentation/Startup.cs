@@ -7,6 +7,7 @@ using Dangl.Identity.Client.Mvc.Configuration;
 using Dangl.RestClient;
 using Dangl.WebDocumentation.Hangfire;
 using Dangl.WebDocumentation.Middleware;
+using Dangl.WebDocumentation.Mcp;
 using Dangl.WebDocumentation.Models;
 using Dangl.WebDocumentation.Services;
 using Hangfire;
@@ -86,6 +87,8 @@ namespace Dangl.WebDocumentation
             services.AddTransient<IProjectChangelogService, ProjectChangelogService>();
             services.AddTransient<IUserProjectNotificationsService, UserProjectNotificationsService>();
             services.AddTransient<IDocuUserInfoService, DocuUserInfoService>();
+            services.AddTransient<MarkdownDocumentsService>();
+            services.AddDocumentationMcp(Configuration);
 
             var projectsRootFolder = Configuration["ProjectsRootFolder"];
             if (!string.IsNullOrWhiteSpace(projectsRootFolder))
@@ -237,14 +240,20 @@ namespace Dangl.WebDocumentation
             // To configure external authentication please see http://go.microsoft.com/fwlink/?LinkID=532715
 
             app.UseRouting();
+            var mcpSettings = app.ApplicationServices.GetRequiredService<McpSettings>();
+            app.UseDocumentationMcp(mcpSettings);
             app.UseAuthorization();
-
+            if (mcpSettings.Enabled)
+            {
+                app.UseRateLimiter();
+            }
             app.UseChallengeOnUnauthorizedResponse();
 
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
                 endpoints.MapDefaultControllerRoute();
+                endpoints.MapDocumentationMcp(Configuration);
             });
         }
     }

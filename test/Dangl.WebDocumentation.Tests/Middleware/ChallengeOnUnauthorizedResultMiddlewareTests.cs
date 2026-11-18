@@ -26,12 +26,15 @@ namespace Dangl.WebDocumentation.Tests.Middleware
             Assert.Equal("/Account/Login?returnUrl=%2FProjects%2FDangl.AVA.Converter%2F2.28.15%2Fhowto%2Ftoc.html%3Fsection%3Doverview", context.Response.Headers.Location);
         }
 
-        [Fact]
-        public async Task LeavesApiUnauthorizedResponseUnchanged()
+        [Theory]
+        [InlineData("/API/Projects")]
+        [InlineData("/mcp")]
+        [InlineData("/.well-known/oauth-protected-resource/mcp")]
+        public async Task LeavesMachineReadableUnauthorizedResponseUnchanged(string path)
         {
             var context = new DefaultHttpContext();
             context.Request.Method = HttpMethods.Get;
-            context.Request.Path = "/API/Projects";
+            context.Request.Path = path;
             var middleware = new ChallengeOnUnauthorizedResultMiddleware(httpContext =>
             {
                 httpContext.Response.StatusCode = StatusCodes.Status401Unauthorized;

@@ -1,0 +1,233 @@
+using System;
+using System.IO;
+using System.IO.Compression;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Dangl.WebDocumentation.Models;
+using Dangl.WebDocumentation.Services;
+using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
+using Xunit;
+
+namespace Dangl.WebDocumentation.Tests.Services
+{
+    public class MarkdownDocumentsServiceTests : IDisposable
+    {
+        private readonly ApplicationDbContext _context;
+        private readonly MarkdownDocumentsService _service;
+        private readonly SqliteConnection _connection;
+
+        public MarkdownDocumentsServiceTests()
+        {
+            _connection = new SqliteConnection("Data Source=:memory:;Foreign Keys=True");
+            _connection.Open();
+            _context = CreateContext();
+            _context.Database.EnsureCreated();
+            _context.DocumentationProjects.Add(new DocumentationProject { Name = "Docs", PathToIndex = "index.html" });
+            _context.DocumentationProjectVersions.Add(new DocumentationProjectVersion { ProjectName = "Docs", Version = "1.0" });
+            _context.SaveChanges();
+            _service = new MarkdownDocumentsService(_context, NullLogger<MarkdownDocumentsService>.Instance);
+        }
+
+        [Fact]
+        public async Task UploadPreservesMarkdownAndCodeAndIgnoresOtherFiles()
+        {
+            const string content = "# Setup\n\n```csharp\nvar project = \"Docs\";\n```\n";
+            using var package = Package(("guide\\setup.MD", content), ("images/logo.png", "ignored"));
+
+            var result = await _service.UploadPackageAsync("Docs", "1.0", package, TestContext.Current.CancellationToken);
+
+            Assert.True(result.IsSuccess, result.ErrorMessage);
+            Assert.Equal(1, result.Value);
+            var document = await _context.MarkdownDocuments.SingleAsync(TestContext.Current.CancellationToken);
+            Assert.Equal("guide/setup.MD", document.Path);
+            Assert.Equal("Setup", document.Title);
+            Assert.Equal(content, document.Content);
+        }
+
+        [Fact]
+        public async Task ReplacementUpdatesAddsAndRemovesDocumentsOnlyWithinTheVersion()
+        {
+            using var first = Package(("same.md", "# Before"), ("removed.md", "obsolete"));
+            Assert.True((await _service.UploadPackageAsync("Docs", "1.0", first, TestContext.Current.CancellationToken)).IsSuccess);
+            _context.DocumentationProjectVersions.Add(new DocumentationProjectVersion { ProjectName = "Docs", Version = "2.0" });
+            _context.MarkdownDocuments.Add(new MarkdownDocument
+            {
+                ProjectName = "Docs", Version = "2.0", Path = "keep.md", Title = "Keep", Content = "Other version"
+            });
+            await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
+            using var replacement = Package(("same.md", "# After"), ("added.md", "new"));
+
+            Assert.True((await _service.UploadPackageAsync("Docs", "1.0", replacement, TestContext.Current.CancellationToken)).IsSuccess);
+
+            _context.ChangeTracker.Clear();
+            var documents = await _context.MarkdownDocuments.OrderBy(d => d.Path).ToListAsync(TestContext.Current.CancellationToken);
+            Assert.Equal(new[] { "added.md", "keep.md", "same.md" }, documents.Select(d => d.Path));
+            Assert.Equal("# After", documents.Single(d => d.Path == "same.md").Content);
+            Assert.Equal("Other version", documents.Single(d => d.Path == "keep.md").Content);
+        }
+
+        [Theory]
+        [InlineData("../secret.md")]
+        [InlineData("/absolute.md")]
+        [InlineData("C:\\absolute.md")]
+        [InlineData("guide/../secret.md")]
+        [InlineData("./readme.md")]
+        [InlineData("guide//readme.md")]
+        public async Task UnsafePathsAreRejectedWithoutReplacingExistingContent(string path)
+        {
+            using var original = Package(("readme.md", "# Original"));
+            await _service.UploadPackageAsync("Docs", "1.0", original, TestContext.Current.CancellationToken);
+            using var invalid = Package(("valid.md", "Must not be saved"), (path, "Unsafe"));
+
+            var result = await _service.UploadPackageAsync("Docs", "1.0", invalid, TestContext.Current.CancellationToken);
+
+            Assert.False(result.IsSuccess);
+            Assert.Equal("# Original", (await _context.MarkdownDocuments.SingleAsync(TestContext.Current.CancellationToken)).Content);
+        }
+
+        [Fact]
+        public async Task DuplicateCaseInsensitivePathsAreRejected()
+        {
+            using var package = Package(("Readme.md", "one"), ("README.md", "two"));
+
+            Assert.False((await _service.UploadPackageAsync("Docs", "1.0", package, TestContext.Current.CancellationToken)).IsSuccess);
+            Assert.Empty(_context.MarkdownDocuments);
+        }
+
+        [Theory]
+        [InlineData("unknown")]
+        [InlineData("latest")]
+        public async Task UploadRequiresAnExistingExplicitVersion(string version)
+        {
+            using var package = Package(("readme.md", "# Docs"));
+
+            Assert.False((await _service.UploadPackageAsync("Docs", version, package, TestContext.Current.CancellationToken)).IsSuccess);
+            Assert.Empty(_context.MarkdownDocuments);
+        }
+
+        [Fact]
+        public async Task InvalidZipAndPackagesWithoutMarkdownAreRejected()
+        {
+            using var invalid = new MemoryStream(Encoding.UTF8.GetBytes("not a ZIP"));
+            Assert.False((await _service.UploadPackageAsync("Docs", "1.0", invalid, TestContext.Current.CancellationToken)).IsSuccess);
+            using var noMarkdown = Package(("index.html", "<html></html>"));
+            Assert.False((await _service.UploadPackageAsync("Docs", "1.0", noMarkdown, TestContext.Current.CancellationToken)).IsSuccess);
+        }
+
+        [Fact]
+        public async Task NonUtf8ContentIsRejected()
+        {
+            using var package = new MemoryStream();
+            using (var archive = new ZipArchive(package, ZipArchiveMode.Create, leaveOpen: true))
+            {
+                using var entry = archive.CreateEntry("readme.md").Open();
+                entry.Write(new byte[] { 0xC3, 0x28 });
+            }
+            package.Position = 0;
+
+            Assert.False((await _service.UploadPackageAsync("Docs", "1.0", package, TestContext.Current.CancellationToken)).IsSuccess);
+        }
+
+        [Fact]
+        public async Task HighlyCompressedOversizedDocumentIsRejected()
+        {
+            using var package = Package(("huge.md", new string('x', MarkdownDocumentsService.MaxDocumentBytes + 1)));
+
+            var result = await _service.UploadPackageAsync("Docs", "1.0", package, TestContext.Current.CancellationToken);
+
+            Assert.False(result.IsSuccess);
+            Assert.Empty(_context.MarkdownDocuments);
+        }
+
+        [Fact]
+        public async Task DocumentAtTheByteLimitIsAcceptedAndOversizedCompressedInputsAreRejected()
+        {
+            using var allowed = Package(("limit.md", new string('x', MarkdownDocumentsService.MaxDocumentBytes)));
+            Assert.True((await _service.UploadPackageAsync("Docs", "1.0", allowed, TestContext.Current.CancellationToken)).IsSuccess);
+            using var oversized = new MemoryStream(new byte[MarkdownDocumentsService.MaxPackageBytes + 1]);
+
+            var result = await _service.UploadPackageAsync("Docs", "1.0", oversized, TestContext.Current.CancellationToken);
+
+            Assert.False(result.IsSuccess);
+            Assert.Equal(MarkdownDocumentsService.MaxDocumentBytes,
+                (await _context.MarkdownDocuments.SingleAsync(TestContext.Current.CancellationToken)).Content.Length);
+        }
+
+        [Fact]
+        public async Task TotalUncompressedContentAndDocumentCountAreBounded()
+        {
+            using var large = Package(Enumerable.Range(0, 21)
+                .Select(i => ($"{i}.md", new string('x', MarkdownDocumentsService.MaxDocumentBytes))).ToArray());
+            Assert.False((await _service.UploadPackageAsync("Docs", "1.0", large, TestContext.Current.CancellationToken)).IsSuccess);
+
+            using var many = Package(Enumerable.Range(0, MarkdownDocumentsService.MaxDocuments + 1)
+                .Select(i => ($"{i}.md", "content")).ToArray());
+            Assert.False((await _service.UploadPackageAsync("Docs", "1.0", many, TestContext.Current.CancellationToken)).IsSuccess);
+            Assert.Empty(_context.MarkdownDocuments);
+        }
+
+        [Fact]
+        public async Task ConcurrentVersionChangesRollBackTheEntireReplacement()
+        {
+            using (var other = CreateContext())
+            {
+                var version = await other.DocumentationProjectVersions.SingleAsync(TestContext.Current.CancellationToken);
+                version.MarkdownRevision = Guid.NewGuid();
+                other.MarkdownDocuments.Add(new MarkdownDocument
+                {
+                    ProjectName = "Docs", Version = "1.0", Path = "accepted.md", Title = "Accepted", Content = "Concurrent upload"
+                });
+                await other.SaveChangesAsync(TestContext.Current.CancellationToken);
+            }
+            using var package = Package(("stale.md", "Must be rolled back"));
+
+            var result = await _service.UploadPackageAsync("Docs", "1.0", package, TestContext.Current.CancellationToken);
+
+            Assert.False(result.IsSuccess);
+            Assert.Contains("changed during upload", result.ErrorMessage);
+            using var verification = CreateContext();
+            Assert.Equal("accepted.md", (await verification.MarkdownDocuments.SingleAsync(TestContext.Current.CancellationToken)).Path);
+        }
+
+        [Fact]
+        public async Task DeletingAVersionAlsoDeletesItsMarkdownDocuments()
+        {
+            using var package = Package(("readme.md", "# Docs"));
+            Assert.True((await _service.UploadPackageAsync("Docs", "1.0", package, TestContext.Current.CancellationToken)).IsSuccess);
+            _context.ChangeTracker.Clear();
+            _context.DocumentationProjectVersions.Remove(await _context.DocumentationProjectVersions
+                .SingleAsync(TestContext.Current.CancellationToken));
+
+            await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+            Assert.Empty(_context.MarkdownDocuments);
+        }
+
+        private ApplicationDbContext CreateContext() => new ApplicationDbContext(
+            new DbContextOptionsBuilder<ApplicationDbContext>().UseSqlite(_connection).Options);
+
+        public static MemoryStream Package(params (string Path, string Content)[] files)
+        {
+            var stream = new MemoryStream();
+            using (var archive = new ZipArchive(stream, ZipArchiveMode.Create, leaveOpen: true))
+            {
+                foreach (var file in files)
+                {
+                    using var writer = new StreamWriter(archive.CreateEntry(file.Path).Open(), new UTF8Encoding(false));
+                    writer.Write(file.Content);
+                }
+            }
+            stream.Position = 0;
+            return stream;
+        }
+
+        public void Dispose()
+        {
+            _context.Dispose();
+            _connection.Dispose();
+        }
+    }
+}

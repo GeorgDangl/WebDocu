@@ -6,7 +6,7 @@
 <div class="row">
     <div class="col-md-8">
         <section>
-            <form asp-controller="Admin" asp-action="UploadProject" method="post" class="form-horizontal" role="form" enctype="multipart/form-data">
+            <form asp-controller="Admin" asp-action="UploadProject" asp-route-projectId="@ViewBag.ProjectId" method="post" class="form-horizontal" role="form" enctype="multipart/form-data">
                 <div asp-validation-summary="All" class="text-danger"></div>
                 <div class="form-group row">
                     <label for="projectPackage" class="col-md-2">Package</label>
@@ -36,6 +36,22 @@
         </section>
     </div>
 </div>
+<h4>Markdown documentation for AI agents</h4>
+<p>After uploading the HTML package, upload a ZIP containing UTF-8 Markdown files for the same version.
+    This replaces all Markdown documents for that version without changing the HTML package.
+    Images and other non-Markdown files are ignored.</p>
+<form asp-controller="Admin" asp-action="UploadMarkdownProject" asp-route-projectId="@ViewBag.ProjectId"
+      method="post" enctype="multipart/form-data">
+    <div class="form-group">
+        <label for="markdownPackage">Markdown ZIP (maximum 10 MiB)</label>
+        <input type="file" id="markdownPackage" name="markdownPackage" accept=".zip" required />
+    </div>
+    <div class="form-group">
+        <label for="markdownVersion">Existing documentation version</label>
+        <input type="text" id="markdownVersion" name="version" maxlength="40" required />
+    </div>
+    <button type="submit" class="btn btn-raised btn-primary">Upload Markdown</button>
+</form>
 <h4>Upload via the API</h4>
 <p>You can also use the API to upload a project package, for that you need the API key of the project (get or change it on the Project Edit page) and then perform a web request to upload the file.</p>
 <p>Example with cURL:</p>

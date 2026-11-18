@@ -44,6 +44,108 @@ Logged-in users can download the original zip package from the versions page for
 
 The versions page also displays stored package sizes to admins. Sizes are queried from Azure Blob properties or disk metadata after upload and saved in the database; viewing the page does not query storage. Existing versions are populated by a Hangfire job in batches of 100. Packages whose metadata cannot be read are logged and left without a size for a later run, without blocking subsequent batches.
 
+## MCP access for AI agents
+
+The app includes an optional, read-only MCP server at `https://<YourDomain>/mcp`, using Streamable HTTP.
+It exposes `list_projects`, `list_versions`, `list_documents`, `search_docs`, and `get_document`.
+Every MCP request requires an OAuth access token, including requests for public projects. Normal public HTML browsing is unchanged.
+Project listings and all documentation operations enforce the user's existing project assignments and `docu_project_access` claims.
+The MCP tools never expose upload keys or upload/admin operations.
+
+### Upload Markdown documentation
+
+Upload the normal HTML documentation package first, then a separate Markdown ZIP for the **same explicit version**.
+The admin package-upload page accepts these ZIPs, or a build pipeline can use the existing project **upload** key:
+
+```bash
+curl -F "ApiKey=<YourProjectUploadKey>" \
+     -F "Version=1.2.3" \
+     -F "MarkdownPackage=@docs-markdown.zip" \
+     https://<YourDomain>/API/MarkdownDocuments/Upload
+```
+
+Successful uploads return `{"documentCount":42}`. Reuploading replaces that version's entire Markdown corpus atomically;
+it does not modify the HTML ZIP or other versions. Concurrent version changes reject the upload with an error; retry the request.
+Deleting a documentation version also deletes its Markdown documents.
+
+Packages must contain UTF-8 `.md` or `.markdown` files. Relative directory paths, headings, Markdown and code examples are preserved;
+non-Markdown files, such as images, are ignored. Limits are 10 MiB compressed, 20 MiB of Markdown after decompression,
+1 MiB per document, 1000 documents, and 2000 ZIP entries. Document paths must be unique ignoring case, at most 300 characters,
+and must not contain absolute paths or `.` / `..` segments.
+
+Markdown is stored in SQL rather than rereading ZIPs for each request. Search is case-insensitive keyword search within a selected
+project/version; every keyword must match. No external AI service, embeddings, or vector database is used.
+HTML-only versions remain browsable but return an explicit "no Markdown package" error to MCP clients.
+
+Tools return resolved versions and source URLs at `/MarkdownDocuments/{project}/{version}/{path}`.
+These URLs serve the Markdown under the website's normal project-access checks.
+Lists have `offset`, `limit`, and `nextOffset`; document reads have `offset`, `maxCharacters`, `totalCharacters`, and `nextOffset`.
+Offsets in document reads count UTF-16 characters. Follow `nextOffset` until it is `null` to retrieve complete content.
+`latest` means the newest hosted version, including prereleases, just as on the website. MCP never silently substitutes another version
+or falls back to older Markdown; use `list_versions` and pin a version when developing against a particular release.
+
+### Configure OAuth
+
+MCP is **disabled by default**. Before enabling it, configure Dangl.Identity to issue JWT **access tokens** for a dedicated MCP
+audience/resource, with a read scope such as `docs:read`. Tokens must have a GUID `sub` corresponding to the existing Dangl.Identity
+user ID, a `scope` claim containing the read scope, and an RFC 9068 access-token type (`at+jwt` or `application/at+jwt`).
+ID tokens, browser cookies, and project upload keys are not accepted by the MCP endpoint. Opaque access tokens are not supported.
+
+For example:
+
+```json
+{
+  "BaseUrl": "https://docs.example.com",
+  "DanglIdentityBaseUrl": "https://identity.example.com",
+  "Mcp": {
+    "Enabled": true,
+    "Audience": "https://docs.example.com/mcp",
+    "RequiredScope": "docs:read",
+    "AllowedOrigins": []
+  }
+}
+```
+
+`BaseUrl` must be the public HTTPS origin without a path. `Audience` must exactly match the dedicated audience in issued tokens;
+clients use the public MCP URL as the OAuth `resource` parameter. The signing keys and issuer metadata are obtained from
+Dangl.Identity's HTTPS OIDC discovery endpoint. The app publishes anonymous OAuth Protected Resource Metadata at
+`/.well-known/oauth-protected-resource/mcp`, and returns `401` / `403` bearer challenges instead of browser-login redirects.
+Enabling MCP does not change the website's cookie/OIDC authentication defaults.
+
+Register each supported agent as its own OAuth client in Dangl.Identity, using authorization code with PKCE S256.
+Configure its callback URLs and grant the read scope and MCP resource. Do not distribute this website's existing OAuth client secret
+to agents. Pre-registered client IDs work; Client ID Metadata Documents can simplify onboarding if the identity provider supports them.
+For long-running interactive use, configure refresh-token issuance/rotation on the identity provider and client.
+
+Bearer tokens need either the appropriate `docu_project_access` claims or existing database project assignments.
+Identity-provider-derived assignments retain the app's existing hourly synchronization behavior. Token-carried access claims remain
+valid until token expiry, so use short-lived access tokens when prompt revocation matters.
+
+Native/CLI clients normally send no `Origin` header. Browser clients must have their exact HTTPS origin listed in `AllowedOrigins`;
+the MCP endpoints enable CORS only for those origins. Responses are not publicly cacheable.
+MCP requests are limited to 120 per minute per user per application instance.
+
+For VS Code, a minimal `.vscode/mcp.json` configuration is:
+
+```json
+{
+  "servers": {
+    "project-documentation": {
+      "type": "http",
+      "url": "https://docs.example.com/mcp",
+      "oauth": {
+        "clientId": "<AgentClientIdRegisteredInDangl.Identity>"
+      }
+    }
+  }
+}
+```
+
+The client completes browser sign-in and sends `Authorization: Bearer <access-token>` on MCP requests.
+The server supports the current per-request MCP protocol and older initialization-based Streamable HTTP clients through the SDK.
+The schema migration adds the Markdown document table and an upload-concurrency revision on project versions; apply it through
+the app's normal database migration/deployment process before enabling MCP.
+
 ## Conventions When Accessing Documentation
 
 Project file urls have the following format:
