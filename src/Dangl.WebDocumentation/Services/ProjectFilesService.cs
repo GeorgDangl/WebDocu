@@ -173,6 +173,23 @@ namespace Dangl.WebDocumentation.Services
                 return false;
             }
             var packagePath = GetPackagePath(projectId, projectVersion.FileId);
+            var assetFiles = await _context.ProjectVersionAssetFiles
+                .Where(a => a.ProjectVersion.Version == projectVersion.Version
+                        && a.ProjectVersion.Project.Id == projectId)
+                .ToListAsync();
+
+            _context.ProjectVersionAssetFiles.RemoveRange(assetFiles);
+            _context.DocumentationProjectVersions.Remove(projectVersion);
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException exception)
+            {
+                _logger.LogWarning(exception, "Concurrent project version change detected during deletion.");
+                return false;
+            }
+
             try
             {
                 await _fileManager.DeleteFileAsync(AppConstants.PROJECTS_CONTAINER, packagePath);
@@ -181,26 +198,18 @@ namespace Dangl.WebDocumentation.Services
                     await _fileManager.DeleteFileAsync(AppConstants.PROJECTS_CONTAINER,
                         MarkdownDocumentsService.GetPackagePath(projectVersion.MarkdownFileId.Value));
                 }
+
+                foreach (var assetFile in assetFiles)
+                {
+                    await _fileManager.DeleteFileAsync(assetFile.FileId, AppConstants.PROJECT_ASSETS_CONTAINER, assetFile.FileName);
+                }
+                return true;
             }
-            catch
+            catch (Exception exception)
             {
+                _logger.LogError(exception, "Failed to clean up files for deleted project version.");
                 return false;
             }
-
-            var assetFiles = await _context.ProjectVersionAssetFiles
-                .Where(a => a.ProjectVersion.Version == projectVersion.Version
-                        && a.ProjectVersion.Project.Id == projectId)
-                .ToListAsync();
-
-            foreach (var assetFile in assetFiles)
-            {
-                await _fileManager.DeleteFileAsync(assetFile.FileId, AppConstants.PROJECT_ASSETS_CONTAINER, assetFile.FileName);
-                _context.ProjectVersionAssetFiles.Remove(assetFile);
-            }
-
-            _context.DocumentationProjectVersions.Remove(projectVersion);
-            await _context.SaveChangesAsync();
-            return true;
         }
 
         public async Task<RepositoryResult<(string sasDownloadUrl, Stream stream)>> GetProjectPackageDownloadAsync(string projectName, string version)

@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Azure.Storage.Blobs.Models;
 using Dangl.AspNetCore.FileHandling;
@@ -21,11 +22,14 @@ namespace Dangl.WebDocumentation.Tests.Services
         private readonly ApplicationDbContext _context;
         private readonly Mock<IFileManager> _fileManager = new Mock<IFileManager>(MockBehavior.Strict);
         private readonly Mock<IProjectUploadNotificationsService> _notifications = new Mock<IProjectUploadNotificationsService>();
+        private readonly ConcurrentVersionUpdateInterceptor _concurrencyInterceptor;
 
         public ProjectFilesServiceTests()
         {
+            _concurrencyInterceptor = new ConcurrentVersionUpdateInterceptor();
             _context = new ApplicationDbContext(new DbContextOptionsBuilder<ApplicationDbContext>()
                 .UseInMemoryDatabase(Guid.NewGuid().ToString())
+                .AddInterceptors(_concurrencyInterceptor)
                 .ConfigureWarnings(w => w.Ignore(InMemoryEventId.TransactionIgnoredWarning))
                 .Options);
             _context.DocumentationProjects.Add(new DocumentationProject
@@ -200,6 +204,48 @@ namespace Dangl.WebDocumentation.Tests.Services
             Assert.Equal("Package missing", result.ErrorMessage);
         }
 
+        [Fact]
+        public async Task VersionIsRemovedBeforeItsPackageFilesAreDeleted()
+        {
+            var packagePath = await AddVersionAsync();
+            var markdownFileId = Guid.NewGuid();
+            var version = await _context.DocumentationProjectVersions.SingleAsync(TestContext.Current.CancellationToken);
+            version.MarkdownFileId = markdownFileId;
+            await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
+            _fileManager.Setup(m => m.DeleteFileAsync(AppConstants.PROJECTS_CONTAINER, It.IsAny<string>()))
+                .Callback<string, string>((_, _) =>
+                    Assert.False(_context.DocumentationProjectVersions.Any()))
+                .ReturnsAsync(RepositoryResult.Success());
+
+            var result = await CreateService().DeleteProjectVersionPackageAsync(
+                _context.DocumentationProjects.Single().Id, "1.0");
+
+            Assert.True(result);
+            _fileManager.Verify(m => m.DeleteFileAsync(AppConstants.PROJECTS_CONTAINER, packagePath), Times.Once);
+            _fileManager.Verify(m => m.DeleteFileAsync(AppConstants.PROJECTS_CONTAINER,
+                MarkdownDocumentsService.GetPackagePath(markdownFileId)), Times.Once);
+        }
+
+        [Fact]
+        public async Task ConcurrentVersionChangePreventsDeletingPackageFiles()
+        {
+            await AddVersionAsync();
+            var originalRevision = Guid.NewGuid();
+            var version = await _context.DocumentationProjectVersions.SingleAsync(TestContext.Current.CancellationToken);
+            version.MarkdownRevision = originalRevision;
+            await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
+            _concurrencyInterceptor.ThrowOnNextDeleteConflict = true;
+
+            var result = await CreateService().DeleteProjectVersionPackageAsync(
+                _context.DocumentationProjects.Single().Id, "1.0");
+
+            Assert.False(result);
+            _fileManager.Verify(m => m.DeleteFileAsync(AppConstants.PROJECTS_CONTAINER, It.IsAny<string>()), Times.Never);
+            var storedVersion = await _context.DocumentationProjectVersions.AsNoTracking()
+                .SingleAsync(TestContext.Current.CancellationToken);
+            Assert.Equal(originalRevision, storedVersion.MarkdownRevision);
+        }
+
         public void Dispose()
         {
             _context.Dispose();
@@ -217,6 +263,26 @@ namespace Dangl.WebDocumentation.Tests.Services
         {
             return new ProjectFilesService(_context, fileManager ?? _fileManager.Object,
                 Mock.Of<IProjectVersionAssetFilesService>(), _notifications.Object, NullLogger<ProjectFilesService>.Instance);
+        }
+
+        private sealed class ConcurrentVersionUpdateInterceptor : SaveChangesInterceptor
+        {
+            public bool ThrowOnNextDeleteConflict { get; set; }
+
+            public override ValueTask<InterceptionResult<int>> SavingChangesAsync(
+                DbContextEventData eventData, InterceptionResult<int> result,
+                CancellationToken cancellationToken = default)
+            {
+                if (ThrowOnNextDeleteConflict
+                    && eventData.Context.ChangeTracker.Entries<DocumentationProjectVersion>()
+                        .Any(entry => entry.State == EntityState.Deleted))
+                {
+                    ThrowOnNextDeleteConflict = false;
+                    throw new DbUpdateConcurrencyException("Simulated concurrent Markdown upload.");
+                }
+
+                return ValueTask.FromResult(result);
+            }
         }
     }
 }
