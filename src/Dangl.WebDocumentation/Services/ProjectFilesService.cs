@@ -176,6 +176,11 @@ namespace Dangl.WebDocumentation.Services
             try
             {
                 await _fileManager.DeleteFileAsync(AppConstants.PROJECTS_CONTAINER, packagePath);
+                if (projectVersion.MarkdownFileId.HasValue)
+                {
+                    await _fileManager.DeleteFileAsync(AppConstants.PROJECTS_CONTAINER,
+                        MarkdownDocumentsService.GetPackagePath(projectVersion.MarkdownFileId.Value));
+                }
             }
             catch
             {

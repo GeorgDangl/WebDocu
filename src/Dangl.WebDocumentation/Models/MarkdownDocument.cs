@@ -20,9 +20,6 @@ namespace Dangl.WebDocumentation.Models
         [Required, MaxLength(300)]
         public string Title { get; set; }
 
-        [Required]
-        public string Content { get; set; }
-
         public static void OnModelCreating(ModelBuilder builder)
         {
             builder.Entity<MarkdownDocument>()

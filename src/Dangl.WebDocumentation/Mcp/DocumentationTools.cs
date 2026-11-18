@@ -21,14 +21,16 @@ namespace Dangl.WebDocumentation.Mcp
         private readonly IProjectsService _projects;
         private readonly IProjectVersionsService _versions;
         private readonly ApplicationDbContext _context;
+        private readonly MarkdownDocumentsService _documents;
         private readonly string _baseUrl;
 
         public DocumentationTools(IProjectsService projects, IProjectVersionsService versions,
-            ApplicationDbContext context, IConfiguration configuration)
+            ApplicationDbContext context, MarkdownDocumentsService documents, IConfiguration configuration)
         {
             _projects = projects;
             _versions = versions;
             _context = context;
+            _documents = documents;
             _baseUrl = configuration["BaseUrl"].TrimEnd('/');
         }
 
@@ -40,8 +42,9 @@ namespace Dangl.WebDocumentation.Mcp
             ValidatePage(offset, limit, 100);
             var projects = (await _projects.GetAllProjectsForPrincipalAsync(user)).Skip(offset).Take(limit + 1).ToList();
             var names = projects.Select(p => p.Name).ToArray();
-            var withMarkdown = await _context.MarkdownDocuments.Where(d => names.Contains(d.ProjectName))
-                .Select(d => d.ProjectName).Distinct().ToListAsync(cancellationToken);
+            var withMarkdown = await _context.DocumentationProjectVersions
+                .Where(v => names.Contains(v.ProjectName) && v.MarkdownFileId != null)
+                .Select(v => v.ProjectName).Distinct().ToListAsync(cancellationToken);
             return MakePage(projects.Select(p => new ProjectInfo(p.Name, p.IsPublic,
                 withMarkdown.Contains(p.Name))).ToList(), offset, limit);
         }
@@ -53,8 +56,9 @@ namespace Dangl.WebDocumentation.Mcp
         {
             ValidatePage(offset, limit, 100);
             var project = await GetProjectAsync(user, projectName);
-            var withMarkdown = await _context.MarkdownDocuments.Where(d => d.ProjectName == project)
-                .Select(d => d.Version).Distinct().ToListAsync(cancellationToken);
+            var withMarkdown = await _context.DocumentationProjectVersions
+                .Where(v => v.ProjectName == project && v.MarkdownFileId != null)
+                .Select(v => v.Version).ToListAsync(cancellationToken);
             var versions = (await _versions.GetProjectVersionsAsync(project)).Skip(offset).Take(limit + 1)
                 .Select(v => new VersionInfo(v.version, withMarkdown.Contains(v.version))).ToList();
             return MakePage(versions, offset, limit);
@@ -90,20 +94,29 @@ namespace Dangl.WebDocumentation.Mcp
                 throw new McpException("Search queries may contain at most 10 keywords.");
             }
             var resolved = await ResolveVersionAsync(user, projectName, version, cancellationToken);
-            var matches = Documents(resolved.Project, resolved.Version);
-            foreach (var term in terms)
+            var metadata = await Documents(resolved.Project, resolved.Version).ToListAsync(cancellationToken);
+            var contents = await _documents.GetDocumentContentsAsync(resolved.Project, resolved.Version, cancellationToken);
+            if (contents == null)
             {
-                var keyword = term.ToUpperInvariant();
-                matches = matches.Where(d => d.Title.ToUpper().Contains(keyword) || d.Content.ToUpper().Contains(keyword));
+                throw new McpException("The Markdown package is unavailable.");
             }
-            var titleQuery = query.ToUpperInvariant();
-            var documents = await matches.OrderByDescending(d => d.Title.ToUpper().Contains(titleQuery))
-                .ThenBy(d => d.Path).Skip(offset).Take(limit + 1).ToListAsync(cancellationToken);
-            return MakePage(documents.Select(d =>
+            var matched = metadata.Where(d => contents.TryGetValue(d.Path, out var content)
+                    && terms.All(term => d.Title.Contains(term, StringComparison.OrdinalIgnoreCase)
+                        || content.Contains(term, StringComparison.OrdinalIgnoreCase)))
+                .OrderByDescending(d => d.Title.Contains(query, StringComparison.OrdinalIgnoreCase))
+                .ThenBy(d => d.Path)
+                .Skip(offset).Take(limit + 1).ToList();
+            return MakePage(matched.Select(d =>
             {
-                var match = d.Content.IndexOf(terms[0], StringComparison.OrdinalIgnoreCase);
+                var content = contents[d.Path];
+                var match = terms.Select(term => content.IndexOf(term, StringComparison.OrdinalIgnoreCase))
+                    .FirstOrDefault(index => index >= 0);
+                if (match < 0)
+                {
+                    match = 0;
+                }
                 var start = Math.Max(0, match - 120);
-                var excerpt = d.Content.Substring(start, Math.Min(600, d.Content.Length - start));
+                var excerpt = content.Substring(start, Math.Min(600, content.Length - start));
                 return new SearchResult(d.ProjectName, d.Version, d.Path, d.Title, excerpt,
                     SourceUrl(d.ProjectName, d.Version, d.Path));
             }).ToList(), offset, limit);
@@ -134,19 +147,25 @@ namespace Dangl.WebDocumentation.Mcp
             {
                 throw new McpException("Document not found.");
             }
-            if (offset > document.Content.Length
-                || (offset > 0 && offset < document.Content.Length && char.IsLowSurrogate(document.Content[offset])))
+            var content = await _documents.GetDocumentContentAsync(
+                resolved.Project, resolved.Version, document.Path, cancellationToken);
+            if (content == null)
+            {
+                throw new McpException("Document not found.");
+            }
+            if (offset > content.Length
+                || (offset > 0 && offset < content.Length && char.IsLowSurrogate(content[offset])))
             {
                 throw new McpException("offset is outside the document or splits a Unicode character.");
             }
-            var end = offset + Math.Min(maxCharacters, document.Content.Length - offset);
-            if (end < document.Content.Length && end > offset && char.IsHighSurrogate(document.Content[end - 1]))
+            var end = offset + Math.Min(maxCharacters, content.Length - offset);
+            if (end < content.Length && end > offset && char.IsHighSurrogate(content[end - 1]))
             {
                 end--;
             }
             return new DocumentContent(document.ProjectName, document.Version, document.Path, document.Title,
-                document.Content.Substring(offset, end - offset), offset, document.Content.Length,
-                end < document.Content.Length ? end : null, SourceUrl(document.ProjectName, document.Version, document.Path));
+                content.Substring(offset, end - offset), offset, content.Length,
+                end < content.Length ? end : null, SourceUrl(document.ProjectName, document.Version, document.Path));
         }
 
         private async Task<string> GetProjectAsync(ClaimsPrincipal user, string projectName)
@@ -172,7 +191,8 @@ namespace Dangl.WebDocumentation.Mcp
             {
                 throw new McpException("Project version not found. Use list_versions to select an available version.");
             }
-            if (!await Documents(project, resolved).AnyAsync(cancellationToken))
+            if (!await _context.DocumentationProjectVersions.AnyAsync(
+                v => v.ProjectName == project && v.Version == resolved && v.MarkdownFileId != null, cancellationToken))
             {
                 throw new McpException("This version has no Markdown package. Use list_versions to find versions with Markdown documentation.");
             }

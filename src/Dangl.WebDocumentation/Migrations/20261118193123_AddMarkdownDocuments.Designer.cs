@@ -151,6 +151,9 @@ partial class _20261118193123_AddMarkdownDocuments
                     .IsConcurrencyToken()
                     .HasColumnType("uniqueidentifier");
 
+                b.Property<Guid?>("MarkdownFileId")
+                    .HasColumnType("uniqueidentifier");
+
                 b.Property<long?>("PackageSizeInBytes")
                     .HasColumnType("bigint");
 
@@ -168,10 +171,6 @@ partial class _20261118193123_AddMarkdownDocuments
                 b.Property<Guid>("Id")
                     .ValueGeneratedOnAdd()
                     .HasColumnType("uniqueidentifier");
-
-                b.Property<string>("Content")
-                    .IsRequired()
-                    .HasColumnType("nvarchar(max)");
 
                 b.Property<string>("Path")
                     .IsRequired()

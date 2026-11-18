@@ -73,8 +73,9 @@ non-Markdown files, such as images, are ignored. Limits are 10 MiB compressed, 2
 1 MiB per document, 1000 documents, and 2000 ZIP entries. Document paths must be unique ignoring case, at most 300 characters,
 and must not contain absolute paths or `.` / `..` segments.
 
-Markdown is stored in SQL rather than rereading ZIPs for each request. Search is case-insensitive keyword search within a selected
-project/version; every keyword must match. No external AI service, embeddings, or vector database is used.
+The Markdown ZIP is stored in shared file storage, while SQL holds only document paths and titles. Document reads extract content
+from the ZIP on demand; searches load its contents when requested and match case-insensitive keywords within the selected
+project/version. Every keyword must match. No external AI service, embeddings, or vector database is used.
 HTML-only versions remain browsable but return an explicit "no Markdown package" error to MCP clients.
 
 Tools return resolved versions and source URLs at `/MarkdownDocuments/{project}/{version}/{path}`.
@@ -95,11 +96,11 @@ For example:
 
 ```json
 {
-  "BaseUrl": "https://docs.example.com",
+  "BaseUrl": "https://docs.dangl-it.com",
   "DanglIdentityBaseUrl": "https://identity.example.com",
   "Mcp": {
     "Enabled": true,
-    "Audience": "https://docs.example.com/mcp",
+    "Audience": "https://docs.dangl-it.com/mcp",
     "RequiredScope": "docs:read",
     "AllowedOrigins": []
   }
@@ -132,7 +133,7 @@ For VS Code, a minimal `.vscode/mcp.json` configuration is:
   "servers": {
     "project-documentation": {
       "type": "http",
-      "url": "https://docs.example.com/mcp",
+      "url": "https://docs.dangl-it.com/mcp",
       "oauth": {
         "clientId": "<AgentClientIdRegisteredInDangl.Identity>"
       }

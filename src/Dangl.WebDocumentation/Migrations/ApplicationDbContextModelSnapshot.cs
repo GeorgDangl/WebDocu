@@ -153,6 +153,9 @@ partial class ApplicationDbContextModelSnapshot : ModelSnapshot
                     .IsConcurrencyToken()
                     .HasColumnType("uniqueidentifier");
 
+                b.Property<Guid?>("MarkdownFileId")
+                    .HasColumnType("uniqueidentifier");
+
                 b.Property<long?>("PackageSizeInBytes")
                     .HasColumnType("bigint");
 
@@ -170,10 +173,6 @@ partial class ApplicationDbContextModelSnapshot : ModelSnapshot
                 b.Property<Guid>("Id")
                     .ValueGeneratedOnAdd()
                     .HasColumnType("uniqueidentifier");
-
-                b.Property<string>("Content")
-                    .IsRequired()
-                    .HasColumnType("nvarchar(max)");
 
                 b.Property<string>("Path")
                     .IsRequired()

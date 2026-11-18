@@ -11,15 +11,18 @@ namespace Dangl.WebDocumentation.Controllers
 {
     public class MarkdownDocumentsController : Controller
     {
-        private readonly ApplicationDbContext _context;
         private readonly IProjectsService _projects;
         private readonly IDocuUserInfoService _userInfo;
+        private readonly ApplicationDbContext _context;
+        private readonly MarkdownDocumentsService _documents;
 
-        public MarkdownDocumentsController(ApplicationDbContext context, IProjectsService projects, IDocuUserInfoService userInfo)
+        public MarkdownDocumentsController(ApplicationDbContext context, IProjectsService projects,
+            IDocuUserInfoService userInfo, MarkdownDocumentsService documents)
         {
             _context = context;
             _projects = projects;
             _userInfo = userInfo;
+            _documents = documents;
         }
 
         [HttpGet("MarkdownDocuments/{projectName}/{version}/{*path}")]
@@ -41,8 +44,13 @@ namespace Dangl.WebDocumentation.Controllers
             }
             var document = await _context.MarkdownDocuments.AsNoTracking()
                 .Where(d => d.ProjectName == projectName && d.Version == version && d.Path.ToUpper() == normalized)
-                .Select(d => d.Content).SingleOrDefaultAsync(cancellationToken);
-            return document == null ? NotFound() : Content(document, "text/markdown; charset=utf-8");
+                .Select(d => d.Path).SingleOrDefaultAsync(cancellationToken);
+            if (document == null)
+            {
+                return NotFound();
+            }
+            var content = await _documents.GetDocumentContentAsync(projectName, version, document, cancellationToken);
+            return content == null ? NotFound() : Content(content, "text/markdown; charset=utf-8");
         }
     }
 }

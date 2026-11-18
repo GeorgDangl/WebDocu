@@ -12,6 +12,8 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Dangl.AspNetCore.FileHandling;
+using Dangl.Data.Shared;
 using Dangl.Identity.Client.Mvc.Services;
 using Dangl.WebDocumentation.Mcp;
 using Dangl.WebDocumentation.Middleware;
@@ -46,9 +48,26 @@ namespace Dangl.WebDocumentation.Tests.Mcp
         private readonly HttpClient _client;
         private readonly string _uploadKey;
         private readonly SqliteConnection _connection;
+        private readonly Dictionary<string, byte[]> _blobs = new();
+        private readonly Mock<IFileManager> _fileManager = new(MockBehavior.Strict);
 
         public DocumentationMcpTests()
         {
+            _fileManager.Setup(m => m.SaveFileAsync(AppConstants.PROJECTS_CONTAINER, It.IsAny<string>(), It.IsAny<Stream>()))
+                .Callback<string, string, Stream>((_, path, stream) =>
+                {
+                    using var copy = new MemoryStream();
+                    stream.CopyTo(copy);
+                    _blobs[path] = copy.ToArray();
+                })
+                .ReturnsAsync(RepositoryResult.Success());
+            _fileManager.Setup(m => m.GetFileAsync(AppConstants.PROJECTS_CONTAINER, It.IsAny<string>()))
+                .ReturnsAsync((string _, string path) => _blobs.TryGetValue(path, out var bytes)
+                    ? RepositoryResult<Stream>.Success(new MemoryStream(bytes))
+                    : RepositoryResult<Stream>.Fail("Blob not found."));
+            _fileManager.Setup(m => m.DeleteFileAsync(AppConstants.PROJECTS_CONTAINER, It.IsAny<string>()))
+                .Callback<string, string>((_, path) => _blobs.Remove(path))
+                .ReturnsAsync(RepositoryResult.Success());
             _connection = new SqliteConnection("Data Source=:memory:;Foreign Keys=True");
             _connection.Open();
             _host = CreateHost();
@@ -67,17 +86,30 @@ namespace Dangl.WebDocumentation.Tests.Mcp
             context.UserProjects.Add(new UserProjectAccess { UserId = _userId, Project = assigned });
             foreach (var project in new[] { "Public", "Assigned", "Claimed", "Hidden" })
             {
-                context.DocumentationProjectVersions.Add(new DocumentationProjectVersion { ProjectName = project, Version = "1.0" });
+                var fileId = Guid.NewGuid();
+                context.DocumentationProjectVersions.Add(new DocumentationProjectVersion
+                {
+                    ProjectName = project, Version = "1.0", MarkdownFileId = fileId
+                });
+                var setupContent = $"# Setup\n\n{project} authentication configuration\n\n```csharp\nvar docs = true;\n```\n"
+                    + new string('x', 240);
+                var packageDocuments = project == "Public"
+                    ? new[] { ("guide/setup.md", setupContent), ("overview.md", "# Overview\nGetting started") }
+                    : new[] { ("guide/setup.md", setupContent) };
+                using var package = MarkdownDocumentsServiceTests.Package(packageDocuments);
+                _blobs[MarkdownDocumentsService.GetPackagePath(fileId)] = package.ToArray();
                 context.MarkdownDocuments.Add(new MarkdownDocument
                 {
-                    ProjectName = project, Version = "1.0", Path = "guide/setup.md", Title = "Setup",
-                    Content = $"# Setup\n\n{project} authentication configuration\n\n```csharp\nvar docs = true;\n```\n" + new string('x', 240)
+                    ProjectName = project, Version = "1.0", Path = "guide/setup.md", Title = "Setup"
                 });
+                if (project == "Public")
+                {
+                    context.MarkdownDocuments.Add(new MarkdownDocument
+                    {
+                        ProjectName = "Public", Version = "1.0", Path = "overview.md", Title = "Overview"
+                    });
+                }
             }
-            context.MarkdownDocuments.Add(new MarkdownDocument
-            {
-                ProjectName = "Public", Version = "1.0", Path = "overview.md", Title = "Overview", Content = "# Overview\nGetting started"
-            });
             context.SaveChanges();
         }
 
@@ -96,6 +128,7 @@ namespace Dangl.WebDocumentation.Tests.Mcp
                 .ConfigureServices(services =>
                 {
                     services.AddSingleton<IConfiguration>(configuration);
+                    services.AddSingleton<IFileManager>(_fileManager.Object);
                     services.AddDbContext<ApplicationDbContext>(options => options.UseSqlite(_connection));
                     services.AddMemoryCache();
                     services.AddSingleton(new Mock<IUserInfoService>(MockBehavior.Strict).Object);

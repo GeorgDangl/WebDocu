@@ -24,6 +24,7 @@ namespace Dangl.WebDocumentation.Models
 
         [ConcurrencyCheck]
         public Guid? MarkdownRevision { get; set; }
+        public Guid? MarkdownFileId { get; set; }
 
         public static void OnModelCreating(ModelBuilder builder)
         {

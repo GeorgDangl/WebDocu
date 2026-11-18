@@ -17,6 +17,12 @@ public partial class _20261118193123_AddMarkdownDocuments : Migration
             type: "uniqueidentifier",
             nullable: true);
 
+        migrationBuilder.AddColumn<Guid>(
+            name: "MarkdownFileId",
+            table: "DocumentationProjectVersions",
+            type: "uniqueidentifier",
+            nullable: true);
+
         migrationBuilder.CreateTable(
             name: "MarkdownDocuments",
             columns: table => new
@@ -25,8 +31,7 @@ public partial class _20261118193123_AddMarkdownDocuments : Migration
                 ProjectName = table.Column<string>(type: "nvarchar(60)", maxLength: 60, nullable: false),
                 Version = table.Column<string>(type: "nvarchar(40)", maxLength: 40, nullable: false),
                 Path = table.Column<string>(type: "nvarchar(300)", maxLength: 300, nullable: false),
-                Title = table.Column<string>(type: "nvarchar(300)", maxLength: 300, nullable: false),
-                Content = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                Title = table.Column<string>(type: "nvarchar(300)", maxLength: 300, nullable: false)
             },
             constraints: table =>
             {
@@ -53,6 +58,9 @@ public partial class _20261118193123_AddMarkdownDocuments : Migration
             name: "MarkdownDocuments");
         migrationBuilder.DropColumn(
             name: "MarkdownRevision",
+            table: "DocumentationProjectVersions");
+        migrationBuilder.DropColumn(
+            name: "MarkdownFileId",
             table: "DocumentationProjectVersions");
     }
 }

@@ -1,14 +1,18 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Dangl.AspNetCore.FileHandling;
+using Dangl.Data.Shared;
 using Dangl.WebDocumentation.Models;
 using Dangl.WebDocumentation.Services;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
+using Moq;
 using Xunit;
 
 namespace Dangl.WebDocumentation.Tests.Services
@@ -18,6 +22,8 @@ namespace Dangl.WebDocumentation.Tests.Services
         private readonly ApplicationDbContext _context;
         private readonly MarkdownDocumentsService _service;
         private readonly SqliteConnection _connection;
+        private readonly Dictionary<string, byte[]> _blobs = new();
+        private readonly Mock<IFileManager> _fileManager = new(MockBehavior.Strict);
 
         public MarkdownDocumentsServiceTests()
         {
@@ -28,7 +34,23 @@ namespace Dangl.WebDocumentation.Tests.Services
             _context.DocumentationProjects.Add(new DocumentationProject { Name = "Docs", PathToIndex = "index.html" });
             _context.DocumentationProjectVersions.Add(new DocumentationProjectVersion { ProjectName = "Docs", Version = "1.0" });
             _context.SaveChanges();
-            _service = new MarkdownDocumentsService(_context, NullLogger<MarkdownDocumentsService>.Instance);
+            _fileManager.Setup(m => m.SaveFileAsync(AppConstants.PROJECTS_CONTAINER, It.IsAny<string>(), It.IsAny<Stream>()))
+                .Callback<string, string, Stream>((_, path, stream) =>
+                {
+                    using var copy = new MemoryStream();
+                    stream.CopyTo(copy);
+                    _blobs[path] = copy.ToArray();
+                })
+                .ReturnsAsync(RepositoryResult.Success());
+            _fileManager.Setup(m => m.GetFileAsync(AppConstants.PROJECTS_CONTAINER, It.IsAny<string>()))
+                .ReturnsAsync((string _, string path) => _blobs.TryGetValue(path, out var bytes)
+                    ? RepositoryResult<Stream>.Success(new MemoryStream(bytes))
+                    : RepositoryResult<Stream>.Fail("Blob not found."));
+            _fileManager.Setup(m => m.DeleteFileAsync(AppConstants.PROJECTS_CONTAINER, It.IsAny<string>()))
+                .Callback<string, string>((_, path) => _blobs.Remove(path))
+                .ReturnsAsync(RepositoryResult.Success());
+            _service = new MarkdownDocumentsService(_context, _fileManager.Object,
+                NullLogger<MarkdownDocumentsService>.Instance);
         }
 
         [Fact]
@@ -44,7 +66,9 @@ namespace Dangl.WebDocumentation.Tests.Services
             var document = await _context.MarkdownDocuments.SingleAsync(TestContext.Current.CancellationToken);
             Assert.Equal("guide/setup.MD", document.Path);
             Assert.Equal("Setup", document.Title);
-            Assert.Equal(content, document.Content);
+            Assert.Equal(content, await _service.GetDocumentContentAsync("Docs", "1.0", document.Path,
+                TestContext.Current.CancellationToken));
+            Assert.Single(_blobs);
         }
 
         [Fact]
@@ -53,11 +77,9 @@ namespace Dangl.WebDocumentation.Tests.Services
             using var first = Package(("same.md", "# Before"), ("removed.md", "obsolete"));
             Assert.True((await _service.UploadPackageAsync("Docs", "1.0", first, TestContext.Current.CancellationToken)).IsSuccess);
             _context.DocumentationProjectVersions.Add(new DocumentationProjectVersion { ProjectName = "Docs", Version = "2.0" });
-            _context.MarkdownDocuments.Add(new MarkdownDocument
-            {
-                ProjectName = "Docs", Version = "2.0", Path = "keep.md", Title = "Keep", Content = "Other version"
-            });
             await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
+            using var second = Package(("keep.md", "Other version"));
+            Assert.True((await _service.UploadPackageAsync("Docs", "2.0", second, TestContext.Current.CancellationToken)).IsSuccess);
             using var replacement = Package(("same.md", "# After"), ("added.md", "new"));
 
             Assert.True((await _service.UploadPackageAsync("Docs", "1.0", replacement, TestContext.Current.CancellationToken)).IsSuccess);
@@ -65,8 +87,11 @@ namespace Dangl.WebDocumentation.Tests.Services
             _context.ChangeTracker.Clear();
             var documents = await _context.MarkdownDocuments.OrderBy(d => d.Path).ToListAsync(TestContext.Current.CancellationToken);
             Assert.Equal(new[] { "added.md", "keep.md", "same.md" }, documents.Select(d => d.Path));
-            Assert.Equal("# After", documents.Single(d => d.Path == "same.md").Content);
-            Assert.Equal("Other version", documents.Single(d => d.Path == "keep.md").Content);
+            Assert.Equal("# After", await _service.GetDocumentContentAsync("Docs", "1.0", "same.md",
+                TestContext.Current.CancellationToken));
+            Assert.Equal("Other version", await _service.GetDocumentContentAsync("Docs", "2.0", "keep.md",
+                TestContext.Current.CancellationToken));
+            Assert.Equal(2, _blobs.Count);
         }
 
         [Theory]
@@ -85,7 +110,8 @@ namespace Dangl.WebDocumentation.Tests.Services
             var result = await _service.UploadPackageAsync("Docs", "1.0", invalid, TestContext.Current.CancellationToken);
 
             Assert.False(result.IsSuccess);
-            Assert.Equal("# Original", (await _context.MarkdownDocuments.SingleAsync(TestContext.Current.CancellationToken)).Content);
+            Assert.Equal("# Original", await _service.GetDocumentContentAsync("Docs", "1.0", "readme.md",
+                TestContext.Current.CancellationToken));
         }
 
         [Fact]
@@ -153,7 +179,8 @@ namespace Dangl.WebDocumentation.Tests.Services
 
             Assert.False(result.IsSuccess);
             Assert.Equal(MarkdownDocumentsService.MaxDocumentBytes,
-                (await _context.MarkdownDocuments.SingleAsync(TestContext.Current.CancellationToken)).Content.Length);
+                (await _service.GetDocumentContentAsync("Docs", "1.0", "limit.md",
+                    TestContext.Current.CancellationToken)).Length);
         }
 
         [Fact]
@@ -178,7 +205,7 @@ namespace Dangl.WebDocumentation.Tests.Services
                 version.MarkdownRevision = Guid.NewGuid();
                 other.MarkdownDocuments.Add(new MarkdownDocument
                 {
-                    ProjectName = "Docs", Version = "1.0", Path = "accepted.md", Title = "Accepted", Content = "Concurrent upload"
+                    ProjectName = "Docs", Version = "1.0", Path = "accepted.md", Title = "Accepted"
                 });
                 await other.SaveChangesAsync(TestContext.Current.CancellationToken);
             }
@@ -190,6 +217,7 @@ namespace Dangl.WebDocumentation.Tests.Services
             Assert.Contains("changed during upload", result.ErrorMessage);
             using var verification = CreateContext();
             Assert.Equal("accepted.md", (await verification.MarkdownDocuments.SingleAsync(TestContext.Current.CancellationToken)).Path);
+            Assert.Empty(_blobs);
         }
 
         [Fact]
