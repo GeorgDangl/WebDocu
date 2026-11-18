@@ -36,7 +36,8 @@ namespace Dangl.WebDocumentation.Services
             Stream package, CancellationToken cancellationToken)
         {
             var projectVersion = await _context.DocumentationProjectVersions
-                .SingleOrDefaultAsync(v => v.ProjectName == projectName && v.Version == version, cancellationToken);
+                .SingleOrDefaultAsync(v => v.ProjectName.ToUpper() == projectName.ToUpper()
+                    && v.Version.ToUpper() == version.ToUpper(), cancellationToken);
             if (projectVersion == null)
             {
                 return RepositoryResult<int>.Fail("Upload the HTML documentation version before its Markdown package.");
@@ -92,20 +93,22 @@ namespace Dangl.WebDocumentation.Services
             try
             {
                 var existing = await _context.MarkdownDocuments
-                    .Where(d => d.ProjectName == projectName && d.Version == version)
+                    .Where(d => d.ProjectName == projectVersion.ProjectName && d.Version == projectVersion.Version)
                     .ToListAsync(cancellationToken);
                 var byPath = existing.ToDictionary(d => d.Path, StringComparer.OrdinalIgnoreCase);
                 foreach (var document in documents)
                 {
                     if (byPath.Remove(document.Path, out var stored))
                     {
+                        stored.ProjectName = projectVersion.ProjectName;
+                        stored.Version = projectVersion.Version;
                         stored.Path = document.Path;
                         stored.Title = document.Title;
                     }
                     else
                     {
-                        document.ProjectName = projectName;
-                        document.Version = version;
+                        document.ProjectName = projectVersion.ProjectName;
+                        document.Version = projectVersion.Version;
                         _context.MarkdownDocuments.Add(document);
                     }
                 }
@@ -164,8 +167,9 @@ namespace Dangl.WebDocumentation.Services
             return entry == null ? null : await ReadEntryContentAsync(entry, cancellationToken);
         }
 
-        public async Task<Dictionary<string, string>> GetDocumentContentsAsync(string projectName, string version,
-            CancellationToken cancellationToken)
+        public async Task<List<(MarkdownDocument Document, string Excerpt)>> SearchDocumentsAsync(
+            string projectName, string version, IReadOnlyList<MarkdownDocument> documents,
+            IReadOnlyList<string> terms, CancellationToken cancellationToken)
         {
             var fileId = await GetPackageFileIdAsync(projectName, version, cancellationToken);
             if (!fileId.HasValue)
@@ -181,17 +185,35 @@ namespace Dangl.WebDocumentation.Services
 
             using var stream = result.Value;
             using var archive = new ZipArchive(stream, ZipArchiveMode.Read);
-            var contents = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            foreach (var entry in archive.Entries)
+            var matches = new List<(MarkdownDocument Document, string Excerpt)>();
+            foreach (var document in documents)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                if (entry.FullName.EndsWith(".md", StringComparison.OrdinalIgnoreCase)
-                    || entry.FullName.EndsWith(".markdown", StringComparison.OrdinalIgnoreCase))
+                var entry = archive.Entries.FirstOrDefault(e =>
+                    string.Equals(NormalizePath(e.FullName), document.Path, StringComparison.OrdinalIgnoreCase));
+                if (entry == null)
                 {
-                    contents.Add(NormalizePath(entry.FullName), await ReadEntryContentAsync(entry, cancellationToken));
+                    continue;
                 }
+
+                var content = await ReadEntryContentAsync(entry, cancellationToken);
+                if (!terms.All(term => document.Title.Contains(term, StringComparison.OrdinalIgnoreCase)
+                    || content.Contains(term, StringComparison.OrdinalIgnoreCase)))
+                {
+                    continue;
+                }
+
+                var match = terms.Select(term => content.IndexOf(term, StringComparison.OrdinalIgnoreCase))
+                    .FirstOrDefault(index => index >= 0);
+                if (match < 0)
+                {
+                    match = 0;
+                }
+                var start = Math.Max(0, match - 120);
+                var excerpt = content.Substring(start, Math.Min(600, content.Length - start));
+                matches.Add((document, excerpt));
             }
-            return contents;
+            return matches;
         }
 
         private async Task<Guid?> GetPackageFileIdAsync(string projectName, string version,

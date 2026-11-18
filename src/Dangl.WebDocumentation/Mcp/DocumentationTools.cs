@@ -95,31 +95,18 @@ namespace Dangl.WebDocumentation.Mcp
             }
             var resolved = await ResolveVersionAsync(user, projectName, version, cancellationToken);
             var metadata = await Documents(resolved.Project, resolved.Version).ToListAsync(cancellationToken);
-            var contents = await _documents.GetDocumentContentsAsync(resolved.Project, resolved.Version, cancellationToken);
-            if (contents == null)
+            var matches = await _documents.SearchDocumentsAsync(
+                resolved.Project, resolved.Version, metadata, terms, cancellationToken);
+            if (matches == null)
             {
                 throw new McpException("The Markdown package is unavailable.");
             }
-            var matched = metadata.Where(d => contents.TryGetValue(d.Path, out var content)
-                    && terms.All(term => d.Title.Contains(term, StringComparison.OrdinalIgnoreCase)
-                        || content.Contains(term, StringComparison.OrdinalIgnoreCase)))
-                .OrderByDescending(d => d.Title.Contains(query, StringComparison.OrdinalIgnoreCase))
-                .ThenBy(d => d.Path)
+            var matched = matches.OrderByDescending(m => m.Document.Title.Contains(query, StringComparison.OrdinalIgnoreCase))
+                .ThenBy(m => m.Document.Path)
                 .Skip(offset).Take(limit + 1).ToList();
-            return MakePage(matched.Select(d =>
-            {
-                var content = contents[d.Path];
-                var match = terms.Select(term => content.IndexOf(term, StringComparison.OrdinalIgnoreCase))
-                    .FirstOrDefault(index => index >= 0);
-                if (match < 0)
-                {
-                    match = 0;
-                }
-                var start = Math.Max(0, match - 120);
-                var excerpt = content.Substring(start, Math.Min(600, content.Length - start));
-                return new SearchResult(d.ProjectName, d.Version, d.Path, d.Title, excerpt,
-                    SourceUrl(d.ProjectName, d.Version, d.Path));
-            }).ToList(), offset, limit);
+            return MakePage(matched.Select(m => new SearchResult(m.Document.ProjectName, m.Document.Version,
+                m.Document.Path, m.Document.Title, m.Excerpt,
+                SourceUrl(m.Document.ProjectName, m.Document.Version, m.Document.Path))).ToList(), offset, limit);
         }
 
         [McpServerTool(Name = "get_document", ReadOnly = true, Destructive = false, OpenWorld = false, UseStructuredContent = true)]

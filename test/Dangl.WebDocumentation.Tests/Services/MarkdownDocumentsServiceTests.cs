@@ -135,6 +135,25 @@ namespace Dangl.WebDocumentation.Tests.Services
         }
 
         [Fact]
+        public async Task UploadStoresTheProjectAndVersionCasingFromTheExistingVersion()
+        {
+            _context.DocumentationProjectVersions.Add(new DocumentationProjectVersion
+            {
+                ProjectName = "Docs", Version = "1.0.0-Beta"
+            });
+            await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
+            using var package = Package(("readme.md", "# Docs"));
+
+            var result = await _service.UploadPackageAsync("docs", "1.0.0-beta", package,
+                TestContext.Current.CancellationToken);
+
+            Assert.True(result.IsSuccess, result.ErrorMessage);
+            var document = await _context.MarkdownDocuments.SingleAsync(TestContext.Current.CancellationToken);
+            Assert.Equal("Docs", document.ProjectName);
+            Assert.Equal("1.0.0-Beta", document.Version);
+        }
+
+        [Fact]
         public async Task InvalidZipAndPackagesWithoutMarkdownAreRejected()
         {
             using var invalid = new MemoryStream(Encoding.UTF8.GetBytes("not a ZIP"));
