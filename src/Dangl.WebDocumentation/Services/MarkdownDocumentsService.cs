@@ -49,7 +49,7 @@ namespace Dangl.WebDocumentation.Services
             }
             catch (InvalidDataException exception)
             {
-                _logger.LogWarning(exception, "Rejected Markdown package for {ProjectName} {Version}.", projectName, version);
+                _logger.LogWarning(exception, "Rejected an invalid Markdown package.");
                 return RepositoryResult<int>.Fail(exception.Message);
             }
             using var compressedPackage = compressed;
@@ -84,7 +84,7 @@ namespace Dangl.WebDocumentation.Services
             catch (Exception exception)
             {
                 await DeletePackageAsync(packagePath);
-                _logger.LogError(exception, "Failed to store Markdown package for {ProjectName} {Version}.", projectName, version);
+                _logger.LogError(exception, "Failed to store a Markdown package.");
                 return RepositoryResult<int>.Fail("The Markdown package could not be stored.");
             }
 
@@ -119,7 +119,7 @@ namespace Dangl.WebDocumentation.Services
             catch (DbUpdateConcurrencyException exception)
             {
                 await DeletePackageAsync(packagePath);
-                _logger.LogWarning(exception, "Concurrent Markdown upload for {ProjectName} {Version}.", projectName, version);
+                _logger.LogWarning(exception, "Concurrent Markdown upload detected.");
                 return RepositoryResult<int>.Fail("The project version changed during upload. Retry the Markdown upload.");
             }
             catch (OperationCanceledException)
@@ -130,7 +130,7 @@ namespace Dangl.WebDocumentation.Services
             catch (Exception exception)
             {
                 await DeletePackageAsync(packagePath);
-                _logger.LogError(exception, "Failed to save Markdown package metadata for {ProjectName} {Version}.", projectName, version);
+                _logger.LogError(exception, "Failed to save Markdown package metadata.");
                 return RepositoryResult<int>.Fail("The Markdown package could not be saved.");
             }
 
