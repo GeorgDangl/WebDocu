@@ -1,0 +1,18 @@
+@inject Dangl.WebDocumentation.Mcp.McpSettings McpSettings
+
+@if (User.Identity?.IsAuthenticated == true && McpSettings.Enabled
+    && Context.Request.Cookies[AppConstants.MCP_ANNOUNCEMENT_DISMISSED_COOKIE] != "true")
+{
+    <aside class="alert alert-info mcp-announcement" aria-label="MCP server announcement">
+        <div>
+            <strong>New: Connect your AI assistant to our documentation.</strong>
+            MCP server configurations are now available on the
+            <a asp-controller="Home" asp-action="ManageAccount">Manage Account page</a>.
+        </div>
+        <form asp-controller="Home" asp-action="DismissMcpAnnouncement" method="post" class="mcp-announcement-actions">
+            <input type="hidden" name="returnUrl" value="@(Context.Request.PathBase + Context.Request.Path + Context.Request.QueryString)" />
+            <button type="submit" name="hideForever" value="false" class="btn btn-sm btn-info" title="Hide until your browser session ends">Hide once</button>
+            <button type="submit" name="hideForever" value="true" class="btn btn-sm btn-info" title="Remember on this browser">Hide forever</button>
+        </form>
+    </aside>
+}

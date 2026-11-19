@@ -5,6 +5,7 @@ using Dangl.WebDocumentation.ViewModels.Home;
 using Dangl.WebDocumentation.Mcp;
 using System.Linq;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -63,6 +64,28 @@ namespace Dangl.WebDocumentation.Controllers
         public IActionResult Error()
         {
             return View();
+        }
+
+        [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult DismissMcpAnnouncement(bool hideForever, string returnUrl)
+        {
+            if (!Url.IsLocalUrl(returnUrl))
+            {
+                return BadRequest("A local return URL is required.");
+            }
+
+            Response.Cookies.Append(AppConstants.MCP_ANNOUNCEMENT_DISMISSED_COOKIE, "true", new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = Request.IsHttps,
+                SameSite = SameSiteMode.Lax,
+                IsEssential = true,
+                Path = Request.PathBase.HasValue ? Request.PathBase.Value : "/",
+                MaxAge = hideForever ? TimeSpan.FromDays(400) : null
+            });
+            return LocalRedirect(returnUrl);
         }
 
         [Authorize]

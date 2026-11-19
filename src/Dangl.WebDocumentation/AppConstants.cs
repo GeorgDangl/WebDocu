@@ -20,6 +20,8 @@
 
         public const string PROJECT_ACCESS_CLAIM_NAME = "docu_project_access";
 
+        public const string MCP_ANNOUNCEMENT_DISMISSED_COOKIE = "DanglDocuMcpAnnouncementDismissed";
+
         public const string HANGFIRE_DASHBOARD_LINK = "/Admin/HangfireDashboard";
     }
 }

@@ -54,6 +54,10 @@ Every MCP request requires an OAuth access token, including requests for public 
 Project listings and all documentation operations enforce the user's existing project assignments and `docu_project_access` claims.
 The MCP tools never expose upload keys or upload/admin operations.
 
+When MCP is enabled, signed-in users see a banner linking to the configurations on **Manage Account**.
+**Hide once** dismisses it for the browser session; **Hide forever** stores a browser-wide preference cookie for 400 days
+(subject to browser cookie policies). Clearing cookies restores the banner. Dismissal does not require JavaScript.
+
 ### Upload Markdown documentation
 
 Upload the normal HTML documentation package first, then a separate Markdown ZIP for the **same explicit version**.

@@ -147,6 +147,35 @@
     background: transparent;
 }
 
+.mcp-announcement {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.mcp-announcement-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.mcp-announcement-actions .btn.btn-info,
+.mcp-announcement-actions .btn.btn-info:hover,
+.mcp-announcement-actions .btn.btn-info:focus,
+.mcp-announcement-actions .btn.btn-info:active {
+    margin: 0;
+    background-color: #fff;
+    color: #005662;
+}
+
+.mcp-announcement a:focus-visible,
+.mcp-announcement button:focus-visible {
+    outline: 2px solid currentColor !important;
+    outline-offset: 2px;
+}
+
 .form-group input[type=file].markdown-package-input {
     position: static;
     width: 100%;
