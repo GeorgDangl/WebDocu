@@ -29,7 +29,7 @@ namespace Dangl.WebDocumentation.ViewModels.Admin
         [Display(Name = "Client configuration JSON template")]
         public string ConfigurationTemplate { get; set; } = @"{
   ""servers"": {
-    ""project-documentation"": {
+    ""DanglDocu"": {
       ""type"": ""http"",
       ""url"": {{mcpUrl}},
       ""oauth"": {

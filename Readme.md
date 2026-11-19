@@ -133,7 +133,7 @@ For VS Code, a minimal `.vscode/mcp.json` configuration is:
 ```json
 {
   "servers": {
-    "project-documentation": {
+    "DanglDocu": {
       "type": "http",
       "url": "https://docs.dangl-it.com/mcp",
       "oauth": {
