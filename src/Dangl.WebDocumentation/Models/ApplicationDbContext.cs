@@ -13,6 +13,7 @@ namespace Dangl.WebDocumentation.Models
         public DbSet<DocumentationProjectVersion> DocumentationProjectVersions { get; set; }
         public DbSet<ProjectVersionAssetFile> ProjectVersionAssetFiles { get; set; }
         public DbSet<MarkdownDocument> MarkdownDocuments { get; set; }
+        public DbSet<McpClientConfiguration> McpClientConfigurations { get; set; }
 
         public DbSet<UserProjectAccess> UserProjects { get; set; }
         public DbSet<UserProjectNotification> UserProjectNotifications { get; set; }

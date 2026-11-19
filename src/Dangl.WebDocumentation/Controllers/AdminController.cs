@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -57,6 +58,80 @@ namespace Dangl.WebDocumentation.Controllers
             var model = new IndexViewModel();
             model.Projects = _context.DocumentationProjects.OrderBy(project => project.Name);
             return View(model);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> McpClientConfigurations()
+        {
+            ViewData["Section"] = "Admin";
+            return View(new McpClientConfigurationsViewModel
+            {
+                Configurations = await _context.McpClientConfigurations.OrderBy(c => c.Name).ToListAsync()
+            });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddMcpClientConfiguration(McpClientConfigurationInputViewModel model)
+        {
+            ViewData["Section"] = "Admin";
+            var hasRequiredPlaceholders = model.ConfigurationTemplate?.Contains("{{mcpUrl}}", StringComparison.Ordinal) == true
+                && model.ConfigurationTemplate.Contains("{{clientId}}", StringComparison.Ordinal);
+            if (ModelState.IsValid && !hasRequiredPlaceholders)
+            {
+                ModelState.AddModelError(nameof(model.ConfigurationTemplate),
+                    "The JSON template must include {{mcpUrl}} and {{clientId}} placeholders.");
+            }
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    var rendered = model.ConfigurationTemplate
+                        .Replace("{{mcpUrl}}", JsonSerializer.Serialize("https://docs.example.com/mcp"), StringComparison.Ordinal)
+                        .Replace("{{clientId}}", JsonSerializer.Serialize(model.ClientId), StringComparison.Ordinal);
+                    using var json = JsonDocument.Parse(rendered);
+                    if (json.RootElement.ValueKind != JsonValueKind.Object)
+                    {
+                        ModelState.AddModelError(nameof(model.ConfigurationTemplate), "The configuration must be a JSON object.");
+                    }
+                }
+                catch (JsonException)
+                {
+                    ModelState.AddModelError(nameof(model.ConfigurationTemplate), "The configuration template must contain valid JSON.");
+                }
+            }
+            if (!ModelState.IsValid)
+            {
+                return View("McpClientConfigurations", new McpClientConfigurationsViewModel
+                {
+                    Configurations = await _context.McpClientConfigurations.OrderBy(c => c.Name).ToListAsync(),
+                    NewConfiguration = model
+                });
+            }
+
+            _context.McpClientConfigurations.Add(new McpClientConfiguration
+            {
+                Name = model.Name.Trim(),
+                ClientId = model.ClientId.Trim(),
+                Instructions = model.Instructions?.Trim(),
+                ConfigurationTemplate = model.ConfigurationTemplate
+            });
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(McpClientConfigurations));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteMcpClientConfiguration(Guid id)
+        {
+            var configuration = await _context.McpClientConfigurations.FindAsync(id);
+            if (configuration == null)
+            {
+                return NotFound();
+            }
+            _context.McpClientConfigurations.Remove(configuration);
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(McpClientConfigurations));
         }
 
         public IActionResult CreateProject()

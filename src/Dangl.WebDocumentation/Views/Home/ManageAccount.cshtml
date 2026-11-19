@@ -1,7 +1,57 @@
 ﻿@using Microsoft.Extensions.Options
+@using System.Linq
 @inject IOptions<AppSettings> AppSettings
+@model Dangl.WebDocumentation.ViewModels.Home.ManageAccountViewModel
 
 <h1>Manage Account</h1>
 
 <p>You user account is managed on Dangl<strong>.Identity</strong>. <a href="@AppSettings.Value.DanglIdentityBaseUrl.TrimEnd('/')/account">You can edit your account details there.</a></p>
 
+<hr />
+<h2>Connect an MCP client</h2>
+@if (!Model.McpEnabled)
+{
+    <div class="alert alert-info">
+        The DanglDocu MCP server is currently unavailable. Please try again later or contact an administrator.
+    </div>
+}
+else
+{
+    <p>
+        Connect an MCP-compatible AI client to the read-only DanglDocu documentation server. The server URL is
+        <code>@Model.McpUrl</code> and the required permission is <code>@Model.RequiredScope</code>.
+    </p>
+    <ol>
+        <li>Choose a client configuration below and add it to that client's MCP settings.</li>
+        <li>Start or reload the MCP server in your client.</li>
+        <li>Sign in through Dangl.Identity when prompted and approve access.</li>
+        <li>Ask your client to list your accessible projects and versions, then search or read documentation.</li>
+    </ol>
+    <p>
+        Access is limited to projects assigned to your DanglDocu account. The server is read-only and requires a Markdown package
+        uploaded for the selected project version. If you do not see a configuration for your client, ask a DanglDocu administrator.
+    </p>
+    <p>
+        The client must be registered with Dangl.Identity for this MCP resource and the <code>@Model.RequiredScope</code> scope,
+        using authorization code with PKCE. The OAuth client ID is public; do not put a client secret or access token in the
+        configuration file.
+    </p>
+    @if (!Model.ClientConfigurations.Any())
+    {
+        <p>No client configurations have been published yet. Please contact an administrator.</p>
+    }
+    else
+    {
+        foreach (var client in Model.ClientConfigurations)
+        {
+            <section class="card card-body mb-3">
+                <h3>@client.Configuration.Name</h3>
+                @if (!string.IsNullOrWhiteSpace(client.Configuration.Instructions))
+                {
+                    <p>@client.Configuration.Instructions</p>
+                }
+                <pre><code>@client.RenderedJson</code></pre>
+            </section>
+        }
+    }
+}

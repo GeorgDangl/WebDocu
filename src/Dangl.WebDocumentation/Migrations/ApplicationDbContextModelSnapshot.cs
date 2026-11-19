@@ -16,7 +16,7 @@ partial class ApplicationDbContextModelSnapshot : ModelSnapshot
     // If you encounter a merge conflict in the line below, it means you need to
     // discard one of the migration branches and recreate its migrations on top of
     // the other branch. See https://aka.ms/efcore-docs-migrations-conflicts for more info.
-    public override string LastMigrationId => "20261118193123_AddMarkdownDocuments";
+    public override string LastMigrationId => "20261119110000_AddMcpClientConfigurations";
 
     protected override void BuildModel(ModelBuilder modelBuilder)
     {
@@ -200,6 +200,36 @@ partial class ApplicationDbContextModelSnapshot : ModelSnapshot
                     .IsUnique();
 
                 b.ToTable("MarkdownDocuments");
+            });
+
+        modelBuilder.Entity("Dangl.WebDocumentation.Models.McpClientConfiguration", b =>
+            {
+                b.Property<Guid>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("uniqueidentifier");
+
+                b.Property<string>("ClientId")
+                    .IsRequired()
+                    .HasMaxLength(200)
+                    .HasColumnType("nvarchar(200)");
+
+                b.Property<string>("ConfigurationTemplate")
+                    .IsRequired()
+                    .HasMaxLength(8000)
+                    .HasColumnType("nvarchar(max)");
+
+                b.Property<string>("Instructions")
+                    .HasMaxLength(1000)
+                    .HasColumnType("nvarchar(1000)");
+
+                b.Property<string>("Name")
+                    .IsRequired()
+                    .HasMaxLength(100)
+                    .HasColumnType("nvarchar(100)");
+
+                b.HasKey("Id");
+
+                b.ToTable("McpClientConfigurations");
             });
 
         modelBuilder.Entity("Dangl.WebDocumentation.Models.ProjectVersionAssetFile", b =>

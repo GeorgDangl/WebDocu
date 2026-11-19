@@ -1,0 +1,67 @@
+﻿@model Dangl.WebDocumentation.ViewModels.Admin.McpClientConfigurationsViewModel
+@using System.Linq
+
+<p><a asp-action="Index">Back to overview</a></p>
+<h1>MCP client configurations</h1>
+<p>
+    These settings are shown to signed-in users on their account page. Client IDs are public identifiers, not secrets.
+    Do not put client secrets or access tokens in configuration templates.
+</p>
+
+@if (Model.Configurations.Any())
+{
+    <table class="table">
+        <thead>
+            <tr><th>Client</th><th>OAuth client ID</th><th>Instructions</th><th></th></tr>
+        </thead>
+        <tbody>
+            @foreach (var configuration in Model.Configurations)
+            {
+                <tr>
+                    <td>@configuration.Name</td>
+                    <td><code>@configuration.ClientId</code></td>
+                    <td>@configuration.Instructions</td>
+                    <td>
+                        <form asp-action="DeleteMcpClientConfiguration" method="post">
+                            <input type="hidden" name="id" value="@configuration.Id" />
+                            <button type="submit" class="btn btn-raised btn-danger">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No client configurations have been added.</p>
+}
+
+<h2>Add a client configuration</h2>
+<form asp-action="AddMcpClientConfiguration" method="post">
+    <div asp-validation-summary="All" class="text-danger"></div>
+    <div class="form-group">
+        <label asp-for="NewConfiguration.Name"></label>
+        <input asp-for="NewConfiguration.Name" class="form-control" />
+        <span asp-validation-for="NewConfiguration.Name" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="NewConfiguration.ClientId"></label>
+        <input asp-for="NewConfiguration.ClientId" class="form-control" />
+        <span asp-validation-for="NewConfiguration.ClientId" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="NewConfiguration.Instructions"></label>
+        <textarea asp-for="NewConfiguration.Instructions" class="form-control" rows="3"></textarea>
+        <span asp-validation-for="NewConfiguration.Instructions" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="NewConfiguration.ConfigurationTemplate"></label>
+        <textarea asp-for="NewConfiguration.ConfigurationTemplate" class="form-control" rows="14"></textarea>
+        <span asp-validation-for="NewConfiguration.ConfigurationTemplate" class="text-danger"></span>
+        <small class="form-text text-muted">
+            Enter a JSON object and use {{mcpUrl}} and {{clientId}} as unquoted placeholders. They are safely encoded when shown to users.
+        </small>
+    </div>
+    <button type="submit" class="btn btn-raised btn-primary">Add configuration</button>
+</form>
