@@ -220,12 +220,32 @@ namespace Dangl.WebDocumentation.Services
                 return RepositoryResult<(string sasDownloadUrl, Stream stream)>.Fail("The project version does not exist.");
             }
 
+            return await GetPackageDownloadAsync(packagePath, $"{projectName}_{version}.zip");
+        }
+
+        public async Task<RepositoryResult<(string sasDownloadUrl, Stream stream)>> GetMarkdownPackageDownloadAsync(string projectName, string version)
+        {
+            var fileId = await _context.DocumentationProjectVersions
+                .Where(v => v.ProjectName == projectName && v.Version == version)
+                .Select(v => v.MarkdownFileId)
+                .SingleOrDefaultAsync();
+            if (!fileId.HasValue)
+            {
+                return RepositoryResult<(string sasDownloadUrl, Stream stream)>.Fail("The Markdown package does not exist.");
+            }
+
+            return await GetPackageDownloadAsync(MarkdownDocumentsService.GetPackagePath(fileId.Value),
+                $"{projectName}_{version}_markdown.zip");
+        }
+
+        private async Task<RepositoryResult<(string sasDownloadUrl, Stream stream)>> GetPackageDownloadAsync(string packagePath, string fileName)
+        {
             if (_fileManager is IAzureBlobFileManager azureBlobFileManager)
             {
                 var sasDownload = await azureBlobFileManager.GetSasDownloadLinkAsync(AppConstants.PROJECTS_CONTAINER,
                     packagePath,
                     validForMinutes: 5,
-                    friendlyFileName: $"{projectName}_{version}.zip");
+                    friendlyFileName: fileName);
                 if (!sasDownload.IsSuccess)
                 {
                     return RepositoryResult<(string sasDownloadUrl, Stream stream)>.Fail(sasDownload.ErrorMessage);

@@ -4,6 +4,7 @@
     var isAdmin = User.IsInRole(AppConstants.ADMIN_ROLE_NAME);
     var hasAnyAssets = Model.Versions.Any(v => v.HasAssetFiles);
     var hasAnyChangelogs = Model.Versions.Any(v => v.HasChangelog);
+    var hasAnyMarkdownPackages = Model.Versions.Any(v => v.HasMarkdownPackage);
     var hasAnyDates = Model.Versions.Any(v => v.DateUtc != null);
     var hasAnyPackageSizes = isAdmin && Model.Versions.Any(v => v.PackageSizeInBytes != null);
 }
@@ -73,6 +74,15 @@ else
                             <td>
                                 <a asp-controller="ProjectVersions" asp-action="DownloadPackage" asp-route-projectName="@Model.ProjectName" asp-route-version="@version.Version">Download Docs Package</a>
                             </td>
+                            @if (hasAnyMarkdownPackages)
+                            {
+                                <td>
+                                    @if (version.HasMarkdownPackage)
+                                    {
+                                        <a asp-controller="ProjectVersions" asp-action="DownloadMarkdownPackage" asp-route-projectName="@Model.ProjectName" asp-route-version="@version.Version">Download Markdown Docs Package</a>
+                                    }
+                                </td>
+                            }
                         }
                         @if(isAdmin)
                         {

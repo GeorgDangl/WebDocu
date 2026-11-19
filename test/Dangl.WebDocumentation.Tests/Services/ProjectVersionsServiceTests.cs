@@ -15,13 +15,13 @@ namespace Dangl.WebDocumentation.Tests.Services
         public class GetProjectVersions
         {
             [Fact]
-            public async Task ReturnsStoredPackageSizesInSemanticVersionOrder()
+            public async Task ReturnsStoredPackageSizesAndMarkdownAvailabilityInSemanticVersionOrder()
             {
                 using var context = new ApplicationDbContext(new DbContextOptionsBuilder<ApplicationDbContext>()
                     .UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
                 context.DocumentationProjectVersions.AddRange(
-                    new DocumentationProjectVersion { ProjectName = "Docs", Version = "1.0", PackageSizeInBytes = 12345 },
-                    new DocumentationProjectVersion { ProjectName = "Docs", Version = "2.0" },
+                    new DocumentationProjectVersion { ProjectName = "Docs", Version = "1.0", PackageSizeInBytes = 12345, MarkdownFileId = Guid.NewGuid() },
+                    new DocumentationProjectVersion { ProjectName = "Docs", Version = "2.0", MarkdownChangelog = "# Changelog" },
                     new DocumentationProjectVersion { ProjectName = "Other", Version = "3.0", PackageSizeInBytes = 54321 });
                 await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
@@ -32,11 +32,13 @@ namespace Dangl.WebDocumentation.Tests.Services
                     {
                         Assert.Equal("2.0", version.version);
                         Assert.Null(version.packageSizeInBytes);
+                        Assert.False(version.hasMarkdownPackage);
                     },
                     version =>
                     {
                         Assert.Equal("1.0", version.version);
                         Assert.Equal(12345L, version.packageSizeInBytes);
+                        Assert.True(version.hasMarkdownPackage);
                     });
             }
         }
