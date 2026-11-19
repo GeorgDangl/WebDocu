@@ -162,8 +162,8 @@ namespace Dangl.WebDocumentation.Services
             using var stream = result.Value;
             using var archive = new ZipArchive(stream, ZipArchiveMode.Read);
             var normalizedPath = NormalizePath(path);
-            var entry = archive.Entries.FirstOrDefault(e =>
-                string.Equals(NormalizePath(e.FullName), normalizedPath, StringComparison.OrdinalIgnoreCase));
+            var entry = archive.Entries.FirstOrDefault(e => !string.IsNullOrEmpty(e.Name)
+                && string.Equals(NormalizePath(e.FullName), normalizedPath, StringComparison.OrdinalIgnoreCase));
             return entry == null ? null : await ReadEntryContentAsync(entry, cancellationToken);
         }
 
@@ -189,8 +189,8 @@ namespace Dangl.WebDocumentation.Services
             foreach (var document in documents)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var entry = archive.Entries.FirstOrDefault(e =>
-                    string.Equals(NormalizePath(e.FullName), document.Path, StringComparison.OrdinalIgnoreCase));
+                var entry = archive.Entries.FirstOrDefault(e => !string.IsNullOrEmpty(e.Name)
+                    && string.Equals(NormalizePath(e.FullName), document.Path, StringComparison.OrdinalIgnoreCase));
                 if (entry == null)
                 {
                     continue;

@@ -57,7 +57,7 @@ namespace Dangl.WebDocumentation.Tests.Services
         public async Task UploadPreservesMarkdownAndCodeAndIgnoresOtherFiles()
         {
             const string content = "# Setup\n\n```csharp\nvar project = \"Docs\";\n```\n";
-            using var package = Package(("guide\\setup.MD", content), ("images/logo.png", "ignored"));
+            using var package = Package(("howto/", ""), ("guide\\setup.MD", content), ("images/logo.png", "ignored"));
 
             var result = await _service.UploadPackageAsync("Docs", "1.0", package, TestContext.Current.CancellationToken);
 
@@ -68,6 +68,9 @@ namespace Dangl.WebDocumentation.Tests.Services
             Assert.Equal("Setup", document.Title);
             Assert.Equal(content, await _service.GetDocumentContentAsync("Docs", "1.0", document.Path,
                 TestContext.Current.CancellationToken));
+            var searchResults = await _service.SearchDocumentsAsync("Docs", "1.0", new[] { document },
+                new[] { "project" }, TestContext.Current.CancellationToken);
+            Assert.Contains("project", Assert.Single(searchResults).Excerpt, StringComparison.OrdinalIgnoreCase);
             Assert.Single(_blobs);
         }
 
