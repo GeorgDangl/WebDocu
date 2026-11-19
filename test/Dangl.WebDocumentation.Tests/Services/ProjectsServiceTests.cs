@@ -1,4 +1,6 @@
 using System;
+using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Dangl.Identity.Client.Mvc.Services;
 using Dangl.WebDocumentation.Models;
@@ -88,6 +90,35 @@ namespace Dangl.WebDocumentation.Tests.Services
 
             Assert.False(hasAccess);
             _userInfoService.Verify(service => service.GetUserClaimsAsync(), Times.Never);
+        }
+
+        [Fact]
+        public async Task BearerPrincipalUsesPublicProjectsDatabaseAssignmentsAndTrustedProjectClaimsWithoutCookieLookups()
+        {
+            var userId = Guid.NewGuid();
+            var publicProject = new DocumentationProject { Name = "Public", IsPublic = true, PathToIndex = "index.html" };
+            var assignedProject = new DocumentationProject { Name = "Assigned", PathToIndex = "index.html" };
+            _context.DocumentationProjects.AddRange(publicProject, assignedProject,
+                new DocumentationProject { Name = "Claimed", PathToIndex = "index.html" },
+                new DocumentationProject { Name = "Hidden", PathToIndex = "index.html" });
+            _context.UserProjects.Add(new UserProjectAccess { UserId = userId, Project = assignedProject });
+            await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
+            var principal = new ClaimsPrincipal(new ClaimsIdentity(new[]
+            {
+                new Claim("sub", userId.ToString()),
+                new Claim(AppConstants.PROJECT_ACCESS_CLAIM_NAME, "Claimed")
+            }, "Bearer"));
+            var service = CreateService();
+
+            var projects = await service.GetAllProjectsForPrincipalAsync(principal);
+
+            Assert.Equal(new[] { "Assigned", "Claimed", "Public" }, projects.Select(p => p.Name));
+            _userInfoService.Verify(service => service.GetUserClaimsAsync(), Times.Never);
+            var otherUser = new ClaimsPrincipal(new ClaimsIdentity(new[]
+            {
+                new Claim("sub", Guid.NewGuid().ToString())
+            }, "Bearer"));
+            Assert.Equal("Public", Assert.Single(await service.GetAllProjectsForPrincipalAsync(otherUser)).Name);
         }
 
         public void Dispose()

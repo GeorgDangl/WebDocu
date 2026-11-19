@@ -5,6 +5,7 @@ using Microsoft.Extensions.Caching.Memory;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace Dangl.WebDocumentation.Services
@@ -79,52 +80,39 @@ namespace Dangl.WebDocumentation.Services
 
         public async Task<List<DocumentationProject>> GetAllProjectsForUserAsync(Guid? userId, string filter = null)
         {
-            // Get a list of all projects that the user has access to
-            var accessibleProjects = await _context
-                .DocumentationProjects
-                .AsNoTracking()
-                .Where(project => project.IsPublic)
-                .ToListAsync(); // Show all public projects
-
-            if (userId != null)
-            {
-                var projectsWithUserAccess = await _context
-                    .UserProjects
-                    .AsNoTracking()
-                    .Where(assignment => assignment.UserId == userId).Select(assignment => assignment.Project)
-                    .ToListAsync();
-                accessibleProjects = accessibleProjects.Union(projectsWithUserAccess).ToList();
-
-                var projectAccessUserClaims = (await _userInfoService
-                    .GetUserClaimsAsync())
+            var projectClaims = userId == null
+                ? Array.Empty<string>()
+                : (await _userInfoService.GetUserClaimsAsync())
                     .Where(c => c.Type == AppConstants.PROJECT_ACCESS_CLAIM_NAME)
-                    .Select(c => c.Value);
-                if(projectAccessUserClaims.Any())
-                {
-                    var projectsFromUserClaims = await _context
-                        .DocumentationProjects
-                        .AsNoTracking()
-                        .Where(p => projectAccessUserClaims.Contains(p.Name))
-                        .ToListAsync();
-                    accessibleProjects = accessibleProjects.Union(projectsFromUserClaims).ToList();
-                }
-            }
-
-            var distinctProjects = new List<DocumentationProject>();
-
-            foreach (var project in accessibleProjects)
-            {
-                if (distinctProjects.Any(p => p.Name == project.Name))
-                {
-                    continue;
-                }
-                distinctProjects.Add(project);
-            }
-
-            return distinctProjects
-                .OrderBy(project => project.Name)
+                    .Select(c => c.Value)
+                    .ToArray();
+            var projects = await GetAccessibleProjectsAsync(userId, projectClaims);
+            return projects
                 .Where(p => filter == null || p.Name.Contains(filter, StringComparison.OrdinalIgnoreCase))
                 .ToList();
+        }
+
+        public Task<List<DocumentationProject>> GetAllProjectsForPrincipalAsync(ClaimsPrincipal principal)
+        {
+            if (principal?.Identity?.IsAuthenticated != true
+                || !Guid.TryParse(principal.FindFirst("sub")?.Value, out var userId))
+            {
+                throw new UnauthorizedAccessException("An authenticated user with a valid subject is required.");
+            }
+            return GetAccessibleProjectsAsync(userId, principal.FindAll(AppConstants.PROJECT_ACCESS_CLAIM_NAME)
+                .Select(c => c.Value).ToArray());
+        }
+
+        private Task<List<DocumentationProject>> GetAccessibleProjectsAsync(Guid? userId, string[] projectClaims)
+        {
+            return _context
+                .DocumentationProjects
+                .AsNoTracking()
+                .Where(project => project.IsPublic
+                    || (userId != null && _context.UserProjects.Any(access => access.UserId == userId && access.ProjectId == project.Id))
+                    || projectClaims.Contains(project.Name))
+                .OrderBy(project => project.Name)
+                .ToListAsync();
         }
 
         public Task<bool> ProjectExistsAsync(string projectName)
