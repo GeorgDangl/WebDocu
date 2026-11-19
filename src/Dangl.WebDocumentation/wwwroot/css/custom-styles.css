@@ -146,3 +146,27 @@
     border: 0;
     background: transparent;
 }
+
+.form-group input[type=file].markdown-package-input {
+    position: static;
+    width: 100%;
+    height: auto;
+    opacity: 1;
+    z-index: auto;
+}
+
+.markdown-package-input::file-selector-button {
+    margin-right: 1rem;
+    padding: 8px 16px;
+    border: 0;
+    border-radius: 2px;
+    background-color: #00acc1;
+    color: #fff;
+    cursor: pointer;
+}
+
+.markdown-package-input:focus-visible {
+    /* Override the theme's global focus-outline suppression. */
+    outline: 2px solid #00acc1 !important;
+    outline-offset: 2px;
+}
