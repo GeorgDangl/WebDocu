@@ -71,10 +71,6 @@ namespace Dangl.WebDocumentation.Mcp
                         }
                         return Task.CompletedTask;
                     },
-                    OnAuthenticationFailed = async context =>
-                    {
-                        await context.Options.ConfigurationManager.GetConfigurationAsync(context.HttpContext.RequestAborted);
-                    },
                     OnChallenge = context =>
                     {
                         context.HandleResponse();
