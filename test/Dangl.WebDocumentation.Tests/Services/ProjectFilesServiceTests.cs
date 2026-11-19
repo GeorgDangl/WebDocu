@@ -135,70 +135,96 @@ namespace Dangl.WebDocumentation.Tests.Services
         }
 
         [Theory]
-        [InlineData("Unknown", "1.0")]
-        [InlineData("Docs", "Unknown")]
-        public async Task UnknownProjectOrVersionDoesNotAccessStorage(string projectName, string version)
+        [InlineData("Unknown", "1.0", false)]
+        [InlineData("Docs", "Unknown", false)]
+        [InlineData("Unknown", "1.0", true)]
+        [InlineData("Docs", "Unknown", true)]
+        public async Task UnknownProjectOrVersionDoesNotAccessStorage(string projectName, string version, bool markdown)
         {
             await AddVersionAsync();
             var service = CreateService();
 
-            Assert.False((await service.GetProjectPackageDownloadAsync(projectName, version)).IsSuccess);
+            var result = markdown
+                ? await service.GetMarkdownPackageDownloadAsync(projectName, version)
+                : await service.GetProjectPackageDownloadAsync(projectName, version);
+            Assert.False(result.IsSuccess);
             Assert.Null(await service.GetProjectPackageSizeInBytesAsync(projectName, version));
         }
 
         [Fact]
-        public async Task DownloadReturnsTheOriginalPackageStream()
+        public async Task VersionWithoutMarkdownDoesNotDownloadItsHtmlPackage()
         {
-            var path = await AddVersionAsync();
+            await AddVersionAsync();
+
+            var result = await CreateService().GetMarkdownPackageDownloadAsync("Docs", "1.0");
+
+            Assert.False(result.IsSuccess);
+            _fileManager.VerifyNoOtherCalls();
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task DownloadReturnsTheOriginalPackageStream(bool markdown)
+        {
+            var path = await AddVersionAsync(markdown);
             using var stream = new MemoryStream(new byte[] { 1, 2, 3 });
             _fileManager.Setup(m => m.GetFileAsync(AppConstants.PROJECTS_CONTAINER, path))
                 .ReturnsAsync(RepositoryResult<Stream>.Success(stream));
 
-            var result = await CreateService().GetProjectPackageDownloadAsync("Docs", "1.0");
+            var result = await DownloadAsync(markdown);
 
             Assert.True(result.IsSuccess);
             Assert.Same(stream, result.Value.stream);
             Assert.Null(result.Value.sasDownloadUrl);
         }
 
-        [Fact]
-        public async Task AzureDownloadUsesShortLivedSasLinkWithFriendlyFilenameWithoutReadingPackage()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task AzureDownloadUsesShortLivedSasLinkWithFriendlyFilenameWithoutReadingPackage(bool markdown)
         {
-            var path = await AddVersionAsync();
+            var path = await AddVersionAsync(markdown);
+            var fileName = markdown ? "Docs_1.0_markdown.zip" : "Docs_1.0.zip";
             const string downloadUrl = "https://storage.example/Docs.zip?sas=download";
             _fileManager.As<IAzureBlobFileManager>()
-                .Setup(m => m.GetSasDownloadLinkAsync(AppConstants.PROJECTS_CONTAINER, path, 5, "Docs_1.0.zip"))
+                .Setup(m => m.GetSasDownloadLinkAsync(AppConstants.PROJECTS_CONTAINER, path, 5, fileName))
                 .ReturnsAsync(RepositoryResult<SasDownloadLink>.Success(new SasDownloadLink { DownloadLink = downloadUrl }));
 
-            var result = await CreateService().GetProjectPackageDownloadAsync("Docs", "1.0");
+            var result = await DownloadAsync(markdown);
 
             Assert.True(result.IsSuccess);
             Assert.Equal(downloadUrl, result.Value.sasDownloadUrl);
             Assert.Null(result.Value.stream);
         }
 
-        [Fact]
-        public async Task FailedSasGenerationDoesNotFallBackToProxyingThePackage()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task FailedSasGenerationDoesNotFallBackToProxyingThePackage(bool markdown)
         {
-            var path = await AddVersionAsync();
+            var path = await AddVersionAsync(markdown);
+            var fileName = markdown ? "Docs_1.0_markdown.zip" : "Docs_1.0.zip";
             _fileManager.As<IAzureBlobFileManager>()
-                .Setup(m => m.GetSasDownloadLinkAsync(AppConstants.PROJECTS_CONTAINER, path, 5, "Docs_1.0.zip"))
+                .Setup(m => m.GetSasDownloadLinkAsync(AppConstants.PROJECTS_CONTAINER, path, 5, fileName))
                 .ReturnsAsync(RepositoryResult<SasDownloadLink>.Fail("Cannot generate SAS"));
 
-            var result = await CreateService().GetProjectPackageDownloadAsync("Docs", "1.0");
+            var result = await DownloadAsync(markdown);
 
             Assert.False(result.IsSuccess);
             Assert.Equal("Cannot generate SAS", result.ErrorMessage);
         }
 
-        [Fact]
-        public async Task FailedDiskDownloadReportsStorageError()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task FailedDiskDownloadReportsStorageError(bool markdown)
         {
-            var path = await AddVersionAsync();
+            var path = await AddVersionAsync(markdown);
             _fileManager.Setup(m => m.GetFileAsync(AppConstants.PROJECTS_CONTAINER, path))
                 .ReturnsAsync(RepositoryResult<Stream>.Fail("Package missing"));
 
-            var result = await CreateService().GetProjectPackageDownloadAsync("Docs", "1.0");
+            var result = await DownloadAsync(markdown);
 
             Assert.False(result.IsSuccess);
             Assert.Equal("Package missing", result.ErrorMessage);
@@ -251,12 +277,25 @@ namespace Dangl.WebDocumentation.Tests.Services
             _context.Dispose();
         }
 
-        private async Task<string> AddVersionAsync()
+        private async Task<string> AddVersionAsync(bool markdown = false)
         {
-            var version = new DocumentationProjectVersion { ProjectName = "Docs", Version = "1.0" };
+            var version = new DocumentationProjectVersion
+            {
+                ProjectName = "Docs", Version = "1.0", MarkdownFileId = markdown ? Guid.NewGuid() : null
+            };
             _context.DocumentationProjectVersions.Add(version);
             await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
-            return Path.Combine(_context.DocumentationProjects.Single().Id.ToString(), version.FileId + ".zip");
+            return markdown
+                ? MarkdownDocumentsService.GetPackagePath(version.MarkdownFileId.Value)
+                : Path.Combine(_context.DocumentationProjects.Single().Id.ToString(), version.FileId + ".zip");
+        }
+
+        private Task<RepositoryResult<(string sasDownloadUrl, Stream stream)>> DownloadAsync(bool markdown)
+        {
+            var service = CreateService();
+            return markdown
+                ? service.GetMarkdownPackageDownloadAsync("Docs", "1.0")
+                : service.GetProjectPackageDownloadAsync("Docs", "1.0");
         }
 
         private ProjectFilesService CreateService(IFileManager fileManager = null)

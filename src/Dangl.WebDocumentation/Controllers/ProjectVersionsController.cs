@@ -61,6 +61,7 @@ namespace Dangl.WebDocumentation.Controllers
                     Version = v.version,
                     HasAssetFiles = v.hasAssets,
                     HasChangelog = v.hasChangelog,
+                    HasMarkdownPackage = v.hasMarkdownPackage,
                     DateUtc = v.dateUtc,
                     PackageSizeInBytes = v.packageSizeInBytes
                 })
@@ -77,7 +78,14 @@ namespace Dangl.WebDocumentation.Controllers
         }
 
         [HttpGet("Download/{version}")]
-        public async Task<IActionResult> DownloadPackage(string projectName, string version)
+        public Task<IActionResult> DownloadPackage(string projectName, string version) =>
+            DownloadPackageAsync(projectName, version, markdown: false);
+
+        [HttpGet("DownloadMarkdown/{version}")]
+        public Task<IActionResult> DownloadMarkdownPackage(string projectName, string version) =>
+            DownloadPackageAsync(projectName, version, markdown: true);
+
+        private async Task<IActionResult> DownloadPackageAsync(string projectName, string version, bool markdown)
         {
             if (User.Identity?.IsAuthenticated != true)
             {
@@ -93,7 +101,9 @@ namespace Dangl.WebDocumentation.Controllers
                 }
             }
 
-            var packageDownload = await _projectFilesService.GetProjectPackageDownloadAsync(projectName, version);
+            var packageDownload = markdown
+                ? await _projectFilesService.GetMarkdownPackageDownloadAsync(projectName, version)
+                : await _projectFilesService.GetProjectPackageDownloadAsync(projectName, version);
             if (!packageDownload.IsSuccess)
             {
                 return NotFound();
@@ -104,7 +114,7 @@ namespace Dangl.WebDocumentation.Controllers
                 return Redirect(packageDownload.Value.sasDownloadUrl);
             }
 
-            var fileName = $"{projectName}_{version}.zip";
+            var fileName = markdown ? $"{projectName}_{version}_markdown.zip" : $"{projectName}_{version}.zip";
             return File(packageDownload.Value.stream, "application/zip", fileName);
         }
     }
