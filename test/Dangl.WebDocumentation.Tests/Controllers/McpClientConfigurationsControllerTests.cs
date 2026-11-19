@@ -26,7 +26,8 @@ namespace Dangl.WebDocumentation.Tests.Controllers
                 ConfigurationTemplate = "{\"url\": {{mcpUrl}}, \"clientId\": {{clientId}}}"
             };
 
-            var result = await controller.AddMcpClientConfiguration(model);
+            var result = await controller.AddMcpClientConfiguration(
+                new McpClientConfigurationsViewModel { NewConfiguration = model });
 
             Assert.IsType<RedirectToActionResult>(result);
             var saved = Assert.Single(_context.McpClientConfigurations);
@@ -45,7 +46,8 @@ namespace Dangl.WebDocumentation.Tests.Controllers
                 ConfigurationTemplate = "{\"url\": {{mcpUrl}}}"
             };
 
-            var result = await controller.AddMcpClientConfiguration(model);
+            var result = await controller.AddMcpClientConfiguration(
+                new McpClientConfigurationsViewModel { NewConfiguration = model });
 
             Assert.IsType<ViewResult>(result);
             Assert.Empty(_context.McpClientConfigurations);

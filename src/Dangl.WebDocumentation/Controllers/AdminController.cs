@@ -72,9 +72,10 @@ namespace Dangl.WebDocumentation.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AddMcpClientConfiguration(McpClientConfigurationInputViewModel model)
+        public async Task<IActionResult> AddMcpClientConfiguration(McpClientConfigurationsViewModel viewModel)
         {
             ViewData["Section"] = "Admin";
+            var model = viewModel.NewConfiguration;
             var hasRequiredPlaceholders = model.ConfigurationTemplate?.Contains("{{mcpUrl}}", StringComparison.Ordinal) == true
                 && model.ConfigurationTemplate.Contains("{{clientId}}", StringComparison.Ordinal);
             if (ModelState.IsValid && !hasRequiredPlaceholders)
