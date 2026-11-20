@@ -75,8 +75,8 @@ it does not modify the HTML ZIP or other versions. Concurrent version changes re
 Deleting a documentation version also deletes its Markdown documents.
 
 Packages must contain UTF-8 `.md` or `.markdown` files. Relative directory paths, headings, Markdown and code examples are preserved;
-non-Markdown files, such as images, are ignored. Limits are 10 MiB compressed, 20 MiB of Markdown after decompression,
-1 MiB per document, 1000 documents, and 2000 ZIP entries. Document paths must be unique ignoring case, at most 300 characters,
+non-Markdown files, such as images, are ignored. Limits are 100 MiB compressed, 200 MiB of Markdown after decompression,
+10 MiB per document, 10000 documents, and 20000 ZIP entries (including directories and non-Markdown files). Document paths must be unique ignoring case, at most 300 characters,
 and must not contain absolute paths or `.` / `..` segments.
 
 The Markdown ZIP is stored in shared file storage, while SQL holds only document paths and titles. Document reads extract content

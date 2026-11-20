@@ -20,8 +20,8 @@ namespace Dangl.WebDocumentation.Controllers.API
         }
 
         [HttpPost("API/MarkdownDocuments/Upload")]
-        [RequestSizeLimit(12 * 1024 * 1024)]
-        [RequestFormLimits(MultipartBodyLengthLimit = 12 * 1024 * 1024)]
+        [RequestSizeLimit(120 * 1024 * 1024)]
+        [RequestFormLimits(MultipartBodyLengthLimit = 120 * 1024 * 1024)]
         public async Task<IActionResult> Upload(string apiKey, string version, IFormFile markdownPackage,
             CancellationToken cancellationToken)
         {

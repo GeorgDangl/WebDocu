@@ -208,14 +208,50 @@ namespace Dangl.WebDocumentation.Tests.Services
         [Fact]
         public async Task TotalUncompressedContentAndDocumentCountAreBounded()
         {
+            var content = new string('x', MarkdownDocumentsService.MaxDocumentBytes);
             using var large = Package(Enumerable.Range(0, 21)
-                .Select(i => ($"{i}.md", new string('x', MarkdownDocumentsService.MaxDocumentBytes))).ToArray());
+                .Select(i => ($"{i}.md", content)).ToArray());
             Assert.False((await _service.UploadPackageAsync("Docs", "1.0", large, TestContext.Current.CancellationToken)).IsSuccess);
 
             using var many = Package(Enumerable.Range(0, MarkdownDocumentsService.MaxDocuments + 1)
                 .Select(i => ($"{i}.md", "content")).ToArray());
             Assert.False((await _service.UploadPackageAsync("Docs", "1.0", many, TestContext.Current.CancellationToken)).IsSuccess);
             Assert.Empty(_context.MarkdownDocuments);
+        }
+
+        [Fact]
+        public async Task PackageAtTheDocumentAndZipEntryLimitsIsAccepted()
+        {
+            using var package = Package(Enumerable.Range(0, MarkdownDocumentsService.MaxDocuments)
+                .Select(i => ($"{i}.md", "# Document"))
+                .Concat(Enumerable.Range(0, MarkdownDocumentsService.MaxZipEntries - MarkdownDocumentsService.MaxDocuments)
+                    .Select(i => ($"directory-{i}/", ""))).ToArray());
+
+            var result = await _service.UploadPackageAsync("Docs", "1.0", package, TestContext.Current.CancellationToken);
+
+            Assert.True(result.IsSuccess, result.ErrorMessage);
+            Assert.Equal(MarkdownDocumentsService.MaxDocuments, result.Value);
+            Assert.Equal(MarkdownDocumentsService.MaxDocuments,
+                await _context.MarkdownDocuments.CountAsync(TestContext.Current.CancellationToken));
+            Assert.Equal("# Document", await _service.GetDocumentContentAsync("Docs", "1.0", "9999.md",
+                TestContext.Current.CancellationToken));
+            Assert.Single(_blobs);
+        }
+
+        [Fact]
+        public async Task TooManyZipEntriesAreRejectedEvenWhenNonMarkdown()
+        {
+            using var package = Package(Enumerable.Range(0, MarkdownDocumentsService.MaxZipEntries)
+                .Select(i => ($"{i}.txt", ""))
+                .Append(("readme.md", "# Docs")).ToArray());
+
+            var result = await _service.UploadPackageAsync("Docs", "1.0", package, TestContext.Current.CancellationToken);
+
+            Assert.False(result.IsSuccess);
+            Assert.Equal($"A Markdown package may contain at most {MarkdownDocumentsService.MaxZipEntries} ZIP entries.",
+                result.ErrorMessage);
+            Assert.Empty(_context.MarkdownDocuments);
+            Assert.Empty(_blobs);
         }
 
         [Fact]

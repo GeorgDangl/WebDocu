@@ -16,10 +16,11 @@ namespace Dangl.WebDocumentation.Services
 {
     public class MarkdownDocumentsService
     {
-        public const int MaxPackageBytes = 10 * 1024 * 1024;
-        public const int MaxDocumentBytes = 1024 * 1024;
-        public const int MaxContentBytes = 20 * 1024 * 1024;
-        public const int MaxDocuments = 1000;
+        public const int MaxPackageBytes = 100 * 1024 * 1024;
+        public const int MaxDocumentBytes = 10 * 1024 * 1024;
+        public const int MaxContentBytes = 200 * 1024 * 1024;
+        public const int MaxDocuments = 10000;
+        public const int MaxZipEntries = 20000;
         private readonly ApplicationDbContext _context;
         private readonly IFileManager _fileManager;
         private readonly ILogger<MarkdownDocumentsService> _logger;
@@ -228,9 +229,9 @@ namespace Dangl.WebDocumentation.Services
         {
             compressed.Position = 0;
             using var archive = new ZipArchive(compressed, ZipArchiveMode.Read, leaveOpen: true);
-            if (archive.Entries.Count > 2000)
+            if (archive.Entries.Count > MaxZipEntries)
             {
-                throw new InvalidDataException("A Markdown package may contain at most 2000 ZIP entries.");
+                throw new InvalidDataException($"A Markdown package may contain at most {MaxZipEntries} ZIP entries.");
             }
 
             var documents = new List<MarkdownDocument>();
@@ -253,7 +254,7 @@ namespace Dangl.WebDocumentation.Services
 
                 if (entry.Length > MaxDocumentBytes || totalBytes + entry.Length > MaxContentBytes || documents.Count >= MaxDocuments)
                 {
-                    throw new InvalidDataException("Markdown packages are limited to 1000 documents, 1 MiB per document and 20 MiB of Markdown.");
+                    throw new InvalidDataException("Markdown packages are limited to 10000 documents, 10 MiB per document and 200 MiB of Markdown.");
                 }
 
                 using var input = entry.Open();

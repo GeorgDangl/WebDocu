@@ -316,8 +316,8 @@ namespace Dangl.WebDocumentation.Controllers
 
         [HttpPost("UploadMarkdownProject/{projectId}")]
         [ValidateAntiForgeryToken]
-        [RequestSizeLimit(12 * 1024 * 1024)]
-        [RequestFormLimits(MultipartBodyLengthLimit = 12 * 1024 * 1024)]
+        [RequestSizeLimit(120 * 1024 * 1024)]
+        [RequestFormLimits(MultipartBodyLengthLimit = 120 * 1024 * 1024)]
         public async Task<IActionResult> UploadMarkdownProject(Guid projectId, string version, IFormFile markdownPackage,
             [FromServices] MarkdownDocumentsService documents, CancellationToken cancellationToken)
         {
@@ -337,7 +337,7 @@ namespace Dangl.WebDocumentation.Controllers
             }
             else if (markdownPackage.Length > MarkdownDocumentsService.MaxPackageBytes)
             {
-                ModelState.AddModelError("", "Markdown ZIP files must not exceed 10 MiB.");
+                ModelState.AddModelError("", "Markdown ZIP files must not exceed 100 MiB.");
             }
             else
             {
