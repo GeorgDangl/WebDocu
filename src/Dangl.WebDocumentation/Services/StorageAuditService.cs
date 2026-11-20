@@ -94,7 +94,7 @@ namespace Dangl.WebDocumentation.Services
         {
             if (_fileManager is DiskFileManager disk)
             {
-                return disk.GetFilePath(fileId, container, path);
+                return Path.GetFullPath(disk.GetFilePath(fileId, container, path));
             }
             if (_fileManager is IAzureBlobFileManager azure)
             {

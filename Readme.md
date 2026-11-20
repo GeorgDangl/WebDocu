@@ -59,6 +59,7 @@ The read-only Hangfire recurring job **MonthlyStorageAudit** scans the `projects
 of each month at 00:00 UTC. It supports both Azure Blob and disk storage, compares stored paths against HTML, Markdown and asset
 references in SQL, and never scans unrelated containers such as data-protection keys. Files modified within the last 24 hours are
 skipped to avoid flagging uploads before their database transaction commits.
+Disk references are normalized to full filesystem paths before comparison; Azure blob names are compared exactly.
 
 Open the Hangfire dashboard from Admin to trigger an audit manually or inspect a completed job's result, which includes
 unreferenced paths, sizes, a byte total and scan time. Findings are also logged as warnings. Storage/database errors fail the job
