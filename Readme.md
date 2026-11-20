@@ -46,6 +46,25 @@ When a version has a Markdown package, the versions page also offers **Download 
 
 The versions page also displays stored package sizes to admins. Sizes are queried from Azure Blob properties or disk metadata after upload and saved in the database; viewing the page does not query storage. Existing versions are populated by a Hangfire job in batches of 100. Packages whose metadata cannot be read are logged and left without a size for a later run, without blocking subsequent batches.
 
+### Admin storage reporting
+
+The Admin project list shows HTML package, Markdown ZIP and asset sizes, plus the total across all versions of each project.
+These are database-backed logical file sizes, not storage-account billing figures; database storage, blob versions/snapshots
+and unreferenced files are not included. Asset sizes use the recorded upload size (the declared size for direct SAS uploads).
+Markdown sizes are saved on upload; the existing startup backfill job also populates sizes for older Markdown packages.
+Until backfill completes, or if metadata cannot be read, affected totals are labeled **At least** with the number of unavailable package sizes.
+The schema migration adds a nullable Markdown package size column and runs through the normal application migration process.
+
+The read-only Hangfire recurring job **MonthlyStorageAudit** scans the `projects` and `project-assets` containers on the first day
+of each month at 00:00 UTC. It supports both Azure Blob and disk storage, compares stored paths against HTML, Markdown and asset
+references in SQL, and never scans unrelated containers such as data-protection keys. Files modified within the last 24 hours are
+skipped to avoid flagging uploads before their database transaction commits.
+
+Open the Hangfire dashboard from Admin to trigger an audit manually or inspect a completed job's result, which includes
+unreferenced paths, sizes, a byte total and scan time. Findings are also logged as warnings. Storage/database errors fail the job
+rather than reporting a successful partial scan. No files are automatically deleted: findings are candidates for manual investigation,
+and references should be rechecked before removing anything.
+
 ## MCP access for AI agents
 
 The app includes an optional, read-only MCP server at `https://<YourDomain>/mcp`, using Streamable HTTP.

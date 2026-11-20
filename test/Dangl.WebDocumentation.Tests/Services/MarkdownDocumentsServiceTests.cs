@@ -72,6 +72,8 @@ namespace Dangl.WebDocumentation.Tests.Services
                 new[] { "project" }, TestContext.Current.CancellationToken);
             Assert.Contains("project", Assert.Single(searchResults).Excerpt, StringComparison.OrdinalIgnoreCase);
             Assert.Single(_blobs);
+            Assert.Equal(package.Length,
+                (await _context.DocumentationProjectVersions.SingleAsync(TestContext.Current.CancellationToken)).MarkdownPackageSizeInBytes);
         }
 
         [Fact]
@@ -95,6 +97,10 @@ namespace Dangl.WebDocumentation.Tests.Services
             Assert.Equal("Other version", await _service.GetDocumentContentAsync("Docs", "2.0", "keep.md",
                 TestContext.Current.CancellationToken));
             Assert.Equal(2, _blobs.Count);
+            Assert.Equal(replacement.Length, (await _context.DocumentationProjectVersions
+                .SingleAsync(v => v.Version == "1.0", TestContext.Current.CancellationToken)).MarkdownPackageSizeInBytes);
+            Assert.Equal(second.Length, (await _context.DocumentationProjectVersions
+                .SingleAsync(v => v.Version == "2.0", TestContext.Current.CancellationToken)).MarkdownPackageSizeInBytes);
         }
 
         [Theory]

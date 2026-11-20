@@ -17,5 +17,6 @@ namespace Dangl.WebDocumentation.Services
         Task<RepositoryResult<(string sasDownloadUrl, Stream stream)>> GetProjectPackageDownloadAsync(string projectName, string version);
         Task<RepositoryResult<(string sasDownloadUrl, Stream stream)>> GetMarkdownPackageDownloadAsync(string projectName, string version);
         Task<long?> GetProjectPackageSizeInBytesAsync(string projectName, string version);
+        Task<long?> GetMarkdownPackageSizeInBytesAsync(string projectName, string version);
     }
 }

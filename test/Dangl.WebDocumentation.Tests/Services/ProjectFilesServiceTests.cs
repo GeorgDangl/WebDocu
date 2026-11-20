@@ -76,26 +76,36 @@ namespace Dangl.WebDocumentation.Tests.Services
             _notifications.Verify(n => n.ScheduleProjectUploadNotificationsAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
         }
 
-        [Fact]
-        public async Task AzureSizeQueryUsesBlobPropertiesWithoutDownloadingThePackage()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task AzureSizeQueryUsesBlobPropertiesWithoutDownloadingThePackage(bool markdown)
         {
-            var path = await AddVersionAsync();
+            var path = await AddVersionAsync(markdown);
             _fileManager.As<IAzureBlobFileManager>()
                 .Setup(m => m.GetBlobPropertiesAsync(AppConstants.PROJECTS_CONTAINER, path))
                 .ReturnsAsync(RepositoryResult<BlobProperties>.Success(BlobsModelFactory.BlobProperties(contentLength: 54321)));
 
-            Assert.Equal(54321L, await CreateService().GetProjectPackageSizeInBytesAsync("Docs", "1.0"));
+            var service = CreateService();
+            Assert.Equal(54321L, markdown
+                ? await service.GetMarkdownPackageSizeInBytesAsync("Docs", "1.0")
+                : await service.GetProjectPackageSizeInBytesAsync("Docs", "1.0"));
         }
 
-        [Fact]
-        public async Task MetadataFailureIsReportedInsteadOfRecordingAZeroSize()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task MetadataFailureIsReportedInsteadOfRecordingAZeroSize(bool markdown)
         {
-            var path = await AddVersionAsync();
+            var path = await AddVersionAsync(markdown);
             _fileManager.As<IAzureBlobFileManager>()
                 .Setup(m => m.GetBlobPropertiesAsync(AppConstants.PROJECTS_CONTAINER, path))
                 .ReturnsAsync(RepositoryResult<BlobProperties>.Fail("Blob unavailable"));
 
-            var exception = await Assert.ThrowsAsync<IOException>(() => CreateService().GetProjectPackageSizeInBytesAsync("Docs", "1.0"));
+            var service = CreateService();
+            var exception = await Assert.ThrowsAsync<IOException>(() => markdown
+                ? service.GetMarkdownPackageSizeInBytesAsync("Docs", "1.0")
+                : service.GetProjectPackageSizeInBytesAsync("Docs", "1.0"));
 
             Assert.Contains("Blob unavailable", exception.Message);
         }
@@ -115,18 +125,23 @@ namespace Dangl.WebDocumentation.Tests.Services
             _notifications.Verify(n => n.ScheduleProjectUploadNotificationsAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
         }
 
-        [Fact]
-        public async Task DiskSizeQueryUsesTheStoredFile()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task DiskSizeQueryUsesTheStoredFile(bool markdown)
         {
             var folder = Directory.CreateTempSubdirectory("WebDocu-package-size-");
             try
             {
-                var path = await AddVersionAsync();
+                var path = await AddVersionAsync(markdown);
                 var fileManager = new DiskFileManager(folder.FullName);
                 using var package = new MemoryStream(new byte[123]);
                 Assert.True((await fileManager.SaveFileAsync(AppConstants.PROJECTS_CONTAINER, path, package)).IsSuccess);
 
-                Assert.Equal(123L, await CreateService(fileManager).GetProjectPackageSizeInBytesAsync("Docs", "1.0"));
+                var service = CreateService(fileManager);
+                Assert.Equal(123L, markdown
+                    ? await service.GetMarkdownPackageSizeInBytesAsync("Docs", "1.0")
+                    : await service.GetProjectPackageSizeInBytesAsync("Docs", "1.0"));
             }
             finally
             {
@@ -149,6 +164,7 @@ namespace Dangl.WebDocumentation.Tests.Services
                 : await service.GetProjectPackageDownloadAsync(projectName, version);
             Assert.False(result.IsSuccess);
             Assert.Null(await service.GetProjectPackageSizeInBytesAsync(projectName, version));
+            Assert.Null(await service.GetMarkdownPackageSizeInBytesAsync(projectName, version));
         }
 
         [Fact]
@@ -159,6 +175,7 @@ namespace Dangl.WebDocumentation.Tests.Services
             var result = await CreateService().GetMarkdownPackageDownloadAsync("Docs", "1.0");
 
             Assert.False(result.IsSuccess);
+            Assert.Null(await CreateService().GetMarkdownPackageSizeInBytesAsync("Docs", "1.0"));
             _fileManager.VerifyNoOtherCalls();
         }
 

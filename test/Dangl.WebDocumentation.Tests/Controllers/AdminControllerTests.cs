@@ -3,8 +3,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using Dangl.WebDocumentation.Controllers;
 using Dangl.WebDocumentation.Models;
+using Dangl.WebDocumentation.ViewModels.Admin;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
@@ -48,6 +51,72 @@ namespace Dangl.WebDocumentation.Tests.Controllers
 
     public static class AdminControllerTests
     {
+        public class Storage
+        {
+            [Fact]
+            public async Task IndexTotalsAllPackageTypesAndAssetsPerProjectAndMarksUnknownSizes()
+            {
+                using var connection = new SqliteConnection("Data Source=:memory:");
+                await connection.OpenAsync(TestContext.Current.CancellationToken);
+                using var context = new ApplicationDbContext(new DbContextOptionsBuilder<ApplicationDbContext>()
+                    .UseSqlite(connection).Options);
+                await context.Database.EnsureCreatedAsync(TestContext.Current.CancellationToken);
+                foreach (var name in new[] { "Empty", "Beta", "Alpha" })
+                {
+                    context.DocumentationProjects.Add(new DocumentationProject { Name = name, PathToIndex = "index.html" });
+                }
+                context.DocumentationProjectVersions.AddRange(
+                    new DocumentationProjectVersion
+                    {
+                        ProjectName = "Alpha", Version = "1.0", PackageSizeInBytes = 3_000_000_000,
+                        MarkdownFileId = Guid.NewGuid(), MarkdownPackageSizeInBytes = 10
+                    },
+                    new DocumentationProjectVersion
+                    {
+                        ProjectName = "Alpha", Version = "2.0-beta", PackageSizeInBytes = 4_000_000_000,
+                        MarkdownFileId = Guid.NewGuid(), MarkdownPackageSizeInBytes = 30
+                    },
+                    new DocumentationProjectVersion
+                    {
+                        ProjectName = "Beta", Version = "1.0", MarkdownFileId = Guid.NewGuid()
+                    },
+                    new DocumentationProjectVersion
+                    {
+                        ProjectName = "Beta", Version = "2.0", PackageSizeInBytes = 0,
+                        MarkdownPackageSizeInBytes = 999
+                    });
+                context.ProjectVersionAssetFiles.AddRange(
+                    new ProjectVersionAssetFile
+                    {
+                        ProjectName = "Alpha", Version = "1.0", FileName = "one.zip", FileSizeInBytes = 20
+                    },
+                    new ProjectVersionAssetFile
+                    {
+                        ProjectName = "Alpha", Version = "2.0-beta", FileName = "two.zip", FileSizeInBytes = 40
+                    },
+                    new ProjectVersionAssetFile
+                    {
+                        ProjectName = "Beta", Version = "1.0", FileName = "beta.zip", FileSizeInBytes = 50
+                    });
+                await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+                var controller = new AdminController(context, null, null, null, null, null, null);
+
+                var view = Assert.IsType<ViewResult>(await controller.Index(null, null));
+                var projects = Assert.IsType<IndexViewModel>(view.Model).Projects.ToList();
+
+                Assert.Equal(new[] { "Alpha", "Beta", "Empty" }, projects.Select(p => p.Name));
+                Assert.Equal(7_000_000_000, projects[0].PackageSizeInBytes);
+                Assert.Equal(40, projects[0].MarkdownPackageSizeInBytes);
+                Assert.Equal(60, projects[0].AssetSizeInBytes);
+                Assert.Equal(7_000_000_100, projects[0].TotalSizeInBytes);
+                Assert.Equal(0, projects[0].PackagesWithoutSize);
+                Assert.Equal(50, projects[1].TotalSizeInBytes);
+                Assert.Equal(2, projects[1].PackagesWithoutSize);
+                Assert.Equal(0, projects[2].TotalSizeInBytes);
+                Assert.Equal(0, projects[2].PackagesWithoutSize);
+            }
+        }
+
         public class General : IClassFixture<AdminControllerTestsFixture>
         {
             public General(AdminControllerTestsFixture fixture)

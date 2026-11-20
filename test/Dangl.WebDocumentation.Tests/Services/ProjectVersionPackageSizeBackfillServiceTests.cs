@@ -92,6 +92,62 @@ namespace Dangl.WebDocumentation.Tests.Services
             _files.Verify(f => f.GetProjectPackageSizeInBytesAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Exactly(101));
         }
 
+        [Fact]
+        public async Task BackfillsMarkdownOnlyVersionsAcrossBatchesWithoutRequeryingKnownHtmlSizes()
+        {
+            await AddVersionsAsync(101);
+            foreach (var version in _context.DocumentationProjectVersions)
+            {
+                version.PackageSizeInBytes = 123;
+                version.MarkdownFileId = Guid.NewGuid();
+            }
+            await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
+            _files.Setup(f => f.GetMarkdownPackageSizeInBytesAsync(It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(456L);
+            var service = CreateService();
+
+            await service.BackfillPackageSizesAsync();
+            var job = Assert.Single(_queuedJobs);
+            _queuedJobs.Clear();
+            await service.BackfillPackageSizesAsync((string)job.Args[0], (string)job.Args[1]);
+
+            Assert.Empty(_queuedJobs);
+            _context.ChangeTracker.Clear();
+            Assert.All(await _context.DocumentationProjectVersions.ToListAsync(TestContext.Current.CancellationToken), version =>
+            {
+                Assert.Equal(123L, version.PackageSizeInBytes);
+                Assert.Equal(456L, version.MarkdownPackageSizeInBytes);
+            });
+            _files.Verify(f => f.GetProjectPackageSizeInBytesAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+            _files.Verify(f => f.GetMarkdownPackageSizeInBytesAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Exactly(101));
+        }
+
+        [Fact]
+        public async Task UnreadableHtmlDoesNotPreventMarkdownBackfillAndUnreadableMarkdownRemainsUnknown()
+        {
+            await AddVersionsAsync(2);
+            foreach (var version in _context.DocumentationProjectVersions)
+            {
+                version.MarkdownFileId = Guid.NewGuid();
+            }
+            await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
+            _files.Setup(f => f.GetProjectPackageSizeInBytesAsync(It.IsAny<string>(), It.IsAny<string>()))
+                .ThrowsAsync(new IOException("HTML package missing"));
+            _files.Setup(f => f.GetMarkdownPackageSizeInBytesAsync("First", "000")).ReturnsAsync(456L);
+            _files.Setup(f => f.GetMarkdownPackageSizeInBytesAsync("First", "001"))
+                .ThrowsAsync(new IOException("Markdown package missing"));
+
+            await CreateService().BackfillPackageSizesAsync();
+
+            _context.ChangeTracker.Clear();
+            var versions = await _context.DocumentationProjectVersions.OrderBy(v => v.Version)
+                .ToListAsync(TestContext.Current.CancellationToken);
+            Assert.All(versions, v => Assert.Null(v.PackageSizeInBytes));
+            Assert.Equal(456L, versions[0].MarkdownPackageSizeInBytes);
+            Assert.Null(versions[1].MarkdownPackageSizeInBytes);
+            Assert.Empty(_queuedJobs);
+        }
+
         public void Dispose()
         {
             _context.Dispose();

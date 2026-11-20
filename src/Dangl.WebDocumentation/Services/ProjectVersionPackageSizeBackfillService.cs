@@ -38,20 +38,13 @@ namespace Dangl.WebDocumentation.Services
 
             foreach (var entry in versionsWithoutSize)
             {
-                try
+                if (!entry.PackageSizeInBytes.HasValue)
                 {
-                    var sizeInBytes = await _projectFilesService.GetProjectPackageSizeInBytesAsync(entry.ProjectName, entry.Version);
-                    if (sizeInBytes == null)
-                    {
-                        _logger.LogWarning("Documentation package no longer exists for {ProjectName} {Version}.", entry.ProjectName, entry.Version);
-                        continue;
-                    }
-
-                    entry.PackageSizeInBytes = sizeInBytes;
+                    entry.PackageSizeInBytes = await GetPackageSizeAsync(entry, markdown: false);
                 }
-                catch (System.Exception exception) when (exception is IOException || exception is System.UnauthorizedAccessException)
+                if (entry.MarkdownFileId.HasValue && !entry.MarkdownPackageSizeInBytes.HasValue)
                 {
-                    _logger.LogWarning(exception, "Could not backfill package size for {ProjectName} {Version}.", entry.ProjectName, entry.Version);
+                    entry.MarkdownPackageSizeInBytes = await GetPackageSizeAsync(entry, markdown: true);
                 }
             }
 
@@ -68,9 +61,32 @@ namespace Dangl.WebDocumentation.Services
             }
         }
 
+        private async Task<long?> GetPackageSizeAsync(DocumentationProjectVersion entry, bool markdown)
+        {
+            try
+            {
+                var size = markdown
+                    ? await _projectFilesService.GetMarkdownPackageSizeInBytesAsync(entry.ProjectName, entry.Version)
+                    : await _projectFilesService.GetProjectPackageSizeInBytesAsync(entry.ProjectName, entry.Version);
+                if (!size.HasValue)
+                {
+                    _logger.LogWarning("Package no longer exists for {ProjectName} {Version} (Markdown: {Markdown}).",
+                        entry.ProjectName, entry.Version, markdown);
+                }
+                return size;
+            }
+            catch (System.Exception exception) when (exception is IOException || exception is System.UnauthorizedAccessException)
+            {
+                _logger.LogWarning(exception, "Could not backfill package size for {ProjectName} {Version} (Markdown: {Markdown}).",
+                    entry.ProjectName, entry.Version, markdown);
+                return null;
+            }
+        }
+
         private IQueryable<DocumentationProjectVersion> GetVersionsWithoutSizeAfter(string projectName, string version)
         {
-            var query = _context.DocumentationProjectVersions.Where(v => v.PackageSizeInBytes == null);
+            var query = _context.DocumentationProjectVersions.Where(v => v.PackageSizeInBytes == null
+                || (v.MarkdownFileId != null && v.MarkdownPackageSizeInBytes == null));
             if (projectName != null)
             {
                 query = query.Where(v => string.Compare(v.ProjectName, projectName) > 0

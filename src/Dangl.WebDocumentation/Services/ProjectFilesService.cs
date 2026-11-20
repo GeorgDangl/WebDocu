@@ -269,6 +269,17 @@ namespace Dangl.WebDocumentation.Services
             return packagePath == null ? null : await GetPackageSizeInBytesAsync(packagePath);
         }
 
+        public async Task<long?> GetMarkdownPackageSizeInBytesAsync(string projectName, string version)
+        {
+            var fileId = await _context.DocumentationProjectVersions
+                .Where(v => v.ProjectName == projectName && v.Version == version)
+                .Select(v => v.MarkdownFileId)
+                .SingleOrDefaultAsync();
+            return fileId.HasValue
+                ? await GetPackageSizeInBytesAsync(MarkdownDocumentsService.GetPackagePath(fileId.Value))
+                : null;
+        }
+
         private async Task<long> GetPackageSizeInBytesAsync(string packagePath)
         {
             if (_fileManager is IAzureBlobFileManager azureBlobFileManager)
@@ -311,7 +322,7 @@ namespace Dangl.WebDocumentation.Services
             return GetPackagePath(projectId.Id, versionPackageId.FileId);
         }
 
-        private string GetPackagePath(Guid projectId, Guid versionFileId)
+        public static string GetPackagePath(Guid projectId, Guid versionFileId)
         {
             var packagePath = Path.Combine(projectId.ToString(), versionFileId + ".zip");
             return packagePath;

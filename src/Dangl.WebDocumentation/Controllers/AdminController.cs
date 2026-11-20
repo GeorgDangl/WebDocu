@@ -43,7 +43,7 @@ namespace Dangl.WebDocumentation.Controllers
             _emailSender = emailSender;
         }
 
-        public IActionResult Index(string successMessage, string errorMessage)
+        public async Task<IActionResult> Index(string successMessage, string errorMessage)
         {
             ViewData["Section"] = "Admin";
 
@@ -56,7 +56,28 @@ namespace Dangl.WebDocumentation.Controllers
                 ViewBag.ErrorMessage = errorMessage;
             }
             var model = new IndexViewModel();
-            model.Projects = _context.DocumentationProjects.OrderBy(project => project.Name);
+            model.Projects = await _context.DocumentationProjects
+                .OrderBy(project => project.Name)
+                .Select(project => new ProjectStorageViewModel
+                {
+                    Id = project.Id,
+                    Name = project.Name,
+                    PackageSizeInBytes = _context.DocumentationProjectVersions
+                        .Where(v => v.ProjectName == project.Name)
+                        .Sum(v => v.PackageSizeInBytes ?? 0),
+                    MarkdownPackageSizeInBytes = _context.DocumentationProjectVersions
+                        .Where(v => v.ProjectName == project.Name && v.MarkdownFileId != null)
+                        .Sum(v => v.MarkdownPackageSizeInBytes ?? 0),
+                    AssetSizeInBytes = _context.ProjectVersionAssetFiles
+                        .Where(a => a.ProjectName == project.Name)
+                        .Sum(a => a.FileSizeInBytes),
+                    PackagesWithoutSize = _context.DocumentationProjectVersions
+                        .Count(v => v.ProjectName == project.Name && v.PackageSizeInBytes == null)
+                        + _context.DocumentationProjectVersions
+                        .Count(v => v.ProjectName == project.Name && v.MarkdownFileId != null
+                            && v.MarkdownPackageSizeInBytes == null)
+                })
+                .ToListAsync();
             return View(model);
         }
 
