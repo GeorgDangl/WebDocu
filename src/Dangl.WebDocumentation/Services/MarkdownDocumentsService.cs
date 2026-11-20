@@ -116,6 +116,7 @@ namespace Dangl.WebDocumentation.Services
 
                 _context.MarkdownDocuments.RemoveRange(byPath.Values);
                 projectVersion.MarkdownFileId = fileId;
+                projectVersion.MarkdownPackageSizeInBytes = compressedPackage.Length;
                 projectVersion.MarkdownRevision = Guid.NewGuid();
                 // The revision prevents concurrent uploads from merging two different packages.
                 await _context.SaveChangesAsync(cancellationToken);

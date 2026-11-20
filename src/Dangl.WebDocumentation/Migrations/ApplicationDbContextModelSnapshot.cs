@@ -16,7 +16,7 @@ partial class ApplicationDbContextModelSnapshot : ModelSnapshot
     // If you encounter a merge conflict in the line below, it means you need to
     // discard one of the migration branches and recreate its migrations on top of
     // the other branch. See https://aka.ms/efcore-docs-migrations-conflicts for more info.
-    public override string LastMigrationId => "20261119110000_AddMcpClientConfigurations";
+    public override string LastMigrationId => "20261120115925_AddMarkdownPackageSize";
 
     protected override void BuildModel(ModelBuilder modelBuilder)
     {
@@ -149,11 +149,14 @@ partial class ApplicationDbContextModelSnapshot : ModelSnapshot
                 b.Property<string>("MarkdownChangelog")
                     .HasColumnType("nvarchar(max)");
 
-                b.Property<Guid?>("MarkdownRevision")
-                    .IsConcurrencyToken()
+                b.Property<Guid?>("MarkdownFileId")
                     .HasColumnType("uniqueidentifier");
 
-                b.Property<Guid?>("MarkdownFileId")
+                b.Property<long?>("MarkdownPackageSizeInBytes")
+                    .HasColumnType("bigint");
+
+                b.Property<Guid?>("MarkdownRevision")
+                    .IsConcurrencyToken()
                     .HasColumnType("uniqueidentifier");
 
                 b.Property<long?>("PackageSizeInBytes")

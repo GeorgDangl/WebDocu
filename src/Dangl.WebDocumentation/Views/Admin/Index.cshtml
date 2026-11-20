@@ -1,10 +1,12 @@
 ﻿@using Microsoft.Extensions.Options
+@using Humanizer
 @inject IOptions<AppSettings> AppSettings
 @model Dangl.WebDocumentation.ViewModels.Admin.IndexViewModel
 
 <h1>Admin Section</h1>
 
 <h3>Projects</h3>
+<p>Storage totals include HTML packages, Markdown packages and assets across all versions. Unavailable package sizes are excluded and marked below.</p>
 <p>
     <a asp-action="CreateProject">Create a new project</a>
 </p>
@@ -16,12 +18,36 @@
     else
     {
         <table class="table">
+            <thead>
+                <tr>
+                    <th>Project</th>
+                    <th>HTML packages</th>
+                    <th>Markdown packages</th>
+                    <th>Assets</th>
+                    <th>Total storage</th>
+                    <th colspan="3">Actions</th>
+                </tr>
+            </thead>
             <tbody>
                 @{
                     foreach (var project in Model.Projects)
                     {
                         <tr>
                             <td>@project.Name</td>
+                            <td>@project.PackageSizeInBytes.Bytes().Humanize("##0.00")</td>
+                            <td>@project.MarkdownPackageSizeInBytes.Bytes().Humanize("##0.00")</td>
+                            <td>@project.AssetSizeInBytes.Bytes().Humanize("##0.00")</td>
+                            <td title="@project.TotalSizeInBytes bytes">
+                                @if (project.PackagesWithoutSize > 0)
+                                {
+                                    <span>At least </span>
+                                }
+                                @project.TotalSizeInBytes.Bytes().Humanize("##0.00")
+                                @if (project.PackagesWithoutSize > 0)
+                                {
+                                    <small>(@project.PackagesWithoutSize package size(s) unavailable)</small>
+                                }
+                            </td>
                             <td><a asp-action="EditProject" asp-route-projectId="@project.Id">Edit</a></td>
                             <td><a asp-action="DeleteProject" asp-route-projectId="@project.Id">Delete</a></td>
                             <td><a asp-action="UploadProject" asp-route-projectId="@project.Id">Upload Package</a></td>
@@ -39,6 +65,10 @@
 <p>Publish connection instructions and client settings for users.</p>
 <a asp-action="McpClientConfigurations">Manage MCP client configurations</a>
 <h3>Hangfire Dashboard</h3>
+<p>The read-only MonthlyStorageAudit job checks for unreferenced files on the first day of each month (UTC).
+    Its result lists dangling files and their total size; findings are also logged as warnings.
+    Files modified within the last 24 hours are skipped to avoid reporting uploads in progress.
+    No files are automatically deleted. You can also trigger the job from the dashboard.</p>
 <p>
     <a href="@AppConstants.HANGFIRE_DASHBOARD_LINK">Go to Dashboard</a>
 </p>

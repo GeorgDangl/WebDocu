@@ -26,6 +26,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Threading;
 
 namespace Dangl.WebDocumentation
 {
@@ -101,6 +102,7 @@ namespace Dangl.WebDocumentation
                 if (!string.IsNullOrWhiteSpace(azureBlobStorageConnectionString))
                 {
                     services.AddAzureBlobFileManager(azureBlobStorageConnectionString);
+                    services.AddSingleton(new BlobServiceClient(azureBlobStorageConnectionString));
                     ConfigureAzureStorageDataProtectionIfRequired(services, azureBlobStorageConnectionString);
                 }
             }
@@ -140,6 +142,7 @@ namespace Dangl.WebDocumentation
             services.AddTransient<UserDeletionService>();
             services.AddTransient<UserClaimsProjectAccessService>();
             services.AddTransient<ProjectVersionPackageSizeBackfillService>();
+            services.AddTransient<StorageAuditService>();
 
             services.Configure<ForwardedHeadersOptions>(options =>
             {
@@ -230,6 +233,8 @@ namespace Dangl.WebDocumentation
                     RecurringJob.AddOrUpdate("DailyUserDeletionSyncFromDanglIdentity", () => userDeletionService.RemoveLocallyCachedDeletedUsersAsync(), Cron.Daily());
                     var userClaimsProjectAccessService = ctx.RequestServices.GetRequiredService<UserClaimsProjectAccessService>();
                     RecurringJob.AddOrUpdate("UserClaimProjectAccessSyncFromDanglIdentity", () => userClaimsProjectAccessService.SyncUserClaimsForProjectAccess(), Cron.Hourly());
+                    RecurringJob.AddOrUpdate<StorageAuditService>("MonthlyStorageAudit",
+                        service => service.CheckForDanglingFilesAsync(CancellationToken.None), Cron.Monthly());
                     var packageSizeBackfillService = ctx.RequestServices.GetRequiredService<ProjectVersionPackageSizeBackfillService>();
                     BackgroundJob.Enqueue(() => packageSizeBackfillService.BackfillPackageSizesAsync(null, null));
                 }
